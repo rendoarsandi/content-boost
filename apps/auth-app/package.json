@@ -1,0 +1,33 @@
+{
+  "name": "@repo/auth-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev --port 3001",
+    "lint": "next lint",
+    "start": "next start",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next dist",
+    "test": "jest"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "better-auth": "^0.5.0",
+    "@repo/ui": "*",
+    "@repo/config": "*",
+    "@repo/database": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "jest": "^29.0.0",
+    "@testing-library/react": "^13.0.0",
+    "@testing-library/jest-dom": "^6.0.0"
+  }
+}

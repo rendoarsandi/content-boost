@@ -1,0 +1,36 @@
+{
+  "name": "creator-promotion-platform",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Platform promosi konten kreator dengan sistem pay-per-view dan deteksi bot",
+  "scripts": {
+    "build": "node scripts/build-with-timeout.js",
+    "dev": "node scripts/dev-with-timeout.js",
+    "test": "node scripts/test-with-timeout.js",
+    "migrate": "node scripts/migrate-with-timeout.js",
+    "dev:bg": "node scripts/background-dev.js",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.10.12",
+    "turbo": "^1.10.12",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "packageManager": "npm@9.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

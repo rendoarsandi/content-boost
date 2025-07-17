@@ -1,0 +1,29 @@
+{
+  "name": "@repo/database",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "migrate": "node scripts/migrate.js"
+  },
+  "dependencies": {
+    "pg": "^8.11.0",
+    "drizzle-orm": "^0.29.0",
+    "drizzle-kit": "^0.20.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0"
+  }
+}
