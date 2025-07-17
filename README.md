@@ -117,11 +117,37 @@ Customize timeouts and process behavior in `packages/config/src/process.ts`.
 
 ## 🚦 Development Workflow
 
-1. **Start Development**: `npm run dev`
-2. **Make Changes**: Edit code in respective apps/packages
-3. **Run Tests**: `npm run test`
-4. **Build**: `npm run build`
-5. **Deploy**: Follow deployment guides in `docs/deployment/`
+### For Each New Task:
+1. **Create Feature Branch**:
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/task-[nomor]-[deskripsi-singkat]
+   ```
+
+2. **Development Process**:
+   ```bash
+   npm run dev          # Start development servers
+   npm run test         # Run tests during development
+   npm run build        # Test production build
+   ```
+
+3. **Commit and Push**:
+   ```bash
+   git add .
+   git commit -m "feat: [deskripsi task]"
+   git push origin feature/task-[nomor]-[deskripsi-singkat]
+   ```
+
+4. **Create Pull Request** to main branch on GitHub
+
+### Daily Development:
+- `npm run dev` - Start all development servers
+- `npm run dev:bg` - Start development servers in background
+- `npm run test` - Run test suite
+- `npm run build` - Production build
+- `npm run lint` - Code linting
+- `npm run format` - Code formatting
 
 ## 📊 Monitoring & Logging
 
