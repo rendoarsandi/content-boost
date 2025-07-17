@@ -1,4 +1,43 @@
-# Implementation Plan
+# Creator Promotion Platform - Implementation Plan
+
+## 🔗 Repository
+**GitHub**: https://github.com/rendoarsandi/content-boost.git
+
+## 📋 Branch Management Instructions
+**Untuk setiap task, ikuti workflow berikut:**
+
+1. **Buat branch baru dari main:**
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/task-[nomor]-[deskripsi-singkat]
+   ```
+
+2. **Setelah selesai development:**
+   ```bash
+   git add .
+   git commit -m "feat: [deskripsi task]"
+   git push origin feature/task-[nomor]-[deskripsi-singkat]
+   ```
+
+3. **Buat Pull Request ke main branch**
+
+**Contoh branch naming:**
+- `feature/task-2-database-setup`
+- `feature/task-3-auth-implementation`
+- `feature/task-4-ui-components`
+
+---
+
+## Status Legend
+- ⏳ **pending** - Belum dimulai
+- 🔄 **in_progress** - Sedang dikerjakan  
+- ✅ **completed** - Selesai
+- ❌ **blocked** - Terblokir/butuh bantuan
+
+---
+
+## Implementation Tasks
 
 - [x] 1. Setup Turborepo monorepo structure dan konfigurasi dasar
 
