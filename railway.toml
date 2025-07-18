@@ -1,0 +1,45 @@
+# Railway deployment configuration for Creator Promotion Platform
+
+[project]
+name = "creator-promotion-platform"
+
+[[services]]
+name = "landing-page"
+root = "apps/landing-page"
+start = "npm run start"
+healthcheck_path = "/"
+
+[[services]]
+name = "auth-app"
+root = "apps/auth-app"
+start = "npm run start"
+healthcheck_path = "/api/health"
+
+[[services]]
+name = "dashboard-app"
+root = "apps/dashboard-app"
+start = "npm run start"
+healthcheck_path = "/api/health"
+
+[[services]]
+name = "admin-app"
+root = "apps/admin-app"
+start = "npm run start"
+healthcheck_path = "/api/health"
+
+[[services]]
+name = "postgres"
+engine = "postgres"
+
+[[services]]
+name = "redis"
+engine = "redis"
+
+[env]
+DATABASE_URL = "${{postgres.DATABASE_URL}}"
+REDIS_URL = "${{redis.REDIS_URL}}"
+NEXTAUTH_SECRET = "set-your-secret"
+TIKTOK_CLIENT_ID = "set-your-client-id"
+TIKTOK_CLIENT_SECRET = "set-your-client-secret"
+INSTAGRAM_CLIENT_ID = "set-your-client-id"
+INSTAGRAM_CLIENT_SECRET = "set-your-client-secret"
