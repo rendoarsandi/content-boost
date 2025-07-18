@@ -1,4 +1,3 @@
-import { PoolClient } from 'pg';
 import { BaseRepository, PaginationOptions } from './base';
 import { ViewRecord, TrackingSession } from '../schemas/tracking';
 
@@ -145,7 +144,7 @@ export class ViewRecordRepository extends BaseRepository<ViewRecord> {
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 
@@ -366,7 +365,7 @@ export class TrackingSessionRepository extends BaseRepository<TrackingSession> {
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 

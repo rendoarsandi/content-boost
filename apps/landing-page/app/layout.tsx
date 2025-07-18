@@ -2,8 +2,25 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Creator Promotion Platform',
-  description: 'Platform promosi konten kreator dengan sistem pay-per-view',
+  title: 'ContentBoost - Platform Promosi Konten Kreator',
+  description: 'Platform promosi konten kreator dengan sistem pay-per-view dan deteksi bot otomatis. Tingkatkan engagement konten Anda dengan pembayaran harian yang transparan.',
+  keywords: ['content creator', 'promosi konten', 'pay per view', 'bot detection', 'social media marketing', 'TikTok', 'Instagram'],
+  authors: [{ name: 'ContentBoost Team' }],
+  openGraph: {
+    title: 'ContentBoost - Platform Promosi Konten Kreator',
+    description: 'Platform promosi konten kreator dengan sistem pay-per-view dan deteksi bot otomatis',
+    type: 'website',
+    locale: 'id_ID',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ContentBoost - Platform Promosi Konten Kreator',
+    description: 'Platform promosi konten kreator dengan sistem pay-per-view dan deteksi bot otomatis',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -12,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
-      <body>{children}</body>
+    <html lang="id" className="scroll-smooth">
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

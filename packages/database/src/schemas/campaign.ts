@@ -41,6 +41,7 @@ export const campaignApplications = pgTable('campaign_applications', {
   status: applicationStatusEnum('status').default('pending').notNull(),
   submittedContent: text('submitted_content'),
   trackingLink: varchar('tracking_link', { length: 500 }).notNull(),
+  metadata: jsonb('metadata'), // Store additional application data like proposed content, scores, etc.
   appliedAt: timestamp('applied_at').defaultNow().notNull(),
   reviewedAt: timestamp('reviewed_at'),
 });
@@ -109,6 +110,7 @@ export const CampaignApplicationSchema = z.object({
   status: z.enum(['pending', 'approved', 'rejected']),
   submittedContent: z.string().optional(),
   trackingLink: z.string(),
+  metadata: z.record(z.any()).optional(), // Store additional application data
   appliedAt: z.date(),
   reviewedAt: z.date().optional(),
 });

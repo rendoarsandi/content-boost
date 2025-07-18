@@ -1,72 +1,53 @@
 #!/usr/bin/env node
 
-const { createDatabaseConnection, MigrationRunner } = require('../dist/index.js');
+const { MigrationRunner } = require('../dist/migrations');
+const { createDatabaseConnection } = require('../dist/connection');
 
 async function runMigrations() {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.DATABASE_URL || 'postgresql://localhost:5432/creator_promotion_platform';
   
-  if (!databaseUrl) {
-    console.error('DATABASE_URL environment variable is required');
-    process.exit(1);
-  }
-
+  console.log('Connecting to database...');
   const db = createDatabaseConnection({ url: databaseUrl });
   
   try {
-    console.log('Connecting to database...');
     await db.connect();
+    console.log('Database connected successfully');
     
-    console.log('Running migrations...');
     const migrationRunner = new MigrationRunner();
     await migrationRunner.runMigrations();
     
-    console.log('✓ All migrations completed successfully');
+    console.log('Migration process completed');
   } catch (error) {
     console.error('Migration failed:', error);
     process.exit(1);
   } finally {
     await db.disconnect();
+    console.log('Database connection closed');
   }
 }
 
 // Handle command line arguments
 const command = process.argv[2];
+const migrationId = process.argv[3];
 
-if (command === 'rollback') {
-  const migrationId = process.argv[3];
-  if (!migrationId) {
-    console.error('Migration ID is required for rollback');
-    process.exit(1);
-  }
-  
-  async function rollbackMigration() {
-    const databaseUrl = process.env.DATABASE_URL;
-    
-    if (!databaseUrl) {
-      console.error('DATABASE_URL environment variable is required');
-      process.exit(1);
-    }
-
+if (command === 'rollback' && migrationId) {
+  // Rollback specific migration
+  (async () => {
+    const databaseUrl = process.env.DATABASE_URL || 'postgresql://localhost:5432/creator_promotion_platform';
     const db = createDatabaseConnection({ url: databaseUrl });
     
     try {
-      console.log('Connecting to database...');
       await db.connect();
-      
-      console.log(`Rolling back migration: ${migrationId}`);
       const migrationRunner = new MigrationRunner();
       await migrationRunner.rollbackMigration(migrationId);
-      
-      console.log('✓ Migration rolled back successfully');
     } catch (error) {
       console.error('Rollback failed:', error);
       process.exit(1);
     } finally {
       await db.disconnect();
     }
-  }
-  
-  rollbackMigration();
+  })();
 } else {
+  // Run migrations
   runMigrations();
 }

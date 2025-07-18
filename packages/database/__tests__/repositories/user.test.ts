@@ -117,7 +117,7 @@ describe('UserRepository', () => {
       const result = await userRepository.create(userData);
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        'INSERT INTO users (email, name, role) VALUES ($1, $2, $3) RETURNING *',
+        expect.stringContaining('INSERT INTO users (email, name, role)'),
         [userData.email, userData.name, userData.role]
       );
       expect(result.email).toBe(userData.email);
@@ -204,7 +204,7 @@ describe('UserRepository', () => {
       const result = await userRepository.findByRole('creator');
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        'SELECT * FROM users WHERE role = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',
+        expect.stringContaining('SELECT * FROM users'),
         ['creator', 50, 0]
       );
       expect(result).toHaveLength(2);

@@ -13,13 +13,31 @@
     "test": "jest"
   },
   "dependencies": {
+    "axios": "^1.6.0",
     "zod": "^3.22.0",
-    "axios": "^1.6.0"
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "@types/jest": "^29.0.0",
+    "@types/node-fetch": "^2.6.4",
     "eslint": "^8.0.0",
     "jest": "^29.0.0",
-    "@types/jest": "^29.0.0"
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/__tests__"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts"
+    ]
   }
 }

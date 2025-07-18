@@ -16,9 +16,12 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "better-auth": "^0.5.0",
+    "drizzle-orm": "^0.29.0",
+    "server-only": "^0.0.1",
     "@repo/ui": "*",
     "@repo/config": "*",
-    "@repo/database": "*"
+    "@repo/database": "*",
+    "@repo/auth": "*"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",

@@ -1,4 +1,3 @@
-import { PoolClient } from 'pg';
 import { BaseRepository, PaginationOptions } from './base';
 import { Payout, PlatformRevenue, Withdrawal } from '../schemas/payment';
 
@@ -181,7 +180,7 @@ export class PayoutRepository extends BaseRepository<Payout> {
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 
@@ -360,7 +359,7 @@ export class PlatformRevenueRepository extends BaseRepository<PlatformRevenue> {
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 
@@ -487,7 +486,7 @@ export class WithdrawalRepository extends BaseRepository<Withdrawal> {
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 

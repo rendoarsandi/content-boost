@@ -1,4 +1,3 @@
-import { PoolClient } from 'pg';
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base';
 import { Campaign, CampaignMaterial, CampaignApplication } from '../schemas/campaign';
 
@@ -139,7 +138,7 @@ export class CampaignRepository extends BaseRepository<Campaign> {
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 
@@ -275,7 +274,7 @@ export class CampaignMaterialRepository extends BaseRepository<CampaignMaterial>
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 
@@ -428,7 +427,7 @@ export class CampaignApplicationRepository extends BaseRepository<CampaignApplic
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 

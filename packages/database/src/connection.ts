@@ -125,3 +125,34 @@ export function getDatabaseConnection(): DatabaseConnection {
   }
   return dbInstance;
 }
+
+// Initialize default database connection
+const defaultConfig: DatabaseConfig = {
+  url: process.env.DATABASE_URL || 'postgresql://localhost:5432/creator_platform',
+};
+
+const connection = createDatabaseConnection(defaultConfig);
+
+// Create a lazy database instance that connects on first use
+export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+  get(target, prop) {
+    // Lazy connection - only connect when actually used
+    if (!connection.getDb) {
+      throw new Error('Database connection not available');
+    }
+    
+    try {
+      const dbInstance = connection.getDb();
+      return dbInstance[prop as keyof typeof dbInstance];
+    } catch (error) {
+      // If not connected, try to connect now
+      if (process.env.DATABASE_URL) {
+        connection.connect().catch(console.error);
+      }
+      throw error;
+    }
+  }
+});
+
+// Don't auto-connect during build or test
+// Connection will be established on first database operation

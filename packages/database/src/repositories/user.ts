@@ -1,4 +1,3 @@
-import { PoolClient } from 'pg';
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base';
 import { User, SocialAccount, UserSchema, SocialAccountSchema } from '../schemas/user';
 
@@ -90,7 +89,7 @@ export class UserRepository extends BaseRepository<User> {
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 
@@ -274,7 +273,7 @@ export class SocialAccountRepository extends BaseRepository<SocialAccount> {
         [id]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 
@@ -285,7 +284,7 @@ export class SocialAccountRepository extends BaseRepository<SocialAccount> {
         [userId, platform]
       );
 
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     });
   }
 
