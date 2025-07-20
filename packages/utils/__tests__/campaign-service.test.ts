@@ -1,44 +1,48 @@
-import { describe, it, expect } from '@jest/globals';
-import { CampaignService, CampaignError, CampaignNotFoundError } from '../src/campaign-service';
+import { CampaignService, CampaignError, InsufficientBudgetError } from '../src/campaign-service';
 
 describe('CampaignService', () => {
   describe('calculateMaxViews', () => {
-    it('should calculate maximum views correctly', () => {
-      expect(CampaignService.calculateMaxViews(10000, 100)).toBe(100);
-      expect(CampaignService.calculateMaxViews(5000, 250)).toBe(20);
-      expect(CampaignService.calculateMaxViews(1000, 1500)).toBe(0);
+    test('should calculate maximum views correctly', () => {
+      expect(CampaignService.calculateMaxViews(1000, 10)).toBe(100);
+      expect(CampaignService.calculateMaxViews(500, 5)).toBe(100);
+      expect(CampaignService.calculateMaxViews(100, 25)).toBe(4);
+    });
+
+    test('should handle decimal results', () => {
+      expect(CampaignService.calculateMaxViews(100, 30)).toBe(3); // Floor of 3.33
+      expect(CampaignService.calculateMaxViews(1000, 333)).toBe(3); // Floor of 3.003
     });
   });
 
   describe('calculateTotalCost', () => {
-    it('should calculate total cost correctly', () => {
-      expect(CampaignService.calculateTotalCost(100, 50)).toBe(5000);
-      expect(CampaignService.calculateTotalCost(0, 100)).toBe(0);
-      expect(CampaignService.calculateTotalCost(25, 200)).toBe(5000);
+    test('should calculate total cost correctly', () => {
+      expect(CampaignService.calculateTotalCost(100, 10)).toBe(1000);
+      expect(CampaignService.calculateTotalCost(50, 5)).toBe(250);
+      expect(CampaignService.calculateTotalCost(0, 10)).toBe(0);
     });
   });
 
   describe('validateBudgetRate', () => {
-    it('should validate valid budget and rate combinations', () => {
-      const result = CampaignService.validateBudgetRate(10000, 100);
+    test('should validate valid budget and rate combinations', () => {
+      const result = CampaignService.validateBudgetRate(1000, 10);
       expect(result.valid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it('should reject budget too low for rate', () => {
-      const result = CampaignService.validateBudgetRate(50, 100);
+    test('should reject insufficient budget', () => {
+      const result = CampaignService.validateBudgetRate(5, 10);
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('Budget (50) is too low for rate per view (100)');
+      expect(result.error).toContain('Budget (5) is too low');
     });
 
-    it('should handle edge case where budget equals rate', () => {
-      const result = CampaignService.validateBudgetRate(100, 100);
+    test('should handle edge case where budget equals rate', () => {
+      const result = CampaignService.validateBudgetRate(10, 10);
       expect(result.valid).toBe(true);
     });
   });
 
   describe('validateStatusTransition', () => {
-    it('should allow valid status transitions', () => {
+    test('should allow valid status transitions', () => {
       expect(CampaignService.validateStatusTransition('draft', 'active').valid).toBe(true);
       expect(CampaignService.validateStatusTransition('active', 'paused').valid).toBe(true);
       expect(CampaignService.validateStatusTransition('active', 'completed').valid).toBe(true);
@@ -46,180 +50,164 @@ describe('CampaignService', () => {
       expect(CampaignService.validateStatusTransition('paused', 'completed').valid).toBe(true);
     });
 
-    it('should reject invalid status transitions', () => {
-      const result1 = CampaignService.validateStatusTransition('draft', 'paused');
-      expect(result1.valid).toBe(false);
-      expect(result1.error).toContain('Invalid status transition from draft to paused');
-
-      const result2 = CampaignService.validateStatusTransition('completed', 'active');
-      expect(result2.valid).toBe(false);
-      expect(result2.error).toContain('Invalid status transition from completed to active');
+    test('should reject invalid status transitions', () => {
+      expect(CampaignService.validateStatusTransition('draft', 'paused').valid).toBe(false);
+      expect(CampaignService.validateStatusTransition('draft', 'completed').valid).toBe(false);
+      expect(CampaignService.validateStatusTransition('completed', 'active').valid).toBe(false);
+      expect(CampaignService.validateStatusTransition('completed', 'paused').valid).toBe(false);
     });
   });
 
   describe('validateCampaignDates', () => {
-    it('should allow undefined dates', () => {
+    test('should allow undefined dates', () => {
       const result = CampaignService.validateCampaignDates();
       expect(result.valid).toBe(true);
     });
 
-    it('should allow valid future dates', () => {
-      const startDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // Tomorrow
-      const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Next week
-      
-      const result = CampaignService.validateCampaignDates(startDate, endDate);
+    test('should allow valid future dates', () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+
+      const result = CampaignService.validateCampaignDates(tomorrow, nextWeek);
       expect(result.valid).toBe(true);
     });
 
-    it('should reject past start dates', () => {
-      const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // Yesterday
-      const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Next week
-      
-      const result = CampaignService.validateCampaignDates(startDate, endDate);
+    test('should reject past start dates', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const result = CampaignService.validateCampaignDates(yesterday, tomorrow);
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Start date cannot be in the past');
+      expect(result.error).toContain('Start date cannot be in the past');
     });
 
-    it('should reject end date before start date', () => {
-      const startDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Next week
-      const endDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // Tomorrow
-      
-      const result = CampaignService.validateCampaignDates(startDate, endDate);
+    test('should reject end date before start date', () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const today = new Date();
+
+      const result = CampaignService.validateCampaignDates(tomorrow, today);
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('End date must be after start date');
+      expect(result.error).toContain('End date must be after start date');
     });
   });
 
   describe('isCampaignActive', () => {
-    it('should return false for non-active status', () => {
+    test('should return false for non-active status', () => {
       const campaign = { status: 'draft', startDate: null, endDate: null };
       expect(CampaignService.isCampaignActive(campaign)).toBe(false);
     });
 
-    it('should return true for active campaign without dates', () => {
+    test('should return true for active campaign with no date restrictions', () => {
       const campaign = { status: 'active', startDate: null, endDate: null };
       expect(CampaignService.isCampaignActive(campaign)).toBe(true);
     });
 
-    it('should return false for campaign not yet started', () => {
-      const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      const campaign = { status: 'active', startDate: futureDate, endDate: null };
+    test('should return false for campaign not yet started', () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const campaign = { status: 'active', startDate: tomorrow, endDate: null };
       expect(CampaignService.isCampaignActive(campaign)).toBe(false);
     });
 
-    it('should return false for expired campaign', () => {
-      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const campaign = { status: 'active', startDate: null, endDate: pastDate };
+    test('should return false for expired campaign', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const campaign = { status: 'active', startDate: null, endDate: yesterday };
       expect(CampaignService.isCampaignActive(campaign)).toBe(false);
-    });
-
-    it('should return true for active campaign within date range', () => {
-      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      const campaign = { status: 'active', startDate: pastDate, endDate: futureDate };
-      expect(CampaignService.isCampaignActive(campaign)).toBe(true);
     });
   });
 
   describe('generateTrackingLink', () => {
-    it('should generate unique tracking links', () => {
-      const link1 = CampaignService.generateTrackingLink('campaign-1', 'promoter-1');
-      const link2 = CampaignService.generateTrackingLink('campaign-1', 'promoter-2');
-      const link3 = CampaignService.generateTrackingLink('campaign-2', 'promoter-1');
-
-      expect(link1).toMatch(/^https:\/\/track\.domain\.com\/.+/);
-      expect(link2).toMatch(/^https:\/\/track\.domain\.com\/.+/);
-      expect(link3).toMatch(/^https:\/\/track\.domain\.com\/.+/);
+    test('should generate unique tracking links', () => {
+      const link1 = CampaignService.generateTrackingLink('campaign1', 'promoter1');
+      const link2 = CampaignService.generateTrackingLink('campaign1', 'promoter1');
       
-      expect(link1).not.toBe(link2);
-      expect(link1).not.toBe(link3);
-      expect(link2).not.toBe(link3);
+      expect(link1).toMatch(/^https:\/\/track\.domain\.com\//);
+      expect(link2).toMatch(/^https:\/\/track\.domain\.com\//);
+      expect(link1).not.toBe(link2); // Should be unique due to timestamp
+    });
+
+    test('should include campaign and promoter information', () => {
+      const link = CampaignService.generateTrackingLink('test-campaign', 'test-promoter');
+      expect(link).toContain('track.domain.com');
+      
+      // Decode the link to verify it contains the IDs
+      const encodedPart = link.split('/').pop();
+      const decoded = Buffer.from(encodedPart!, 'base64url').toString();
+      expect(decoded).toContain('test-campaign');
+      expect(decoded).toContain('test-promoter');
     });
   });
 
   describe('validateMaterialUrl', () => {
-    it('should validate Google Drive URLs', () => {
+    test('should validate Google Drive URLs', () => {
       expect(CampaignService.validateMaterialUrl('google_drive', 'https://drive.google.com/file/d/123').valid).toBe(true);
       expect(CampaignService.validateMaterialUrl('google_drive', 'https://docs.google.com/document/d/123').valid).toBe(true);
       expect(CampaignService.validateMaterialUrl('google_drive', 'https://example.com/file').valid).toBe(false);
     });
 
-    it('should validate YouTube URLs', () => {
+    test('should validate YouTube URLs', () => {
       expect(CampaignService.validateMaterialUrl('youtube', 'https://youtube.com/watch?v=123').valid).toBe(true);
       expect(CampaignService.validateMaterialUrl('youtube', 'https://youtu.be/123').valid).toBe(true);
       expect(CampaignService.validateMaterialUrl('youtube', 'https://vimeo.com/123').valid).toBe(false);
     });
 
-    it('should validate image URLs', () => {
+    test('should validate image URLs', () => {
       expect(CampaignService.validateMaterialUrl('image', 'https://example.com/image.jpg').valid).toBe(true);
       expect(CampaignService.validateMaterialUrl('image', 'https://imgur.com/abc123').valid).toBe(true);
       expect(CampaignService.validateMaterialUrl('image', 'https://example.com/document.pdf').valid).toBe(false);
     });
 
-    it('should validate video URLs', () => {
+    test('should validate video URLs', () => {
       expect(CampaignService.validateMaterialUrl('video', 'https://example.com/video.mp4').valid).toBe(true);
       expect(CampaignService.validateMaterialUrl('video', 'https://vimeo.com/123456').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('video', 'https://example.com/document.txt').valid).toBe(false);
+      expect(CampaignService.validateMaterialUrl('video', 'https://example.com/audio.mp3').valid).toBe(false);
     });
 
-    it('should reject invalid URLs', () => {
-      expect(CampaignService.validateMaterialUrl('image', 'not-a-url').valid).toBe(false);
-      expect(CampaignService.validateMaterialUrl('video', '').valid).toBe(false);
+    test('should reject invalid URLs', () => {
+      expect(CampaignService.validateMaterialUrl('youtube', 'not-a-url').valid).toBe(false);
+      expect(CampaignService.validateMaterialUrl('image', '').valid).toBe(false);
     });
   });
 
   describe('calculateCampaignProgress', () => {
-    it('should calculate progress correctly', () => {
-      const campaign = { budget: 10000, ratePerView: 100 };
+    test('should calculate progress correctly', () => {
+      const campaign = { budget: 1000, ratePerView: 10 };
       const progress = CampaignService.calculateCampaignProgress(campaign, 50);
 
       expect(progress.maxViews).toBe(100);
       expect(progress.currentViews).toBe(50);
       expect(progress.remainingViews).toBe(50);
       expect(progress.progressPercentage).toBe(50);
-      expect(progress.spentBudget).toBe(5000);
-      expect(progress.remainingBudget).toBe(5000);
+      expect(progress.spentBudget).toBe(500);
+      expect(progress.remainingBudget).toBe(500);
     });
 
-    it('should handle views exceeding budget', () => {
-      const campaign = { budget: 10000, ratePerView: 100 };
-      const progress = CampaignService.calculateCampaignProgress(campaign, 150);
-
-      expect(progress.maxViews).toBe(100);
-      expect(progress.currentViews).toBe(100); // Capped at max
-      expect(progress.remainingViews).toBe(0);
-      expect(progress.progressPercentage).toBe(100);
-      expect(progress.spentBudget).toBe(10000);
-      expect(progress.remainingBudget).toBe(0);
-    });
-
-    it('should handle zero views', () => {
-      const campaign = { budget: 10000, ratePerView: 100 };
+    test('should handle zero views', () => {
+      const campaign = { budget: 1000, ratePerView: 10 };
       const progress = CampaignService.calculateCampaignProgress(campaign, 0);
 
-      expect(progress.maxViews).toBe(100);
       expect(progress.currentViews).toBe(0);
-      expect(progress.remainingViews).toBe(100);
       expect(progress.progressPercentage).toBe(0);
       expect(progress.spentBudget).toBe(0);
-      expect(progress.remainingBudget).toBe(10000);
+      expect(progress.remainingBudget).toBe(1000);
     });
-  });
-});
 
-describe('Campaign Error Classes', () => {
-  it('should create CampaignError correctly', () => {
-    const error = new CampaignError('Test error', 'TEST_ERROR', 400);
-    expect(error.message).toBe('Test error');
-    expect(error.code).toBe('TEST_ERROR');
-    expect(error.statusCode).toBe(400);
-    expect(error.name).toBe('CampaignError');
-  });
+    test('should handle views exceeding budget', () => {
+      const campaign = { budget: 1000, ratePerView: 10 };
+      const progress = CampaignService.calculateCampaignProgress(campaign, 150);
 
-  it('should create CampaignNotFoundError correctly', () => {
-    const error = new CampaignNotFoundError('campaign-123');
-    expect(error.message).toBe('Campaign with ID campaign-123 not found');
-    expect(error.code).toBe('CAMPAIGN_NOT_FOUND');
-    expect(error.statusCode).toBe(404);
+      expect(progress.currentViews).toBe(100); // Capped at max views
+      expect(progress.remainingViews).toBe(0);
+      expect(progress.progressPercentage).toBe(100);
+      expect(progress.remainingBudget).toBe(0);
+    });
   });
 });

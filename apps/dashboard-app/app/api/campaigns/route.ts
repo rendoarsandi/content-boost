@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaigns, campaignMaterials } from '@repo/database/schemas';
+import { campaigns, campaignMaterials } from '@repo/database';
 import { eq, and, desc } from 'drizzle-orm';
-import { auth } from '@repo/auth/server-only';
+import { getSession } from '@repo/auth/server-only';
 
 // Validation schemas
 const CreateCampaignSchema = z.object({
@@ -29,7 +29,7 @@ const UpdateCampaignSchema = CreateCampaignSchema.partial().extend({
 // GET /api/campaigns - List campaigns for authenticated creator
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getSession();
     
     if (!session?.user) {
       return NextResponse.json(
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Only creators can view their campaigns
-    if (session.user.role !== 'creator') {
+    if ((session.user as any).role !== 'creator') {
       return NextResponse.json(
         { error: 'Forbidden - Only creators can access campaigns' },
         { status: 403 }
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     const userCampaigns = await db
       .select()
       .from(campaigns)
-      .where(eq(campaigns.creatorId, session.user.id))
+      .where(eq(campaigns.creatorId, (session.user as any).id))
       .orderBy(desc(campaigns.createdAt));
 
     return NextResponse.json({ campaigns: userCampaigns });
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 // POST /api/campaigns - Create new campaign
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getSession();
     
     if (!session?.user) {
       return NextResponse.json(
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Only creators can create campaigns
-    if (session.user.role !== 'creator') {
+    if ((session.user as any).role !== 'creator') {
       return NextResponse.json(
         { error: 'Forbidden - Only creators can create campaigns' },
         { status: 403 }
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     const [newCampaign] = await db
       .insert(campaigns)
       .values({
-        creatorId: session.user.id,
+        creatorId: (session.user as any).id,
         title: validatedData.title,
         description: validatedData.description,
         budget: validatedData.budget.toString(),

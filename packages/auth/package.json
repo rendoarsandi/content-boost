@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./config": "./src/config.ts",
     "./server-only": "./src/server-only.ts",
-    "./client": "./src/client.ts"
+    "./client": "./src/client.ts",
+    "./social": "./src/social/index.ts"
   },
   "scripts": {
     "build": "tsc",

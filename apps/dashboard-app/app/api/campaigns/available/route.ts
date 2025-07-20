@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users } from '@repo/database/schemas';
+import { campaigns, campaignApplications, users } from '@repo/database';
 import { eq, and, desc, notInArray, isNull, or, lt, gt } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 import { CampaignService } from '@repo/utils';

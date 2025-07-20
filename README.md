@@ -48,12 +48,15 @@ npm run dev:bg
 ## 📜 Available Scripts
 
 ### Development
-- `npm run dev` - Start all development servers with timeout monitoring
+- `npm run dev` - Start all development servers with timeout monitoring ⚠️
+- `npm run dev:app [app-name]` - Start single app with timeout monitoring
 - `npm run dev:bg` - Start development servers in background with auto-restart
-- `npm run build` - Build all applications and packages
+- `npm run build` - Build all applications and packages with timeout monitoring
 - `npm run test` - Run all tests with timeout monitoring
 - `npm run lint` - Lint all code
 - `npm run format` - Format code with Prettier
+
+**⚠️ IMPORTANT**: Always use timeout scripts to prevent hanging processes!
 
 ### Database
 - `npm run migrate` - Run database migrations with timeout monitoring
@@ -170,6 +173,7 @@ Customize timeouts and process behavior in `packages/config/src/process.ts`.
 
 ## 📚 Documentation
 
+- [Development Timeout Guide](docs/development-timeout-guide.md) - **IMPORTANT: Read this first!**
 - [API Documentation](docs/api/)
 - [Deployment Guide](docs/deployment/)
 - [Architecture Overview](docs/README.md)

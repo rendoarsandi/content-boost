@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaigns, campaignMaterials } from '@repo/database/schemas';
+import { campaigns, campaignMaterials } from '@repo/database';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 

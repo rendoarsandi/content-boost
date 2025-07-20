@@ -3,6 +3,9 @@ import { auth } from "./config";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+// Export auth for use in API routes
+export { auth };
+
 // Server-side session utilities
 export const getSession = async () => {
   return await auth.api.getSession({

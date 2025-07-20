@@ -1,78 +1,197 @@
-#!/usr/bin/env node
-
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const processes = new Map();
+// Configuration
+const LOG_DIR = path.join(process.cwd(), 'logs', 'app');
+const MAX_RESTARTS = 3;
+const RESTART_DELAY = 5000; // 5 seconds
+const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
 
-function ensureLogDir() {
-  const logDir = path.join(process.cwd(), 'logs', 'app');
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-  }
-  return logDir;
+let devProcess = null;
+let restartCount = 0;
+let isShuttingDown = false;
+let logStream = null;
+
+// Ensure log directory exists
+if (!fs.existsSync(LOG_DIR)) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
 }
 
-function startApp(name, workspace, port) {
-  console.log(`🚀 Starting ${name} on port ${port}...`);
+function createLogStream() {
+  const timestamp = new Date().toISOString().split('T')[0];
+  const logFile = path.join(LOG_DIR, `dev-${timestamp}.log`);
   
-  const logDir = ensureLogDir();
-  const logPath = path.join(logDir, `${name}.log`);
-  const logStream = fs.createWriteStream(logPath, { flags: 'a' });
+  // Check if log file is too large
+  if (fs.existsSync(logFile)) {
+    const stats = fs.statSync(logFile);
+    if (stats.size > MAX_LOG_SIZE) {
+      const backupFile = path.join(LOG_DIR, `dev-${timestamp}-${Date.now()}.log`);
+      fs.renameSync(logFile, backupFile);
+    }
+  }
   
-  const child = spawn('npm', ['run', 'dev', `--workspace=${workspace}`], {
+  logStream = fs.createWriteStream(logFile, { flags: 'a' });
+  return logStream;
+}
+
+function log(message, level = 'INFO') {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] [${level}] ${message}\n`;
+  
+  console.log(logMessage.trim());
+  
+  if (logStream) {
+    logStream.write(logMessage);
+  }
+}
+
+function startDevServer() {
+  if (isShuttingDown) return;
+  
+  log(`Starting development server (attempt ${restartCount + 1}/${MAX_RESTARTS + 1})`);
+  
+  // Create new log stream
+  if (logStream) {
+    logStream.end();
+  }
+  createLogStream();
+  
+  // Start the development server
+  devProcess = spawn('turbo', ['run', 'dev'], {
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: true,
-    env: { ...process.env, PORT: port.toString() }
+    cwd: process.cwd(),
+    detached: false
   });
 
-  child.stdout.pipe(logStream);
-  child.stderr.pipe(logStream);
-  
-  child.on('close', (code) => {
-    console.log(`📝 ${name} exited with code ${code}`);
-    processes.delete(name);
-  });
+  // Log process ID
+  log(`Development server started with PID: ${devProcess.pid}`);
 
-  child.on('error', (error) => {
-    console.error(`❌ ${name} error:`, error.message);
-    processes.delete(name);
-  });
-
-  processes.set(name, child);
-}
-
-async function runBackgroundDev() {
-  console.log('🔄 Starting background development processes...');
-  
-  // Start each app on different ports
-  startApp('landing-page', '@repo/landing-page', 3000);
-  startApp('auth-app', '@repo/auth-app', 3001);
-  startApp('dashboard-app', '@repo/dashboard-app', 3002);
-  startApp('admin-app', '@repo/admin-app', 3003);
-
-  console.log('✅ All background processes started');
-  console.log('📝 Logs are being written to logs/app/');
-  console.log('🌐 Apps will be available on:');
-  console.log('  - Landing Page: http://localhost:3000');
-  console.log('  - Auth App: http://localhost:3001');
-  console.log('  - Dashboard App: http://localhost:3002');
-  console.log('  - Admin App: http://localhost:3003');
-  console.log('🛑 Press Ctrl+C to stop all processes');
-
-  // Handle graceful shutdown
-  process.on('SIGINT', () => {
-    console.log('\n🛑 Stopping all processes...');
-    for (const [name, child] of processes) {
-      console.log(`🛑 Stopping ${name}...`);
-      child.kill('SIGTERM');
+  // Handle stdout
+  devProcess.stdout.on('data', (data) => {
+    const output = data.toString().trim();
+    if (output) {
+      log(`STDOUT: ${output}`);
     }
-    process.exit(0);
   });
 
-  // Keep the main process alive
-  process.stdin.resume();
+  // Handle stderr
+  devProcess.stderr.on('data', (data) => {
+    const output = data.toString().trim();
+    if (output) {
+      log(`STDERR: ${output}`, 'ERROR');
+    }
+  });
+
+  // Handle process events
+  devProcess.on('error', (error) => {
+    log(`Failed to start development server: ${error.message}`, 'ERROR');
+    handleProcessExit(1);
+  });
+
+  devProcess.on('exit', (code, signal) => {
+    if (signal) {
+      log(`Development server terminated with signal: ${signal}`, 'WARN');
+    } else {
+      log(`Development server exited with code: ${code}`, code === 0 ? 'INFO' : 'ERROR');
+    }
+    handleProcessExit(code);
+  });
 }
 
-runBackgroundDev();
+function handleProcessExit(code) {
+  if (isShuttingDown) return;
+  
+  devProcess = null;
+  
+  if (code !== 0 && restartCount < MAX_RESTARTS) {
+    restartCount++;
+    log(`Restarting in ${RESTART_DELAY / 1000} seconds...`, 'WARN');
+    
+    setTimeout(() => {
+      startDevServer();
+    }, RESTART_DELAY);
+  } else if (restartCount >= MAX_RESTARTS) {
+    log(`Maximum restart attempts (${MAX_RESTARTS}) reached. Stopping.`, 'ERROR');
+    shutdown(1);
+  } else {
+    log('Development server stopped normally');
+    shutdown(0);
+  }
+}
+
+function healthCheck() {
+  if (!devProcess || isShuttingDown) return;
+  
+  // Simple health check - verify process is still running
+  try {
+    process.kill(devProcess.pid, 0); // Signal 0 checks if process exists
+    log('Health check: Development server is running');
+  } catch (error) {
+    log('Health check: Development server appears to be dead', 'ERROR');
+    handleProcessExit(1);
+  }
+}
+
+function shutdown(exitCode = 0) {
+  if (isShuttingDown) return;
+  
+  isShuttingDown = true;
+  log('Shutting down background development server...');
+  
+  if (devProcess) {
+    log(`Terminating process ${devProcess.pid}...`);
+    devProcess.kill('SIGTERM');
+    
+    setTimeout(() => {
+      if (devProcess && !devProcess.killed) {
+        log('Force killing process...', 'WARN');
+        devProcess.kill('SIGKILL');
+      }
+    }, 5000);
+  }
+  
+  if (logStream) {
+    logStream.end();
+  }
+  
+  setTimeout(() => {
+    process.exit(exitCode);
+  }, 1000);
+}
+
+// Handle signals
+process.on('SIGINT', () => {
+  log('Received SIGINT, shutting down...', 'WARN');
+  shutdown(0);
+});
+
+process.on('SIGTERM', () => {
+  log('Received SIGTERM, shutting down...', 'WARN');
+  shutdown(0);
+});
+
+process.on('uncaughtException', (error) => {
+  log(`Uncaught exception: ${error.message}`, 'ERROR');
+  log(`Stack trace: ${error.stack}`, 'ERROR');
+  shutdown(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  log(`Unhandled rejection at: ${promise}, reason: ${reason}`, 'ERROR');
+  shutdown(1);
+});
+
+// Start health check interval
+const healthCheckInterval = setInterval(healthCheck, HEALTH_CHECK_INTERVAL);
+
+// Cleanup interval on shutdown
+process.on('exit', () => {
+  clearInterval(healthCheckInterval);
+});
+
+// Start the server
+log('Starting background development server with auto-restart...');
+startDevServer();

@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['creator', 'promoter', 'admin']);
+export const userStatusEnum = pgEnum('user_status', ['active', 'banned']);
 export const socialPlatformEnum = pgEnum('social_platform', ['tiktok', 'instagram']);
 
 // Tables
@@ -11,7 +12,10 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }).notNull(),
+  password: varchar('password', { length: 255 }),
   role: userRoleEnum('role').notNull(),
+  status: userStatusEnum('status').default('active').notNull(),
+  lastActive: timestamp('last_active'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -48,7 +52,10 @@ export const UserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   name: z.string().min(1),
+  password: z.string().optional(),
   role: z.enum(['creator', 'promoter', 'admin']),
+  status: z.enum(['active', 'banned']).default('active'),
+  lastActive: z.date().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
