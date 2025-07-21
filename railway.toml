@@ -1,0 +1,51 @@
+# Railway Configuration for Creator Promotion Platform
+
+[build]
+builder = "nixpacks"
+buildCommand = "npm run build"
+buildTimeout = 600 # 10 minutes
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+startCommand = "npm start"
+
+# Multiple services deployment
+[[services]]
+name = "landing-page"
+source = "apps/landing-page"
+domains = ["www.domain.com"]
+buildTimeout = 600
+envVarFiles = [".env.production"]
+
+[[services]]
+name = "auth-app"
+source = "apps/auth-app"
+domains = ["auth.domain.com"]
+buildTimeout = 600
+envVarFiles = [".env.production"]
+
+[[services]]
+name = "dashboard-app"
+source = "apps/dashboard-app"
+domains = ["dashboard.domain.com"]
+buildTimeout = 600
+envVarFiles = [".env.production"]
+
+[[services]]
+name = "admin-app"
+source = "apps/admin-app"
+domains = ["admin.domain.com"]
+buildTimeout = 600
+envVarFiles = [".env.production"]
+
+[[services]]
+name = "postgres"
+source = "docker/postgres"
+type = "database"
+
+[[services]]
+name = "redis"
+source = "docker/redis"
+type = "cache"

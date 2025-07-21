@@ -36,7 +36,7 @@ export async function testBotAnalysisIntegration(): Promise<void> {
         promoterId: 'test_promoter',
         campaignId: 'test_campaign',
         platform: 'tiktok',
-        platformPostId: 'test_post',
+        contentId: 'test_post',
         viewCount: 1000,
         likeCount: 5, // Very low likes for high views (suspicious ratio)
         commentCount: 0, // No comments (suspicious)
@@ -48,7 +48,7 @@ export async function testBotAnalysisIntegration(): Promise<void> {
         promoterId: 'test_promoter',
         campaignId: 'test_campaign',
         platform: 'tiktok',
-        platformPostId: 'test_post',
+        contentId: 'test_post',
         viewCount: 5000, // Huge spike (500% increase)
         likeCount: 7,
         commentCount: 0,
@@ -94,7 +94,7 @@ export async function testBotAnalysisIntegration(): Promise<void> {
         promoterId: 'normal_promoter',
         campaignId: 'test_campaign',
         platform: 'instagram',
-        platformPostId: 'normal_post',
+        contentId: 'normal_post',
         viewCount: 100,
         likeCount: 15, // Good ratio
         commentCount: 8, // Good engagement
@@ -106,7 +106,7 @@ export async function testBotAnalysisIntegration(): Promise<void> {
         promoterId: 'normal_promoter',
         campaignId: 'test_campaign',
         platform: 'instagram',
-        platformPostId: 'normal_post',
+        contentId: 'normal_post',
         viewCount: 120, // Gradual increase
         likeCount: 18,
         commentCount: 10,
@@ -166,7 +166,7 @@ export async function testCachingFunctionality(): Promise<void> {
     promoterId: 'cache_promoter',
     campaignId: 'cache_campaign',
     platform: 'tiktok',
-    platformPostId: 'cache_post',
+    contentId: 'cache_post',
     viewCount: 500,
     likeCount: 25,
     commentCount: 5,

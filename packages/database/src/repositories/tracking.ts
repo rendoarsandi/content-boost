@@ -49,11 +49,11 @@ export class ViewRecordRepository extends BaseRepository<ViewRecord> {
     });
   }
 
-  async findByPlatformPost(platform: 'tiktok' | 'instagram', platformPostId: string): Promise<ViewRecord[]> {
+  async findByPlatformPost(platform: 'tiktok' | 'instagram', contentId: string): Promise<ViewRecord[]> {
     return this.withClient(async (client) => {
       const result = await client.query(
-        'SELECT * FROM view_records WHERE platform = $1 AND platform_post_id = $2 ORDER BY timestamp DESC',
-        [platform, platformPostId]
+        'SELECT * FROM view_records WHERE platform = $1 AND content_id = $2 ORDER BY timestamp DESC',
+        [platform, contentId]
       );
 
       return result.rows.map(row => this.mapRowToViewRecord(row));
@@ -64,7 +64,7 @@ export class ViewRecordRepository extends BaseRepository<ViewRecord> {
     return this.withClient(async (client) => {
       const result = await client.query(
         `INSERT INTO view_records (
-          campaign_id, promoter_id, application_id, platform, platform_post_id, 
+          campaign_id, promoter_id, application_id, platform, content_id, 
           view_count, like_count, comment_count, share_count, bot_score, is_legitimate
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
         RETURNING *`,
@@ -73,7 +73,7 @@ export class ViewRecordRepository extends BaseRepository<ViewRecord> {
           data.promoterId,
           data.applicationId,
           data.platform,
-          data.platformPostId,
+          data.contentId,
           data.viewCount || 0,
           data.likeCount || 0,
           data.commentCount || 0,
@@ -213,7 +213,7 @@ export class ViewRecordRepository extends BaseRepository<ViewRecord> {
       promoterId: row.promoter_id,
       applicationId: row.application_id,
       platform: row.platform,
-      platformPostId: row.platform_post_id,
+      contentId: row.content_id,
       viewCount: row.view_count,
       likeCount: row.like_count,
       commentCount: row.comment_count,
@@ -252,11 +252,11 @@ export class TrackingSessionRepository extends BaseRepository<TrackingSession> {
     });
   }
 
-  async findByPlatformPost(platform: 'tiktok' | 'instagram', platformPostId: string): Promise<TrackingSession | null> {
+  async findByPlatformPost(platform: 'tiktok' | 'instagram', contentId: string): Promise<TrackingSession | null> {
     return this.withClient(async (client) => {
       const result = await client.query(
-        'SELECT * FROM tracking_sessions WHERE platform = $1 AND platform_post_id = $2 AND is_active = true',
-        [platform, platformPostId]
+        'SELECT * FROM tracking_sessions WHERE platform = $1 AND content_id = $2 AND is_active = true',
+        [platform, contentId]
       );
       
       if (result.rows.length === 0) {
@@ -281,7 +281,7 @@ export class TrackingSessionRepository extends BaseRepository<TrackingSession> {
     return this.withClient(async (client) => {
       const result = await client.query(
         `INSERT INTO tracking_sessions (
-          promoter_id, campaign_id, application_id, platform, platform_post_id, 
+          promoter_id, campaign_id, application_id, platform, content_id, 
           total_views, legitimate_views, is_active
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
         RETURNING *`,
@@ -290,7 +290,7 @@ export class TrackingSessionRepository extends BaseRepository<TrackingSession> {
           data.campaignId,
           data.applicationId,
           data.platform,
-          data.platformPostId,
+          data.contentId,
           data.totalViews || 0,
           data.legitimateViews || 0,
           data.isActive !== undefined ? data.isActive : true,
@@ -395,7 +395,7 @@ export class TrackingSessionRepository extends BaseRepository<TrackingSession> {
       campaignId: row.campaign_id,
       applicationId: row.application_id,
       platform: row.platform,
-      platformPostId: row.platform_post_id,
+      contentId: row.content_id,
       startTime: row.start_time,
       lastChecked: row.last_checked,
       totalViews: row.total_views,

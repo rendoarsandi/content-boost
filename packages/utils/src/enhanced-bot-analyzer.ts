@@ -33,7 +33,7 @@ export interface ActionResult {
   promoterId: string;
   campaignId: string;
   details: {
-    viewsAnalyzed: number;
+    viewsAnalyzed?: number;
     suspiciousPatterns: string[];
     metrics: BotAnalysis['metrics'];
   };
@@ -61,7 +61,7 @@ export class EnhancedBotAnalyzer {
 
   constructor(config?: Partial<EnhancedBotAnalyzerConfig>) {
     this.config = {
-      detection: BotDetectionService.getDefaultConfig(),
+      detection: new BotDetectionService().config,
       logging: {
         enabled: true,
         logPath: 'logs/bot-detection/',

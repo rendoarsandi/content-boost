@@ -11,7 +11,7 @@ export const viewRecords = pgTable('view_records', {
   promoterId: uuid('promoter_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   applicationId: uuid('application_id').references(() => campaignApplications.id, { onDelete: 'cascade' }),
   platform: socialPlatformEnum('platform').notNull(),
-  platformPostId: varchar('platform_post_id', { length: 255 }).notNull(),
+  contentId: varchar('content_id', { length: 255 }).notNull(),
   viewCount: integer('view_count').notNull().default(0),
   likeCount: integer('like_count').notNull().default(0),
   commentCount: integer('comment_count').notNull().default(0),
@@ -23,7 +23,7 @@ export const viewRecords = pgTable('view_records', {
   // Indexes for performance
   timestampIdx: index('view_records_timestamp_idx').on(table.timestamp),
   campaignPromoterIdx: index('view_records_campaign_promoter_idx').on(table.campaignId, table.promoterId),
-  platformPostIdx: index('view_records_platform_post_idx').on(table.platform, table.platformPostId),
+  platformPostIdx: index('view_records_platform_post_idx').on(table.platform, table.contentId),
   botScoreIdx: index('view_records_bot_score_idx').on(table.botScore),
 }));
 
@@ -33,7 +33,7 @@ export const trackingSessions = pgTable('tracking_sessions', {
   campaignId: uuid('campaign_id').notNull().references(() => campaigns.id, { onDelete: 'cascade' }),
   applicationId: uuid('application_id').references(() => campaignApplications.id, { onDelete: 'cascade' }),
   platform: socialPlatformEnum('platform').notNull(),
-  platformPostId: varchar('platform_post_id', { length: 255 }).notNull(),
+  contentId: varchar('content_id', { length: 255 }).notNull(),
   startTime: timestamp('start_time').defaultNow().notNull(),
   lastChecked: timestamp('last_checked').defaultNow().notNull(),
   totalViews: integer('total_views').notNull().default(0),
@@ -45,7 +45,7 @@ export const trackingSessions = pgTable('tracking_sessions', {
   // Indexes for performance
   activeSessionsIdx: index('tracking_sessions_active_idx').on(table.isActive, table.lastChecked),
   campaignPromoterIdx: index('tracking_sessions_campaign_promoter_idx').on(table.campaignId, table.promoterId),
-  platformPostIdx: index('tracking_sessions_platform_post_idx').on(table.platform, table.platformPostId),
+  platformPostIdx: index('tracking_sessions_platform_post_idx').on(table.platform, table.contentId),
 }));
 
 // Relations
@@ -87,7 +87,7 @@ export const ViewRecordSchema = z.object({
   promoterId: z.string().uuid(),
   applicationId: z.string().uuid().optional(),
   platform: z.enum(['tiktok', 'instagram']),
-  platformPostId: z.string(),
+  contentId: z.string(),
   viewCount: z.number().int().nonnegative(),
   likeCount: z.number().int().nonnegative(),
   commentCount: z.number().int().nonnegative(),
@@ -103,7 +103,7 @@ export const TrackingSessionSchema = z.object({
   campaignId: z.string().uuid(),
   applicationId: z.string().uuid().optional(),
   platform: z.enum(['tiktok', 'instagram']),
-  platformPostId: z.string(),
+  contentId: z.string(),
   startTime: z.date(),
   lastChecked: z.date(),
   totalViews: z.number().int().nonnegative(),

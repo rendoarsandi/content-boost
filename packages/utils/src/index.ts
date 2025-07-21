@@ -15,6 +15,11 @@ export * from './social-token-manager';
 export * from './metrics-collector';
 export * from './cron-scheduler';
 export * from './data-pipeline';
+export * from './logging';
+export * from './sentry';
+export * from './performance';
+export * from './middleware';
+export * from './alerting';
 
 // Bot Detection Monitoring and Alerting System
 export * from './bot-detection-monitor';

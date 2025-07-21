@@ -22,6 +22,7 @@ const navigation = [
   { name: 'Campaigns', href: '/campaigns', icon: Campaign },
   { name: 'Bot Detection', href: '/bot-detection', icon: Shield },
   { name: 'Finances', href: '/finances', icon: DollarSign },
+  { name: 'Monitoring', href: '/monitoring', icon: Shield },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

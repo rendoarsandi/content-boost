@@ -9,8 +9,9 @@
     "lint": "next lint",
     "start": "next start",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf .next dist",
-    "test": "jest"
+    "clean": "rd /s /q .next dist",
+    "test": "jest",
+    "test:security": "jest --testMatch='**/__tests__/security/*.test.ts'"
   },
   "dependencies": {
     "next": "^14.0.0",

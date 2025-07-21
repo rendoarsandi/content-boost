@@ -1,17 +1,18 @@
-import { createAuthMiddleware } from "@repo/auth";
+import { NextRequest } from 'next/server';
+import { loggingMiddleware } from '@repo/utils';
 
-export default createAuthMiddleware();
+export async function middleware(request: NextRequest) {
+  return loggingMiddleware(request, 'auth-app');
+}
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (auth endpoints)
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|public/).*)",
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

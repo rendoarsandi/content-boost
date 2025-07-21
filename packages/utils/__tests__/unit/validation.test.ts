@@ -225,7 +225,7 @@ describe('Validation Utilities', () => {
           campaignId: '123e4567-e89b-12d3-a456-426614174001',
           promoterId: '123e4567-e89b-12d3-a456-426614174002',
           platform: 'tiktok',
-          platformPostId: 'post-123',
+          contentId: 'post-123',
           viewCount: 1000,
           likeCount: 100,
           commentCount: 10,
@@ -245,7 +245,7 @@ describe('Validation Utilities', () => {
           campaignId: '123e4567-e89b-12d3-a456-426614174001',
           promoterId: '123e4567-e89b-12d3-a456-426614174002',
           platform: 'tiktok',
-          platformPostId: 'post-123',
+          contentId: 'post-123',
           viewCount: -100, // Negative
           likeCount: 100,
           commentCount: 10,

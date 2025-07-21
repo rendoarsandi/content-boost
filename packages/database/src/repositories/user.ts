@@ -158,6 +158,7 @@ export class UserRepository extends BaseRepository<User> {
       email: row.email,
       name: row.name,
       role: row.role,
+      status: row.status || 'active',
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

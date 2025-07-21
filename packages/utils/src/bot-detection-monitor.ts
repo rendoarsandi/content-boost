@@ -1,4 +1,4 @@
-import { BotAnalysis, ActionResult } from './enhanced-bot-analyzer';
+import { BotAnalysis, ActionResult } from './bot-detection';
 import * as fs from 'fs';
 import * as path from 'path';
 

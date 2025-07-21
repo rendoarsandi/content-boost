@@ -45,6 +45,7 @@ export interface PaymentResponse {
   gatewayResponse?: any;
   transactionId?: string;
   failureReason?: string;
+  error?: string;
   processedAt?: Date;
   completedAt?: Date;
 }
