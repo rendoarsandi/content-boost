@@ -1,4 +1,4 @@
-import { SocialMediaMetrics, SocialPlatform } from '../social-api/types';
+import { SocialMediaMetrics, SocialPlatform } from '../social-media-api';
 
 export interface MetricsCollectionJob {
   id: string;

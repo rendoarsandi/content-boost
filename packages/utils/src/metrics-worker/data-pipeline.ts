@@ -1,5 +1,5 @@
 import { RedisCache } from '@repo/cache';
-import { SocialMediaMetrics } from '../social-api/types';
+import { SocialMediaMetrics } from '../social-media-api';
 import { MetricsValidator } from './validator';
 import { MetricsNormalizer } from './normalizer';
 import { 
@@ -9,6 +9,13 @@ import {
   ValidationResult 
 } from './types';
 import { PIPELINE_STAGES } from './constants';
+
+export type { 
+  DataPipelineConfig, 
+  PipelineStage, 
+  ProcessedMetrics, 
+  ValidationResult 
+};
 
 export class MetricsDataPipeline {
   private cache: RedisCache;
@@ -58,10 +65,9 @@ export class MetricsDataPipeline {
             try {
               currentData = await stage.processor(currentData);
             } catch (retryError) {
-              if (this.config.errorHandling === 'stop') {
-                throw retryError;
-              }
               console.error(`Pipeline stage '${stage.name}' failed on retry:`, retryError);
+              // After a failed retry, we always stop to prevent infinite loops or bad data
+              throw retryError;
             }
           }
           // If errorHandling is 'continue', we just log and continue

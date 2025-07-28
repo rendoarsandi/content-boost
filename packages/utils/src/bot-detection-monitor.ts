@@ -1,4 +1,5 @@
-import { BotAnalysis, ActionResult } from './bot-detection';
+import { BotAnalysis } from './bot-detection';
+import { ActionResult } from './enhanced-bot-analyzer';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -331,7 +332,7 @@ export class BotDetectionMonitor {
       reason: analysis.reason,
       actionTaken: actionResult.action,
       metadata: {
-        viewsAnalyzed: actionResult.details.viewsAnalyzed,
+        viewsAnalyzed: actionResult.details.viewsAnalyzed ?? 0,
         suspiciousPatterns: actionResult.details.suspiciousPatterns,
         previousAlerts: recentAlerts.length
       }

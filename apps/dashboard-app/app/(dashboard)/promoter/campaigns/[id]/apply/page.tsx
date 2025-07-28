@@ -5,7 +5,7 @@ import { campaigns, campaignMaterials, users, campaignApplications } from '@repo
 import { eq, and } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge, Button } from '@repo/ui';
 import Link from 'next/link';
-import { CampaignApplicationForm } from '../../components/campaign-application-form';
+import { CampaignApplicationForm } from '../../../../../components/campaign-application-form';
 
 async function getCampaignForApplication(campaignId: string, promoterId: string) {
   // Get campaign with creator info

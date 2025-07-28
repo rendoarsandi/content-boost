@@ -86,7 +86,7 @@ export const getSocialAccounts = async (userId: string) => {
 
 export const getSocialAccount = async (userId: string, provider: "tiktok" | "instagram") => {
   const accounts = await getSocialAccounts(userId);
-  return accounts.find(account => account.platform === provider);
+  return accounts.find((account: any) => account.platform === provider);
 };
 
 export const hasSocialAccount = async (userId: string, provider: "tiktok" | "instagram") => {

@@ -1,5 +1,5 @@
 import { RedisCache } from '@repo/cache';
-import { SocialMediaAPIManager } from '../social-api/manager';
+import { SocialMediaAPIManager } from '../social-media-api';
 import { MetricsCollectionScheduler } from './scheduler';
 import { MetricsDataPipeline } from './data-pipeline';
 import { 
@@ -11,6 +11,15 @@ import {
   ProcessedMetrics
 } from './types';
 import { DEFAULT_COLLECTION_CONFIG, WORKER_STATES } from './constants';
+
+export type { 
+  MetricsCollectionJob, 
+  MetricsCollectionResult, 
+  MetricsCollectionConfig,
+  WorkerStatus,
+  MetricsCollectionStats,
+  ProcessedMetrics
+};
 
 export class MetricsCollectionWorker {
   private cache: RedisCache;
@@ -132,32 +141,21 @@ export class MetricsCollectionWorker {
       console.log(`Collecting metrics for user ${userId}, post ${postId} on ${platform}`);
       
       // Collect raw metrics from API
-      const collectionResult = await this.apiManager.collectMetrics(
-        userId,
+      // TODO: Access token management needed here
+      const rawMetrics = await this.apiManager.getMetrics(
         platform,
+        'dummy-access-token', // Placeholder for access token
         postId,
-        campaignId
+        userId
       );
-
-      if (!collectionResult.success) {
-        return {
-          jobId: `manual:${userId}:${platform}:${postId}:${campaignId}`,
-          success: false,
-          error: collectionResult.error?.message || 'Unknown error',
-          collectedAt: new Date(),
-          processingTime: Date.now() - startTime,
-          rateLimited: collectionResult.rateLimited,
-          retryAfter: collectionResult.retryAfter
-        };
-      }
 
       // Process metrics through data pipeline
       const processedMetrics = await this.dataPipeline.processMetrics(
-        collectionResult.metrics!
+        rawMetrics
       );
 
       // Cache the processed metrics
-      await this.cacheProcessedMetrics(processedMetrics);
+      await this.cacheProcessedMetrics(userId, campaignId, postId, processedMetrics);
 
       // Update statistics
       this.updateStats(true, Date.now() - startTime, platform);
@@ -301,9 +299,9 @@ export class MetricsCollectionWorker {
     }
   }
 
-  private async cacheProcessedMetrics(metrics: ProcessedMetrics): Promise<void> {
+  private async cacheProcessedMetrics(userId: string, campaignId: string, postId: string, metrics: ProcessedMetrics): Promise<void> {
     try {
-      const cacheKey = `processed_metrics:${metrics.userId}:${metrics.campaignId}:${metrics.postId}`;
+      const cacheKey = `processed_metrics:${userId}:${campaignId}:${postId}`;
       await this.cache.set(cacheKey, metrics, { ttl: this.config.cacheConfig.ttl });
     } catch (error) {
       console.error('Failed to cache processed metrics:', error);

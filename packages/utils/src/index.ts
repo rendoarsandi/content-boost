@@ -10,13 +10,13 @@ export * from './rate-calculation';
 export * from './date-utils';
 export * from './campaign-service';
 export * from './application-service';
-export * from './social-media-api';
-export * from './social-token-manager';
-export * from './metrics-collector';
+
+
+
 export * from './cron-scheduler';
-export * from './data-pipeline';
+
 export * from './logging';
-export * from './sentry';
+
 export * from './performance';
 export * from './middleware';
 export * from './alerting';
@@ -27,8 +27,7 @@ export * from './bot-detection-reporter';
 export * from './bot-detection-monitoring-system';
 export * from './bot-detection-alerting';
 
-// Social Media API Integration with Rate Limiting
-export * from './social-api';
+
 
 // Background Worker for Metrics Collection
 export * from './metrics-worker';

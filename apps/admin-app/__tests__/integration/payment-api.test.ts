@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { GET as getTransactions } from '../../../app/api/finances/transactions/route';
 import { db } from '@repo/database';
-import { payouts, platformRevenue } from '@repo/database/schema';
+import { payouts, platformRevenue } from '@repo/database/schemas';
 import { desc } from 'drizzle-orm';
 
 // Mock Next.js auth

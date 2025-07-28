@@ -6,6 +6,8 @@ if (typeof fetch === 'undefined') {
   global.fetch = require('node-fetch');
 }
 
+export type SocialPlatform = 'tiktok' | 'instagram';
+
 // Social Media API Types
 export interface SocialMediaMetrics {
   viewCount: number;

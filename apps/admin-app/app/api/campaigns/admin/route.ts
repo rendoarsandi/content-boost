@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns, users, campaignApplications, viewRecords } from '@repo/database/schema';
-import { eq, count, sum } from 'drizzle-orm';
+import { campaigns, users, campaignApplications, viewRecords } from '@repo/database/schemas';
+import { eq, sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
@@ -27,7 +27,7 @@ export async function GET() {
     const applicationCounts = await db
       .select({
         campaignId: campaignApplications.campaignId,
-        count: count()
+        count: sql<number>`count(*)`
       })
       .from(campaignApplications)
       .groupBy(campaignApplications.campaignId);
@@ -36,7 +36,7 @@ export async function GET() {
     const viewStats = await db
       .select({
         campaignId: viewRecords.campaignId,
-        totalViews: sum(viewRecords.viewCount),
+        totalViews: sql<number>`sum(${viewRecords.viewCount})`,
       })
       .from(viewRecords)
       .where(eq(viewRecords.isLegitimate, true))

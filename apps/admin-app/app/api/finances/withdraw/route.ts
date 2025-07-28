@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { platformRevenue } from '@repo/database/schema';
+import { platformRevenue } from '@repo/database/schemas';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {

@@ -1,5 +1,5 @@
 import { RedisCache } from '@repo/cache';
-import { SocialMediaAPIManager } from '../social-api/manager';
+import { SocialMediaAPIManager } from '../social-media-api';
 import { MetricsCollectionWorker } from './worker';
 import { MetricsCollectionScheduler } from './scheduler';
 import { MetricsCronScheduler } from './cron-scheduler';
@@ -215,8 +215,8 @@ export class MetricsBackgroundService {
 
       // Check API manager health
       const apiHealth = await this.apiManager.healthCheck();
-      const unhealthyClients = Array.from(apiHealth.entries())
-        .filter(([_, health]) => !health.isHealthy);
+      const unhealthyClients = Object.entries(apiHealth)
+        .filter(([_, isHealthy]) => !isHealthy);
       
       if (unhealthyClients.length > 0) {
         issues.push(`${unhealthyClients.length} API clients are unhealthy`);

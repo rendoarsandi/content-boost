@@ -3,8 +3,6 @@ import { MetricsCollectionScheduler } from './scheduler';
 import { RedisCache } from '@repo/cache';
 import { CronJobConfig, CronJobResult } from './types';
 
-import { CronJobConfig, CronJobResult } from './types';
-
 export class MetricsCronScheduler {
   private cache: RedisCache;
   private worker: MetricsCollectionWorker;

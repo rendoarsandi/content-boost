@@ -61,7 +61,7 @@ export class EnhancedBotAnalyzer {
 
   constructor(config?: Partial<EnhancedBotAnalyzerConfig>) {
     this.config = {
-      detection: new BotDetectionService().config,
+      detection: new BotDetectionService().getConfig(),
       logging: {
         enabled: true,
         logPath: 'logs/bot-detection/',
@@ -438,7 +438,7 @@ export class EnhancedBotAnalyzer {
       patterns.push(`View spike detected (${analysis.metrics.spikePercentage?.toFixed(1)}%)`);
     }
 
-    if (analysis.metrics.totalViews > 0 && analysis.metrics.totalLikes === 0) {
+    if ((analysis.metrics.totalViews ?? 0) > 0 && (analysis.metrics.totalLikes ?? 0) === 0) {
       patterns.push('Zero engagement despite views');
     }
 

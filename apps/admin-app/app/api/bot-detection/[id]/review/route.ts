@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { viewRecords, users } from '@repo/database/schema';
+import { viewRecords, users } from '@repo/database/schemas';
 import { eq } from 'drizzle-orm';
 
 export async function POST(

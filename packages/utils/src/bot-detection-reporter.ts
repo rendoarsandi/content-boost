@@ -1,4 +1,5 @@
-import { BotAnalysis, ActionResult, AnalysisLog } from './enhanced-bot-analyzer';
+import { BotAnalysis } from './bot-detection';
+import { ActionResult, AnalysisLog } from './enhanced-bot-analyzer';
 import { AlertEvent, AuditLogEntry } from './bot-detection-monitor';
 import * as fs from 'fs';
 import * as path from 'path';

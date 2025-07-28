@@ -48,7 +48,7 @@ export async function basicBotAnalysisExample(): Promise<void> {
       promoterId: 'promoter_001',
       campaignId: 'campaign_001',
       platform: 'tiktok',
-      platformPostId: 'tiktok_post_123',
+      contentId: 'tiktok_post_123',
       viewCount: 1000,
       likeCount: 50,
       commentCount: 10,
@@ -60,7 +60,7 @@ export async function basicBotAnalysisExample(): Promise<void> {
       promoterId: 'promoter_001',
       campaignId: 'campaign_001',
       platform: 'tiktok',
-      platformPostId: 'tiktok_post_123',
+      contentId: 'tiktok_post_123',
       viewCount: 1500, // Suspicious spike
       likeCount: 52,
       commentCount: 10,
@@ -139,7 +139,7 @@ export async function backgroundWorkerExample(): Promise<void> {
         promoterId: `promoter_${Math.floor(Math.random() * 5) + 1}`,
         campaignId: `campaign_${Math.floor(Math.random() * 3) + 1}`,
         platform: Math.random() > 0.5 ? 'tiktok' : 'instagram',
-        platformPostId: `post_${Math.floor(Math.random() * 100)}`,
+        contentId: `post_${Math.floor(Math.random() * 100)}`,
         viewCount: Math.floor(Math.random() * 1000) + 100,
         likeCount: Math.floor(Math.random() * 50) + 5,
         commentCount: Math.floor(Math.random() * 20) + 1,
@@ -204,7 +204,7 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
         promoterId,
         campaignId,
         platform: 'tiktok',
-        platformPostId: 'suspicious_post',
+        contentId: 'suspicious_post',
         viewCount: 100 + (i * 500), // Rapid view increase
         likeCount: 2, // Very low likes compared to views
         commentCount: 0, // No comments
@@ -227,7 +227,7 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
         promoterId,
         campaignId,
         platform: 'instagram',
-        platformPostId: 'normal_post',
+        contentId: 'normal_post',
         viewCount: 50 + (i * 10), // Gradual increase
         likeCount: Math.floor((50 + (i * 10)) / 8), // Reasonable like ratio
         commentCount: Math.floor((50 + (i * 10)) / 25), // Reasonable comment ratio
@@ -302,7 +302,7 @@ export async function globalSingletonExample(): Promise<void> {
     promoterId: 'global_promoter',
     campaignId: 'global_campaign',
     platform: 'tiktok',
-    platformPostId: 'global_post',
+    contentId: 'global_post',
     viewCount: 500,
     likeCount: 25,
     commentCount: 5,
@@ -362,7 +362,7 @@ export async function customBotDetectionExample(): Promise<void> {
     promoterId: 'moderate_promoter',
     campaignId: 'moderate_campaign',
     platform: 'instagram',
-    platformPostId: 'moderate_post',
+    contentId: 'moderate_post',
     viewCount: 400,
     likeCount: 60, // Ratio: 6.67:1 (would be normal with default, suspicious with custom)
     commentCount: 10, // Ratio: 40:1 (would be normal with default, suspicious with custom)
@@ -422,3 +422,6 @@ export async function runAllExamples(): Promise<void> {
 if (require.main === module) {
   runAllExamples().catch(console.error);
 }
+
+// To run the background worker example:
+// backgroundWorkerExample().catch(console.error);

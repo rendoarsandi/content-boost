@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo/ui';
-import { Users, Campaign, Shield, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Users, Megaphone, Shield, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
 
 interface DashboardStats {
   totalUsers: number;
@@ -67,7 +67,7 @@ export default function DashboardOverview() {
       title: 'Active Campaigns',
       value: stats?.activeCampaigns || 0,
       description: `${stats?.totalCampaigns || 0} total campaigns`,
-      icon: Campaign,
+      icon: Megaphone,
       color: 'text-green-600',
     },
     {

@@ -1,6 +1,12 @@
+import { RedisCache } from '@repo/cache';
+import { SocialMediaAPIManager } from '../social-media-api';
+import { BackgroundServiceConfig, MetricsBackgroundService } from './background-service';
+import { MetricsCollectionConfig, MetricsCollectionWorker } from './worker';
+import { DataPipelineConfig, MetricsDataPipeline } from './data-pipeline';
+
 // Main background service
 export { MetricsBackgroundService } from './background-service';
-export type { BackgroundServiceConfig, BackgroundServiceStatus } from './background-service';
+export type { BackgroundServiceStatus } from './background-service';
 
 // Core worker components
 export { MetricsCollectionWorker } from './worker';
@@ -46,8 +52,8 @@ export {
 
 // Utility function to create a configured background service
 export function createMetricsBackgroundService(
-  cache: any, // RedisCache
-  apiManager: any, // SocialMediaAPIManager
+  cache: RedisCache,
+  apiManager: SocialMediaAPIManager,
   config?: Partial<BackgroundServiceConfig>
 ): MetricsBackgroundService {
   return new MetricsBackgroundService(cache, apiManager, config);
@@ -55,8 +61,8 @@ export function createMetricsBackgroundService(
 
 // Utility function to create a standalone worker
 export function createMetricsWorker(
-  cache: any, // RedisCache
-  apiManager: any, // SocialMediaAPIManager
+  cache: RedisCache,
+  apiManager: SocialMediaAPIManager,
   config?: Partial<MetricsCollectionConfig>
 ): MetricsCollectionWorker {
   return new MetricsCollectionWorker(cache, apiManager, config);
@@ -64,7 +70,7 @@ export function createMetricsWorker(
 
 // Utility function to create a data pipeline
 export function createDataPipeline(
-  cache: any, // RedisCache
+  cache: RedisCache,
   config?: Partial<DataPipelineConfig>
 ): MetricsDataPipeline {
   return new MetricsDataPipeline(cache, config);

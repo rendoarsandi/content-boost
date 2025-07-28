@@ -150,7 +150,13 @@ export class BotDetectionMonitoringSystem {
         channels: this.config.notifications.channels
       },
       logging: this.config.logging,
-      reporting: this.config.reporting
+      reporting: {
+        enabled: this.config.reporting.enabled,
+        reportPath: this.config.reporting.reportPath,
+        dailySummary: this.config.reporting.scheduling.daily,
+        weeklySummary: this.config.reporting.scheduling.weekly,
+        monthlySummary: this.config.reporting.scheduling.monthly
+      }
     });
 
     this.reporter = new BotDetectionReporter({

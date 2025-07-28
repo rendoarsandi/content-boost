@@ -5,7 +5,7 @@ import { campaignApplications, campaigns, campaignMaterials } from '@repo/databa
 import { eq, and } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button } from '@repo/ui';
 import Link from 'next/link';
-import { ContentEditor } from '../../components/content-editor';
+import { ContentEditor } from '../../../../../components/content-editor';
 
 async function getApplicationContent(applicationId: string, promoterId: string) {
   // Get application with campaign info

@@ -4,8 +4,9 @@
     "outDir": "./dist",
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noEmit": false
   },
   "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules", "__tests__"]
+  "exclude": ["dist", "node_modules", "__tests__", "examples"]
 }

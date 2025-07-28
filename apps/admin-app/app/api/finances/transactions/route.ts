@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { payouts, platformRevenue } from '@repo/database/schema';
+import { payouts, platformRevenue } from '@repo/database/schemas';
 import { desc } from 'drizzle-orm';
 
 export async function GET() {

@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { viewRecords, users } from '@repo/database/schema';
-import { eq, count, and, gte } from 'drizzle-orm';
+import { viewRecords, users } from '@repo/database/schemas';
+import { eq, and, gte, sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
     // Get total detections (bot score >= 20)
     const totalDetectionsResult = await db
-      .select({ count: count() })
+      .select({ count: sql<number>`count(*)` })
       .from(viewRecords)
       .where(gte(viewRecords.botScore, 20));
     const totalDetections = totalDetectionsResult[0]?.count || 0;
 
     // Get pending review (not legitimate and bot score >= 50)
     const pendingReviewResult = await db
-      .select({ count: count() })
+      .select({ count: sql<number>`count(*)` })
       .from(viewRecords)
       .where(
         and(
@@ -26,21 +26,21 @@ export async function GET() {
 
     // Get high confidence detections (bot score >= 90)
     const highConfidenceResult = await db
-      .select({ count: count() })
+      .select({ count: sql<number>`count(*)` })
       .from(viewRecords)
       .where(gte(viewRecords.botScore, 90));
     const highConfidence = highConfidenceResult[0]?.count || 0;
 
     // Get banned users
     const bannedUsersResult = await db
-      .select({ count: count() })
+      .select({ count: sql<number>`count(*)` })
       .from(users)
       .where(eq(users.status, 'banned'));
     const bannedUsers = bannedUsersResult[0]?.count || 0;
 
     // Get false positives (legitimate records with bot score >= 20)
     const falsePositivesResult = await db
-      .select({ count: count() })
+      .select({ count: sql<number>`count(*)` })
       .from(viewRecords)
       .where(
         and(

@@ -24,13 +24,13 @@
   },
   "devDependencies": {
     "@turbo/gen": "^1.10.12",
-    "turbo": "^1.10.12",
-    "prettier": "^3.0.0",
-    "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
-    "eslint": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0"
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.12",
+    "typescript": "^5.0.0"
   },
   "packageManager": "npm@9.0.0",
   "workspaces": [
@@ -40,5 +40,12 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-switch": "^1.2.5",
+    "@radix-ui/react-tabs": "^1.1.12"
   }
 }

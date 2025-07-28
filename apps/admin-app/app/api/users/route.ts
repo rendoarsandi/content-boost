@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { users, campaigns, payouts } from '@repo/database/schema';
-import { eq, count, sum } from 'drizzle-orm';
+import { users, campaigns, payouts } from '@repo/database/schemas';
+import { eq, sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
@@ -12,7 +12,7 @@ export async function GET() {
     const campaignCounts = await db
       .select({
         creatorId: campaigns.creatorId,
-        count: count()
+        count: sql<number>`count(*)`
       })
       .from(campaigns)
       .groupBy(campaigns.creatorId);
@@ -21,7 +21,7 @@ export async function GET() {
     const earnings = await db
       .select({
         promoterId: payouts.promoterId,
-        total: sum(payouts.netAmount)
+        total: sql<number>`sum(${payouts.netAmount})`
       })
       .from(payouts)
       .where(eq(payouts.status, 'completed'))

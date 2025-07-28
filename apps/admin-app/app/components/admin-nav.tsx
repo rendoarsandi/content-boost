@@ -5,21 +5,21 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@repo/ui';
 import { 
-  Users, 
-  Campaign, 
-  Shield, 
-  DollarSign, 
   BarChart3, 
-  Settings,
-  LogOut,
-  Menu,
-  X
+  Megaphone, 
+  DollarSign, 
+  LogOut, 
+  Menu, 
+  Settings, 
+  Shield, 
+  Users, 
+  X 
 } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
   { name: 'Users', href: '/users', icon: Users },
-  { name: 'Campaigns', href: '/campaigns', icon: Campaign },
+  { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
   { name: 'Bot Detection', href: '/bot-detection', icon: Shield },
   { name: 'Finances', href: '/finances', icon: DollarSign },
   { name: 'Monitoring', href: '/monitoring', icon: Shield },

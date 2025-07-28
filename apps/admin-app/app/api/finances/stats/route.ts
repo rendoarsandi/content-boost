@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { payouts, platformRevenue } from '@repo/database/schema';
-import { eq, sum, gte } from 'drizzle-orm';
+import { payouts, platformRevenue } from '@repo/database/schemas';
+import { eq, gte, sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
     // Get total revenue (sum of all platform fees)
     const totalRevenueResult = await db
-      .select({ total: sum(payouts.platformFee) })
+      .select({ total: sql<number>`sum(${payouts.platformFee})` })
       .from(payouts)
       .where(eq(payouts.status, 'completed'));
     const totalRevenue = Number(totalRevenueResult[0]?.total || 0);
@@ -18,7 +18,7 @@ export async function GET() {
     currentMonth.setHours(0, 0, 0, 0);
     
     const monthlyRevenueResult = await db
-      .select({ total: sum(payouts.platformFee) })
+      .select({ total: sql<number>`sum(${payouts.platformFee})` })
       .from(payouts)
       .where(
         eq(payouts.status, 'completed') &&
@@ -38,14 +38,14 @@ export async function GET() {
 
     // Get pending payouts
     const pendingPayoutsResult = await db
-      .select({ total: sum(payouts.netAmount) })
+      .select({ total: sql<number>`sum(${payouts.netAmount})` })
       .from(payouts)
       .where(eq(payouts.status, 'pending'));
     const pendingPayouts = Number(pendingPayoutsResult[0]?.total || 0);
 
     // Get total payouts
     const totalPayoutsResult = await db
-      .select({ total: sum(payouts.netAmount) })
+      .select({ total: sql<number>`sum(${payouts.netAmount})` })
       .from(payouts)
       .where(eq(payouts.status, 'completed'));
     const totalPayouts = Number(totalPayoutsResult[0]?.total || 0);
