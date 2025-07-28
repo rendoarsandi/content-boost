@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import {
   ErrorCodes,
   AppError,
@@ -17,7 +18,7 @@ import {
   formatErrorForLogging,
   createErrorResponse,
   retryWithBackoff
-} from '../src/errors';
+} from '@repo/utils/errors';
 
 describe('Error Handling Utilities', () => {
   describe('AppError', () => {
@@ -271,7 +272,7 @@ describe('Error Handling Utilities', () => {
 
   describe('retryWithBackoff', () => {
     it('should succeed on first attempt', async () => {
-      const operation = jest.fn().mockResolvedValue('success');
+      const operation = vi.fn().mockResolvedValue('success');
       
       const result = await retryWithBackoff(operation);
       
@@ -280,7 +281,7 @@ describe('Error Handling Utilities', () => {
     });
 
     it('should retry on retryable errors', async () => {
-      const operation = jest.fn()
+      const operation = vi.fn()
         .mockRejectedValueOnce(new AppError('Rate limit', ErrorCodes.SOCIAL_API_RATE_LIMIT))
         .mockResolvedValue('success');
       
@@ -291,7 +292,7 @@ describe('Error Handling Utilities', () => {
     });
 
     it('should not retry non-retryable errors', async () => {
-      const operation = jest.fn()
+      const operation = vi.fn()
         .mockRejectedValue(new ValidationError('Invalid input'));
       
       await expect(retryWithBackoff(operation, 3, 100)).rejects.toBeInstanceOf(ValidationError);
@@ -300,14 +301,14 @@ describe('Error Handling Utilities', () => {
 
     it('should exhaust retries and throw last error', async () => {
       const error = new AppError('Timeout', ErrorCodes.SOCIAL_API_TIMEOUT);
-      const operation = jest.fn().mockRejectedValue(error);
+      const operation = vi.fn().mockRejectedValue(error);
       
       await expect(retryWithBackoff(operation, 2, 100)).rejects.toBe(error);
       expect(operation).toHaveBeenCalledTimes(2);
     });
 
     it('should retry regular errors', async () => {
-      const operation = jest.fn()
+      const operation = vi.fn()
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValue('success');
       

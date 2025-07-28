@@ -41,6 +41,13 @@ buildTimeout = 600
 envVarFiles = [".env.production"]
 
 [[services]]
+name = "api-server"
+source = "apps/api-server"
+domains = ["api.domain.com"]
+buildTimeout = 600
+envVarFiles = [".env.production"]
+
+[[services]]
 name = "postgres"
 source = "docker/postgres"
 type = "database"

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import {
   validateEmail,
   validatePassword,
@@ -19,7 +20,7 @@ import {
   BotDetectionConfigSchema,
   PaginationSchema,
   DateRangeSchema
-} from '../src/validation';
+} from '@repo/utils/validation';
 
 describe('Validation Utilities', () => {
   describe('Basic validation functions', () => {

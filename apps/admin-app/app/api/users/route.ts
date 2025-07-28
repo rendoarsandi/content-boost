@@ -1,51 +1,27 @@
 import { NextResponse } from 'next/server';
-import { db } from '@repo/database';
-import { users, campaigns, payouts } from '@repo/database/schemas';
-import { eq, sql } from 'drizzle-orm';
+// import { prisma } from '@repo/database'; // Akan digunakan setelah migrasi penuh
 
 export async function GET() {
   try {
-    // Get all users with additional stats
-    const allUsers = await db.select().from(users);
-    
-    // Get campaign counts for creators
-    const campaignCounts = await db
-      .select({
-        creatorId: campaigns.creatorId,
-        count: sql<number>`count(*)`
-      })
-      .from(campaigns)
-      .groupBy(campaigns.creatorId);
+    // LOGIKA DATABASE DIKOMENTARI SEMENTARA
+    // const allUsers = await prisma.user.findMany({
+    //   include: {
+    //     campaigns: { select: { _count: true } },
+    //     promotions: { 
+    //       where: { campaign: { payouts: { some: { status: 'completed' } } } },
+    //       select: { earnings: true } 
+    //     },
+    //   }
+    // });
+    // return NextResponse.json(allUsers);
 
-    // Get earnings for promoters
-    const earnings = await db
-      .select({
-        promoterId: payouts.promoterId,
-        total: sql<number>`sum(${payouts.netAmount})`
-      })
-      .from(payouts)
-      .where(eq(payouts.status, 'completed'))
-      .groupBy(payouts.promoterId);
+    // Mengembalikan data dummy
+    const dummyUsers = [
+      { id: 'user-1', name: 'Dummy Creator', email: 'creator@test.com', role: 'creator', status: 'active', createdAt: new Date(), campaignsCount: 2 },
+      { id: 'user-2', name: 'Dummy Promoter', email: 'promoter@test.com', role: 'promoter', status: 'active', createdAt: new Date(), totalEarnings: 50000 },
+    ];
+    return NextResponse.json(dummyUsers);
 
-    // Combine data
-    const usersWithStats = allUsers.map(user => {
-      const campaignCount = campaignCounts.find(c => c.creatorId === user.id);
-      const userEarnings = earnings.find(e => e.promoterId === user.id);
-      
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status || 'active',
-        createdAt: user.createdAt,
-        lastActive: user.lastActive,
-        campaignsCount: user.role === 'creator' ? (campaignCount?.count || 0) : undefined,
-        totalEarnings: user.role === 'promoter' ? Number(userEarnings?.total || 0) : undefined,
-      };
-    });
-
-    return NextResponse.json(usersWithStats);
   } catch (error) {
     console.error('Users fetch error:', error);
     return NextResponse.json(

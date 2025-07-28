@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import TrpcProvider from '../utils/trpc/TrpcProvider';
 
 export const metadata: Metadata = {
   title: 'Dashboard - Creator Promotion Platform',
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <TrpcProvider>{children}</TrpcProvider>
+      </body>
     </html>
   );
 }

@@ -1,45 +1,20 @@
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "@repo/database";
+// packages/auth/src/config.ts
 
-export const auth = betterAuth({
-  database: drizzleAdapter(db, {
-    provider: "pg", // PostgreSQL
-  }),
-  
-  baseURL: process.env.NEXTAUTH_URL || "http://localhost:3001",
-  secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "your-secret-key",
-  
-  session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24, // 1 day
-  },
+// Logika better-auth telah dinonaktifkan sementara
+// untuk memungkinkan migrasi ke Prisma.
 
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: false,
-  },
+export type User = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  role?: string;
+};
 
-  socialProviders: {
-    // Use Google as a placeholder for now - TikTok and Instagram will be implemented via custom OAuth
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "placeholder",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "placeholder",
-    },
-  },
+export type Session = {
+  user: User | null;
+  accessToken?: string;
+  expires: Date;
+};
 
-  // Additional configuration for role-based access
-  user: {
-    additionalFields: {
-      role: {
-        type: "string",
-        defaultValue: "promoter",
-      },
-    },
-  },
-
-  plugins: [],
-});
-
-export type Session = typeof auth.$Infer.Session;
-export type User = typeof auth.$Infer.Session.user;
+// Ekspor kosong untuk menjaga kompatibilitas impor
+export const auth = {};

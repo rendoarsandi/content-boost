@@ -15,26 +15,30 @@
     "test:security": "jest --testMatch='**/__tests__/security/*.test.ts'"
   },
   "dependencies": {
+    "@repo/cache": "*",
+    "@repo/config": "*",
+    "@repo/database": "*",
+    "@repo/ui": "*",
+    "@repo/utils": "*",
+    "@trpc/client": "^11.4.3",
+    "@trpc/react-query": "^11.4.3",
+    "@trpc/server": "^11.4.3",
+    "better-auth": "^0.5.0",
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "better-auth": "^0.5.0",
-    "@repo/ui": "*",
-    "@repo/config": "*",
-    "@repo/database": "*",
-    "@repo/cache": "*",
-    "@repo/utils": "*"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^13.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "typescript": "^5.0.0",
     "eslint": "^8.0.0",
     "eslint-config-next": "^14.0.0",
     "jest": "^29.0.0",
-    "@testing-library/react": "^13.0.0",
-    "@testing-library/jest-dom": "^6.0.0",
-    "@playwright/test": "^1.40.0",
+    "typescript": "^5.0.0",
     "uuid": "^9.0.0"
   }
 }

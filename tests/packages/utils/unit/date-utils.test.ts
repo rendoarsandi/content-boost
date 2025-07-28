@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import {
   getCurrentWIBTime,
   convertToWIB,
@@ -25,7 +26,7 @@ import {
   getTimeUntilNextPayout,
   INDONESIA_TIMEZONE,
   WIB_OFFSET
-} from '../src/date-utils';
+} from '@repo/utils/date-utils';
 
 describe('Date Utilities', () => {
   describe('WIB timezone functions', () => {

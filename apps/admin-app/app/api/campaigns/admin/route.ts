@@ -1,73 +1,18 @@
 import { NextResponse } from 'next/server';
-import { db } from '@repo/database';
-import { campaigns, users, campaignApplications, viewRecords } from '@repo/database/schemas';
-import { eq, sql } from 'drizzle-orm';
+// import { prisma } from '@repo/database';
 
 export async function GET() {
   try {
-    // Get all campaigns with creator info
-    const allCampaigns = await db
-      .select({
-        id: campaigns.id,
-        title: campaigns.title,
-        description: campaigns.description,
-        budget: campaigns.budget,
-        ratePerView: campaigns.ratePerView,
-        status: campaigns.status,
-        startDate: campaigns.startDate,
-        endDate: campaigns.endDate,
-        createdAt: campaigns.createdAt,
-        creatorName: users.name,
-        creatorEmail: users.email,
-      })
-      .from(campaigns)
-      .leftJoin(users, eq(campaigns.creatorId, users.id));
+    // LOGIKA DATABASE DIKOMENTARI SEMENTARA
+    // const campaignsWithStats = await prisma.campaign.findMany({ ... });
+    
+    // Mengembalikan data dummy
+    const dummyCampaigns = [
+      { id: 'campaign-1', title: 'Dummy Campaign 1', budget: 1000, ratePerView: 10, status: 'active', creatorName: 'Dummy Creator', applicationsCount: 5, totalViews: 150, totalSpent: 1500 },
+      { id: 'campaign-2', title: 'Dummy Campaign 2', budget: 5000, ratePerView: 15, status: 'completed', creatorName: 'Another Creator', applicationsCount: 12, totalViews: 300, totalSpent: 4500 },
+    ];
+    return NextResponse.json(dummyCampaigns);
 
-    // Get application counts for each campaign
-    const applicationCounts = await db
-      .select({
-        campaignId: campaignApplications.campaignId,
-        count: sql<number>`count(*)`
-      })
-      .from(campaignApplications)
-      .groupBy(campaignApplications.campaignId);
-
-    // Get view stats for each campaign
-    const viewStats = await db
-      .select({
-        campaignId: viewRecords.campaignId,
-        totalViews: sql<number>`sum(${viewRecords.viewCount})`,
-      })
-      .from(viewRecords)
-      .where(eq(viewRecords.isLegitimate, true))
-      .groupBy(viewRecords.campaignId);
-
-    // Combine data
-    const campaignsWithStats = allCampaigns.map(campaign => {
-      const applicationCount = applicationCounts.find(a => a.campaignId === campaign.id);
-      const viewStat = viewStats.find(v => v.campaignId === campaign.id);
-      const totalViews = Number(viewStat?.totalViews || 0);
-      const totalSpent = totalViews * campaign.ratePerView;
-      
-      return {
-        id: campaign.id,
-        title: campaign.title,
-        description: campaign.description,
-        creatorName: campaign.creatorName,
-        creatorEmail: campaign.creatorEmail,
-        budget: campaign.budget,
-        ratePerView: campaign.ratePerView,
-        status: campaign.status,
-        startDate: campaign.startDate,
-        endDate: campaign.endDate,
-        createdAt: campaign.createdAt,
-        applicationsCount: applicationCount?.count || 0,
-        totalViews,
-        totalSpent,
-      };
-    });
-
-    return NextResponse.json(campaignsWithStats);
   } catch (error) {
     console.error('Admin campaigns fetch error:', error);
     return NextResponse.json(

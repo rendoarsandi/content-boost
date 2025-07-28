@@ -5,12 +5,12 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["NODE_ENV"]
+      "env": ["NODE_ENV", "DATABASE_URL"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "env": ["NODE_ENV"]
+      "env": ["NODE_ENV", "DATABASE_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"],
