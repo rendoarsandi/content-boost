@@ -54,7 +54,7 @@ export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
   }),
   materials: many(campaignMaterials),
   applications: many(campaignApplications),
-  viewRecords: many(viewRecords),
+  // viewRecords relation will be defined in tracking.ts to avoid circular imports
 }));
 
 export const campaignMaterialsRelations = relations(campaignMaterials, ({ one }) => ({
@@ -73,8 +73,7 @@ export const campaignApplicationsRelations = relations(campaignApplications, ({ 
     fields: [campaignApplications.promoterId],
     references: [users.id],
   }),
-  viewRecords: many(viewRecords),
-  payouts: many(payouts),
+  // viewRecords and payouts relations will be defined in their respective files to avoid circular imports
 }));
 
 // Validation schemas
@@ -118,7 +117,3 @@ export const CampaignApplicationSchema = z.object({
 export type Campaign = z.infer<typeof CampaignSchema>;
 export type CampaignMaterial = z.infer<typeof CampaignMaterialSchema>;
 export type CampaignApplication = z.infer<typeof CampaignApplicationSchema>;
-
-// Import forward declarations for relations
-import { viewRecords } from './tracking';
-import { payouts } from './payment';

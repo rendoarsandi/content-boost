@@ -1,6 +1,6 @@
 "use client"; // Harus client component untuk menggunakan hooks
 
-import RealtimeCampaignTracker from '../../../components/RealtimeCampaignTracker';
+import RealtimeCampaignTracker from '../../components/RealtimeCampaignTracker';
 
 export default function CreatorDashboardPage() {
   // Untuk demo, kita gunakan ID kampanye statis.

@@ -1,4 +1,4 @@
-import RealtimeCampaignTracker from '../../components/RealtimeCampaignTracker';
+import RealtimeCampaignTracker from '../../../components/RealtimeCampaignTracker';
 
 export default function CreatorDashboard() {
   // Untuk demo, kita gunakan ID kampanye statis.

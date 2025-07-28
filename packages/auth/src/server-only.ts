@@ -27,3 +27,6 @@ export const getCurrentUser = async () => {
 export const requireAuth = async () => {
   return await getSession();
 };
+
+// Alias for getSession to match expected import
+export const auth = getSession;

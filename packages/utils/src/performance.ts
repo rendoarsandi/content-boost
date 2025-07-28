@@ -1,6 +1,46 @@
-import { performance } from 'perf_hooks';
 import { appLogger, LogLevel } from './logging';
-import * as Sentry from '@sentry/node';
+
+// Use browser performance API or Node.js perf_hooks or fallback
+const getPerformance = () => {
+  // Browser environment
+  if (typeof window !== 'undefined' && window.performance) {
+    return window.performance;
+  }
+  
+  // Node.js environment (but not Edge Runtime)
+  if (typeof process !== 'undefined' && typeof require !== 'undefined') {
+    try {
+      // Only use perf_hooks if we're not in Edge Runtime
+      if (process.env.NEXT_RUNTIME !== 'edge') {
+        const { performance } = require('perf_hooks');
+        return performance;
+      }
+    } catch {
+      // Fall through to fallback
+    }
+  }
+  
+  // Fallback for Edge Runtime and other environments
+  return { now: () => Date.now() };
+};
+
+const performance = getPerformance();
+
+// Conditional Sentry import - not available in Edge Runtime
+const getSentry = () => {
+  if (typeof process !== 'undefined' && 
+      typeof require !== 'undefined' && 
+      process.env.NEXT_RUNTIME !== 'edge') {
+    try {
+      return require('@sentry/node');
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
+const Sentry = getSentry();
 
 /**
  * Performance monitoring utility
@@ -52,15 +92,17 @@ export class PerformanceMonitor {
       });
 
       // Send to Sentry if available
-      try {
-        Sentry.captureMessage(`Performance threshold exceeded for ${name}`, 'warning');
-        Sentry.setContext('performance', {
-          operation: name,
-          durationMs: duration.toFixed(2),
-          thresholdMs: threshold,
-        });
-      } catch (e) {
-        // Sentry might not be initialized
+      if (Sentry) {
+        try {
+          Sentry.captureMessage(`Performance threshold exceeded for ${name}`, 'warning');
+          Sentry.setContext('performance', {
+            operation: name,
+            durationMs: duration.toFixed(2),
+            thresholdMs: threshold,
+          });
+        } catch (e) {
+          // Sentry might not be initialized
+        }
       }
     }
 

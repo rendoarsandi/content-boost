@@ -1,5 +1,20 @@
-import * as Sentry from '@sentry/node';
 import { appLogger } from './logging';
+
+// Conditional Sentry import - not available in Edge Runtime
+const getSentry = () => {
+  if (typeof process !== 'undefined' && 
+      typeof require !== 'undefined' && 
+      process.env.NEXT_RUNTIME !== 'edge') {
+    try {
+      return require('@sentry/node');
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
+const Sentry = getSentry();
 
 /**
  * Initialize Sentry for error tracking
@@ -12,8 +27,8 @@ export const initSentry = (
   environment: string = 'development',
   release: string = '1.0.0'
 ) => {
-  if (!dsn) {
-    appLogger.warn('Sentry DSN not provided, error tracking disabled');
+  if (!dsn || !Sentry) {
+    appLogger.warn('Sentry DSN not provided or Sentry not available, error tracking disabled');
     return;
   }
 
@@ -42,6 +57,11 @@ export const initSentry = (
  * @param context Additional context
  */
 export const captureException = (error: Error, context?: Record<string, any>) => {
+  if (!Sentry) {
+    appLogger.error('Sentry not available, logging error locally', { error, context });
+    return;
+  }
+  
   if (context) {
     Sentry.setContext('additional', context);
   }
@@ -56,9 +76,14 @@ export const captureException = (error: Error, context?: Record<string, any>) =>
  */
 export const captureMessage = (
   message: string,
-  level: Sentry.SeverityLevel = 'info',
+  level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug' = 'info',
   context?: Record<string, any>
 ) => {
+  if (!Sentry) {
+    appLogger.warn('Sentry not available, logging message locally', { message, level, context });
+    return;
+  }
+  
   if (context) {
     Sentry.setContext('additional', context);
   }
@@ -71,6 +96,11 @@ export const captureMessage = (
  * @param op Operation type
  */
 export const startTransaction = (name: string, op: string) => {
+  if (!Sentry) {
+    appLogger.debug('Sentry not available, transaction not started', { name, op });
+    return null;
+  }
+  
   return Sentry.startTransaction({
     name,
     op,
