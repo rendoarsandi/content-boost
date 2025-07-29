@@ -9,21 +9,13 @@ export const URLSchema = z.string().url('Invalid URL format');
 export const UUIDSchema = z.string().uuid('Invalid UUID format');
 
 // Platform-specific schemas
-export const PlatformSchema = z.enum(['tiktok', 'instagram'], {
-  errorMap: () => ({ message: 'Platform must be either tiktok or instagram' })
-});
+export const PlatformSchema = z.enum(['tiktok', 'instagram']);
 
-export const UserRoleSchema = z.enum(['creator', 'promoter', 'admin'], {
-  errorMap: () => ({ message: 'Role must be creator, promoter, or admin' })
-});
+export const UserRoleSchema = z.enum(['creator', 'promoter', 'admin']);
 
-export const CampaignStatusSchema = z.enum(['draft', 'active', 'paused', 'completed'], {
-  errorMap: () => ({ message: 'Campaign status must be draft, active, paused, or completed' })
-});
+export const CampaignStatusSchema = z.enum(['draft', 'active', 'paused', 'completed']);
 
-export const PayoutStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'cancelled'], {
-  errorMap: () => ({ message: 'Payout status must be pending, processing, completed, failed, or cancelled' })
-});
+export const PayoutStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'cancelled']);
 
 // User validation schemas
 export const UserSchema = z.object({
@@ -52,9 +44,7 @@ export const SocialAccountSchema = z.object({
 export const CampaignMaterialSchema = z.object({
   id: UUIDSchema,
   campaignId: UUIDSchema,
-  type: z.enum(['google_drive', 'youtube', 'image', 'video'], {
-    errorMap: () => ({ message: 'Material type must be google_drive, youtube, image, or video' })
-  }),
+  type: z.enum(['google_drive', 'youtube', 'image', 'video']),
   url: URLSchema,
   title: z.string().min(1, 'Title is required').max(255, 'Title must be less than 255 characters'),
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional()
@@ -236,7 +226,7 @@ export function validateData<T>(schema: z.ZodSchema<T>, data: unknown): {
     return { success: true, data: result.data };
   }
   
-  const errors = result.error.errors.map(err => {
+  const errors = result.error.issues.map((err: z.ZodIssue) => {
     const path = err.path.length > 0 ? `${err.path.join('.')}: ` : '';
     return `${path}${err.message}`;
   });

@@ -31,7 +31,7 @@ export const NotificationSchema = z.object({
   recipientId: z.string().uuid(),
   title: z.string().max(200),
   message: z.string().max(1000),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 // Application business logic
@@ -134,7 +134,7 @@ export class ApplicationService {
       }
 
       // Decode the base64url encoded tracking ID
-      const decodedId = Buffer.from(encodedId, 'base64url').toString();
+      const decodedId = atob(encodedId);
       const parts = decodedId.split('-');
       
       if (parts.length < 3) {
@@ -316,7 +316,7 @@ export class ApplicationService {
     };
     
     // Encode the tracking data
-    const encodedData = Buffer.from(JSON.stringify(trackingData)).toString('base64url');
+    const encodedData = btoa(JSON.stringify(trackingData));
     
     return `https://track.domain.com/v2/${encodedData}`;
   }
@@ -339,7 +339,7 @@ export class ApplicationService {
       // Check if it's a v2 tracking link
       if (pathParts[1] === 'v2' && pathParts[2]) {
         const encodedData = pathParts[2];
-        const decodedData = Buffer.from(encodedData, 'base64url').toString();
+        const decodedData = atob(encodedData);
         const trackingData = JSON.parse(decodedData);
         
         return {

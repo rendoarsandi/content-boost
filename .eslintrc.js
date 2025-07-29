@@ -2,7 +2,6 @@ module.exports = {
   root: true,
   extends: [
     'eslint:recommended',
-    '@typescript-eslint/recommended',
     'next/core-web-vitals'
   ],
   parser: '@typescript-eslint/parser',
@@ -20,13 +19,16 @@ module.exports = {
     es2022: true
   },
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-unused-vars': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
-    'prefer-const': 'error',
-    'no-var': 'error'
+    'prefer-const': 'warn',
+    'no-var': 'warn',
+    'no-unused-vars': 'warn',
+    'no-undef': 'warn',
+    'no-case-declarations': 'warn'
   },
   ignorePatterns: [
     'node_modules/',

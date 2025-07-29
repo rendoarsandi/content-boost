@@ -81,11 +81,11 @@ export const NotificationRequestSchema = z.object({
     pushToken: z.string().optional(),
   }),
   templateId: z.string(),
-  variables: z.record(z.union([z.string(), z.number()])),
+  variables: z.record(z.string(), z.union([z.string(), z.number()])),
   priority: z.enum(['low', 'normal', 'high', 'urgent']),
   scheduledAt: z.date().optional(),
   expiresAt: z.date().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   createdAt: z.date(),
 });
 
@@ -756,9 +756,23 @@ Creator Promotion Platform Team`,
   /**
    * Logging utility
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void {
+  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
     const timestamp = new Date().toISOString();
-    console[level](`[${timestamp}] [PaymentNotificationSystem] ${message}`);
+    const prefix = `[${timestamp}] [${level.toUpperCase()}] [PaymentNotificationSystem]`;
+    switch (level) {
+      case 'debug':
+        console.debug(prefix, message, ...args);
+        break;
+      case 'info':
+        console.info(prefix, message, ...args);
+        break;
+      case 'warn':
+        console.warn(prefix, message, ...args);
+        break;
+      case 'error':
+        console.error(prefix, message, ...args);
+        break;
+    }
   }
 }
 

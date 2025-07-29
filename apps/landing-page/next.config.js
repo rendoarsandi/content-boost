@@ -1,11 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@repo/ui', '@repo/config'],
-  output: 'export', // Enable static export for static generation
   trailingSlash: true,
-  images: {
-    unoptimized: true, // Required for static export
-  },
   experimental: {
     turbo: {
       rules: {

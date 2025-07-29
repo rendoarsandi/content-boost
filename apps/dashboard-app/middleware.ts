@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { loggingMiddleware } from '@repo/utils';
+import { loggingMiddleware } from '@repo/utils/middleware/logging';
 
 export async function middleware(request: NextRequest) {
   return loggingMiddleware(request, 'dashboard-app');

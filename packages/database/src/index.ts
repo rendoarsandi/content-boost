@@ -1,2 +1,1 @@
-export * from './db';
-export * from './schemas/tables';
+export { db, getPrismaClient, disconnectPrisma } from './db';

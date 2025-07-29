@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getActiveAlerts, getAllAlerts, AlertCategory, AlertSeverity } from '@repo/utils';
+import { getActiveAlerts, getAllAlerts, AlertCategory, AlertSeverity } from '@repo/utils/alerting';
 
 /**
  * Get alerts API endpoint

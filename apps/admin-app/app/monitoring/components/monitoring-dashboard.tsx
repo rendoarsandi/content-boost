@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AlertCategory, AlertSeverity } from '@repo/utils';
+import { AlertCategory, AlertSeverity } from '@repo/utils/alerting';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui';
 import AlertsPanel from './alerts-panel';
 import PerformancePanel from './performance-panel';

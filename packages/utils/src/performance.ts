@@ -1,4 +1,4 @@
-import { appLogger, LogLevel } from './logging';
+const { appLogger, LogLevel } = typeof window === 'undefined' ? require('./logging') : require('./logging.client');
 
 // Use browser performance API or Node.js perf_hooks or fallback
 const getPerformance = () => {
@@ -26,21 +26,23 @@ const getPerformance = () => {
 
 const performance = getPerformance();
 
-// Conditional Sentry import - not available in Edge Runtime
-const getSentry = () => {
-  if (typeof process !== 'undefined' && 
-      typeof require !== 'undefined' && 
+let Sentry: any = null;
+
+const initializeSentry = async () => {
+  if (typeof process !== 'undefined' &&
+      typeof window === 'undefined' && // Ensure it's a Node.js environment
       process.env.NEXT_RUNTIME !== 'edge') {
     try {
-      return require('@sentry/node');
-    } catch {
-      return null;
+      Sentry = await import('@sentry/node');
+    } catch (e) {
+      appLogger.error('Failed to dynamically import Sentry', e);
+      Sentry = null;
     }
   }
-  return null;
 };
 
-const Sentry = getSentry();
+// Initialize Sentry on module load in a server environment
+initializeSentry();
 
 /**
  * Performance monitoring utility
@@ -66,7 +68,7 @@ export class PerformanceMonitor {
    * @param logLevel Log level for the measurement
    * @returns Duration in milliseconds
    */
-  endMeasure(name: string, logLevel: LogLevel = LogLevel.DEBUG): number {
+  endMeasure(name: string, logLevel: typeof LogLevel = LogLevel.DEBUG): number {
     const metric = this.metrics.get(name);
     if (!metric) {
       appLogger.warn(`No performance measurement started for: ${name}`);

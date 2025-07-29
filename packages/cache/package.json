@@ -17,12 +17,12 @@
     "ioredis": "^5.3.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^24.1.0",
     "typescript": "^5.0.0",
-    "eslint": "^8.0.0",
-    "jest": "^29.0.0",
-    "@types/jest": "^29.0.0",
+    "eslint": "^9.32.0",
+    "jest": "^30.0.5",
+    "@types/jest": "^30.0.0",
     "ts-jest": "^29.0.0",
-    "redis-memory-server": "^0.10.0"
+    "redis-memory-server": "^0.12.1"
   }
 }

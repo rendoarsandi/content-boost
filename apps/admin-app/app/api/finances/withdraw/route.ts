@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
     await db
       .update(platformRevenue)
       .set({
-        withdrawnAmount: revenue.withdrawnAmount + amount,
-        availableBalance: revenue.availableBalance - amount,
+        withdrawnAmount: String(Number(revenue.withdrawnAmount) + amount),
+        availableBalance: String(Number(revenue.availableBalance) - amount),
       })
       .where(eq(platformRevenue.id, revenue.id));
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'Withdrawal processed successfully',
       amount,
-      newBalance: revenue.availableBalance - amount,
+      newBalance: Number(revenue.availableBalance) - amount,
     });
   } catch (error) {
     console.error('Withdrawal error:', error);

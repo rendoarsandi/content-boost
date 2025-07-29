@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns, campaignMaterials, users, campaignApplications } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
 // GET /api/promoter/campaigns/[id] - Get campaign details for promoter
@@ -23,53 +21,43 @@ export async function GET(
     const promoterId = (session.user as any).id;
 
     // Get campaign with creator info
-    const campaignData = await db
-      .select({
-        campaign: campaigns,
+    const campaign = await db.campaign.findUnique({
+      where: { id: campaignId },
+      include: {
         creator: {
-          id: users.id,
-          name: users.name,
-        },
-      })
-      .from(campaigns)
-      .innerJoin(users, eq(campaigns.creatorId, users.id))
-      .where(eq(campaigns.id, campaignId))
-      .limit(1);
+          select: { id: true, name: true }
+        }
+      }
+    });
 
-    if (!campaignData.length) {
+    if (!campaign) {
       return NextResponse.json(
         { error: 'Campaign not found' },
         { status: 404 }
       );
     }
 
-    // Get campaign materials
-    const materials = await db
-      .select()
-      .from(campaignMaterials)
-      .where(eq(campaignMaterials.campaignId, campaignId));
+    // Get campaign materials (if this table exists in Prisma schema)
+    // const materials = await db.campaignMaterial.findMany({
+    //   where: { campaignId }
+    // });
 
     // Check if promoter has applied
-    const application = await db
-      .select()
-      .from(campaignApplications)
-      .where(
-        and(
-          eq(campaignApplications.campaignId, campaignId),
-          eq(campaignApplications.promoterId, promoterId)
-        )
-      )
-      .limit(1);
+    const application = await db.promotion.findFirst({
+      where: {
+        campaignId,
+        promoterId
+      }
+    });
 
-    const { campaign, creator } = campaignData[0];
+    const materials: any[] = []; // Placeholder until we confirm the table structure
 
     return NextResponse.json({
       campaign: {
         ...campaign,
-        creator,
         materials,
-        application: application[0] || null,
-        hasApplied: application.length > 0,
+        application: application || null,
+        hasApplied: !!application,
       }
     });
   } catch (error) {

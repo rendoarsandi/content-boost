@@ -71,7 +71,7 @@ export const PaymentHistoryEntrySchema = z.object({
   transactionId: z.string().optional(),
   failureReason: z.string().optional(),
   retryCount: z.number().int().nonnegative(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   createdAt: z.date(),
   processedAt: z.date().optional(),
   completedAt: z.date().optional(),
@@ -84,7 +84,7 @@ export const PaymentAuditLogSchema = z.object({
   action: z.enum(['created', 'processing', 'completed', 'failed', 'cancelled', 'retried']),
   previousStatus: z.string().optional(),
   newStatus: z.string(),
-  details: z.record(z.any()).optional(),
+  details: z.record(z.string(), z.any()).optional(),
   timestamp: z.date(),
   source: z.enum(['system', 'gateway', 'manual']),
 });
@@ -528,9 +528,23 @@ export class PaymentHistoryManager {
   /**
    * Logging utility
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void {
+  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
     const timestamp = new Date().toISOString();
-    console[level](`[${timestamp}] [PaymentHistoryManager] ${message}`);
+    const prefix = `[${timestamp}] [${level.toUpperCase()}] [PaymentHistoryManager]`;
+    switch (level) {
+      case 'debug':
+        console.debug(prefix, message, ...args);
+        break;
+      case 'info':
+        console.info(prefix, message, ...args);
+        break;
+      case 'warn':
+        console.warn(prefix, message, ...args);
+        break;
+      case 'error':
+        console.error(prefix, message, ...args);
+        break;
+    }
   }
 }
 

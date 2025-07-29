@@ -39,7 +39,7 @@ export async function GET() {
 
     // Transform revenue records to withdrawal transactions
     const withdrawalTransactions = revenueRecords
-      .filter(record => record.withdrawnAmount > 0)
+      .filter(record => Number(record.withdrawnAmount) > 0)
       .map(record => ({
         id: record.id,
         type: 'withdrawal' as const,

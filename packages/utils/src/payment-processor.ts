@@ -83,7 +83,7 @@ export const PaymentRequestSchema = z.object({
       accountNumber: z.string(),
     }).optional(),
   }),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   createdAt: z.date(),
 });
 
@@ -549,9 +549,23 @@ export class PaymentProcessor {
   /**
    * Logging utility
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void {
+  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
     const timestamp = new Date().toISOString();
-    console[level](`[${timestamp}] [PaymentProcessor] ${message}`);
+    const prefix = `[${timestamp}] [${level.toUpperCase()}] [PaymentProcessor]`;
+    switch (level) {
+      case 'debug':
+        console.debug(prefix, message, ...args);
+        break;
+      case 'info':
+        console.info(prefix, message, ...args);
+        break;
+      case 'warn':
+        console.warn(prefix, message, ...args);
+        break;
+      case 'error':
+        console.error(prefix, message, ...args);
+        break;
+    }
   }
 }
 

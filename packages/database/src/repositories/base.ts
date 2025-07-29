@@ -1,20 +1,11 @@
-import { PoolClient } from 'pg';
-import { getDatabaseConnection } from '../connection';
+import { PrismaClient } from '@prisma/client';
+import { getPrismaClient } from '../connection';
 
 export abstract class BaseRepository<T> {
-  protected db = getDatabaseConnection();
+  protected db: PrismaClient;
 
-  protected async withClient<R>(callback: (client: PoolClient) => Promise<R>): Promise<R> {
-    const client = await this.db.getClient();
-    try {
-      return await callback(client);
-    } finally {
-      client.release();
-    }
-  }
-
-  protected async withTransaction<R>(callback: (client: PoolClient) => Promise<R>): Promise<R> {
-    return this.db.transaction(callback);
+  constructor() {
+    this.db = getPrismaClient();
   }
 
   // Abstract methods that must be implemented by concrete repositories

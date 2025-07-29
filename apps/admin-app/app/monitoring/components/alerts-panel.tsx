@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCategory, AlertSeverity } from '@repo/utils';
+import { AlertCategory, AlertSeverity } from '@repo/utils/alerting';
 import {
   Card,
   CardContent,

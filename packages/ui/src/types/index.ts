@@ -1,4 +1,3 @@
 import * as React from 'react';
 
-export type ComponentProps<T extends keyof JSX.IntrinsicElements | React.JSXElementConstructor<any>> =
-  React.ComponentProps<T>;
+export type ComponentProps<T extends React.ElementType> = React.ComponentProps<T>;

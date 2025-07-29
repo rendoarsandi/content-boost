@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { provider: string } }
+  { params }: { params: Promise<{ provider: string }> }
 ) {
   try {
-    const { provider } = params;
+    const { provider } = await params;
     
     if (!["tiktok", "instagram"].includes(provider)) {
       return NextResponse.json(
@@ -33,9 +33,9 @@ export async function POST(
       }
     });
   } catch (error) {
-    console.error(`Error refreshing ${params.provider} token:`, error);
+    console.error(`Error refreshing token:`, error);
     return NextResponse.json(
-      { error: `Failed to refresh ${params.provider} token` },
+      { error: `Failed to refresh token` },
       { status: 500 }
     );
   }

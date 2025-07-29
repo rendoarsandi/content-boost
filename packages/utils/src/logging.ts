@@ -1,86 +1,29 @@
-import { createLogger, format, transports } from 'winston';
-import { join } from 'path';
-import fs from 'fs';
-
-// Ensure logs directory exists
-const logsDir = join(process.cwd(), 'logs', 'app');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
-
-// Bot detection logs directory
-const botLogsDir = join(process.cwd(), 'logs', 'bot-detection');
-if (!fs.existsSync(botLogsDir)) {
-  fs.mkdirSync(botLogsDir, { recursive: true });
-}
-
-// Get current date for log file naming
-const getCurrentDate = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+export const appLogger = {
+  info: console.log,
+  warn: console.warn,
+  error: console.error,
+  debug: console.debug,
+  log: console.log,
 };
 
-// Create formatters
-const commonFormat = format.combine(
-  format.timestamp(),
-  format.json(),
-  format.errors({ stack: true })
-);
+export const botLogger = {
+  info: console.log,
+  warn: console.warn,
+  error: console.error,
+  debug: console.debug,
+  log: console.log,
+};
 
-// Create the application logger
-export const appLogger = createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: commonFormat,
-  defaultMeta: { service: 'creator-platform' },
-  transports: [
-    // Console transport
-    new transports.Console({
-      format: format.combine(
-        format.colorize(),
-        format.printf(({ timestamp, level, message, service, ...meta }) => {
-          return `${timestamp} [${service}] ${level}: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`;
-        })
-      ),
-    }),
-    // File transport with daily rotation
-    new transports.File({
-      filename: join(logsDir, `${getCurrentDate()}.log`),
-      maxsize: 10485760, // 10MB
-      maxFiles: 14, // Keep logs for 14 days
-    }),
-  ],
-});
-
-// Create the bot detection logger
-export const botLogger = createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: commonFormat,
-  defaultMeta: { service: 'bot-detection' },
-  transports: [
-    // Console transport
-    new transports.Console({
-      format: format.combine(
-        format.colorize(),
-        format.printf(({ timestamp, level, message, service, ...meta }) => {
-          return `${timestamp} [${service}] ${level}: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`;
-        })
-      ),
-    }),
-    // File transport with daily rotation
-    new transports.File({
-      filename: join(botLogsDir, `${getCurrentDate()}.log`),
-      maxsize: 10485760, // 10MB
-      maxFiles: 30, // Keep bot logs for 30 days
-    }),
-  ],
-});
-
-// Create a logger factory for different services
 export const createServiceLogger = (serviceName: string) => {
-  return appLogger.child({ service: serviceName });
+  return {
+    info: (...args: any[]) => console.log(`[${serviceName}]`, ...args),
+    warn: (...args: any[]) => console.warn(`[${serviceName}]`, ...args),
+    error: (...args: any[]) => console.error(`[${serviceName}]`, ...args),
+    debug: (...args: any[]) => console.debug(`[${serviceName}]`, ...args),
+    log: (...args: any[]) => console.log(`[${serviceName}]`, ...args),
+  };
 };
 
-// Log levels utility
 export enum LogLevel {
   ERROR = 'error',
   WARN = 'warn',
@@ -88,15 +31,13 @@ export enum LogLevel {
   DEBUG = 'debug',
 }
 
-// Helper function to log structured data
 export const logStructured = (
   logger: any,
   level: LogLevel,
   message: string,
   data?: Record<string, any>
 ) => {
-  logger.log(level, message, data || {});
+  logger[level](message, data || {});
 };
 
-// Export default logger
 export default appLogger;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveAlert } from '@repo/utils';
+import { resolveAlert } from '@repo/utils/alerting';
 
 /**
  * Resolve alert API endpoint

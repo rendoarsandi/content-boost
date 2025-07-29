@@ -1,5 +1,7 @@
-import { appLogger, botLogger, LogLevel } from './logging';
-import { captureMessage } from './sentry';
+const { appLogger, botLogger, LogLevel } = typeof window === 'undefined' ? require('./logging') : require('./logging.client');
+
+const Sentry = typeof window === 'undefined' ? require('./sentry') : require('./sentry.client');
+const { captureMessage } = Sentry;
 
 /**
  * Alert severity levels
@@ -167,7 +169,7 @@ export function getAllAlerts(
  * @param severity Alert severity
  * @returns Corresponding log level
  */
-function getLogLevelForSeverity(severity: AlertSeverity): LogLevel {
+function getLogLevelForSeverity(severity: AlertSeverity): typeof LogLevel {
   switch (severity) {
     case AlertSeverity.CRITICAL:
       return LogLevel.ERROR;

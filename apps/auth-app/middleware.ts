@@ -1,8 +1,27 @@
-import { NextRequest } from 'next/server';
-import { loggingMiddleware } from '@repo/utils';
+import { NextRequest, NextResponse } from 'next/server';
+import { createAuthMiddleware } from '@repo/auth';
+import { toFrameworkRequest, toNextResponse } from './utils/auth-adapter';
+import { loggingMiddleware } from '@repo/utils/middleware/logging';
+
+const authMiddleware = createAuthMiddleware();
 
 export async function middleware(request: NextRequest) {
-  return loggingMiddleware(request, 'auth-app');
+  // Apply logging middleware first
+  const loggingResponse = await loggingMiddleware(request, 'auth-app');
+  if (loggingResponse.status !== 200) {
+    return loggingResponse;
+  }
+
+  // Convert NextRequest to FrameworkRequest
+  const frameworkRequest = toFrameworkRequest(request);
+
+  // Apply auth middleware
+  const frameworkResponse = await authMiddleware(frameworkRequest);
+
+  // Convert FrameworkResponse to NextResponse
+  const response = toNextResponse(frameworkResponse);
+
+  return response;
 }
 
 export const config = {

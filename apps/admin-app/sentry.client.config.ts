@@ -13,7 +13,4 @@ Sentry.init({
   
   // Capture errors in development mode
   enabled: !!SENTRY_DSN,
-  
-  // Set to false if you want to override the automatic release value
-  autoSessionTracking: true,
 });

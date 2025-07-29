@@ -24,7 +24,7 @@ The project is a Turborepo monorepo with a clear separation between applications
     -   `admin-app`: For platform administration and oversight.
 -   **`packages/`**: Contains shared logic and modules:
     -   `@repo/ui`: Shared ShadcnUI components.
-    -   `@repo/database`: PostgreSQL schema, migrations (Drizzle ORM).
+    -   `@repo/database`: PostgreSQL schema, migrations (Prisma ORM).
     -   `@repo/cache`: Redis configuration and utilities.
     -   `@repo/auth`: Authentication configuration (BetterAuth) and OAuth logic.
     -   `@repo/utils`: Core business logic, including bot detection algorithms and validation.
@@ -34,7 +34,7 @@ The project is a Turborepo monorepo with a clear separation between applications
 
 -   **Framework**: Next.js 14 (App Router)
 -   **Language**: TypeScript 5.0+
--   **Database**: PostgreSQL with Drizzle ORM
+-   **Database**: PostgreSQL with Prisma ORM
 -   **Cache**: Redis
 -   **Authentication**: BetterAuth (a library/framework) with TikTok and Instagram OAuth.
 -   **UI**: ShadcnUI and Tailwind CSS

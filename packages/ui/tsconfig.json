@@ -1,13 +1,21 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "ES2020"],
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "jsx": "react-jsx",
-    "noEmit": false
+    "noEmit": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "module": "commonjs"
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "__tests__"]

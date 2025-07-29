@@ -1,2 +1,1 @@
-// Export the Drizzle database instance from connection.ts
-export { db } from './connection';
+export { db, getPrismaClient, disconnectPrisma } from './connection';

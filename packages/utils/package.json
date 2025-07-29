@@ -15,17 +15,17 @@
   },
   "dependencies": {
     "axios": "^1.6.0",
-    "zod": "^3.22.0",
+    "zod": "^4.0.10",
     "node-fetch": "^3.3.2",
     "winston": "^3.11.0",
-    "@sentry/node": "^7.80.0",
-    "@sentry/nextjs": "^7.80.0"
+    "@sentry/node": "^9.42.1",
+    "@sentry/nextjs": "^9.42.1"
   },
   "devDependencies": {
-    "@types/jest": "^29.0.0",
+    "@types/jest": "^30.0.0",
     "@types/node-fetch": "^2.6.4",
-    "eslint": "^8.0.0",
-    "jest": "^29.0.0",
+    "eslint": "^9.32.0",
+    "jest": "^30.0.5",
     "ts-jest": "^29.4.0",
     "typescript": "^5.0.0"
   }

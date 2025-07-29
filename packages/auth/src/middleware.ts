@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { FrameworkRequest, FrameworkResponse } from "./types";
 
 // Route protection middleware
-export async function authMiddleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function authMiddleware(request: FrameworkRequest): Promise<FrameworkResponse> {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
   
   // Public routes that don't require authentication
   const publicRoutes = [
@@ -19,18 +20,19 @@ export async function authMiddleware(request: NextRequest) {
   );
   
   if (isPublicRoute) {
-    return NextResponse.next();
+    return { status: 200, headers: new Map() };
   }
   
   // For now, just allow all requests through
   // Authentication will be handled by individual API routes
-  return NextResponse.next();
+  return { status: 200, headers: new Map() };
 }
 
 // Rate limiting middleware
-export async function rateLimitMiddleware(request: NextRequest) {
-  const ip = request.ip || request.headers.get("x-forwarded-for") || "unknown";
-  const { pathname } = request.nextUrl;
+export async function rateLimitMiddleware(request: FrameworkRequest): Promise<FrameworkResponse> {
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const url = new URL(request.url);
+  const pathname = url.pathname;
   
   // Apply rate limiting to auth endpoints
   if (pathname.startsWith("/api/auth")) {
@@ -45,29 +47,27 @@ export async function rateLimitMiddleware(request: NextRequest) {
     console.log(`Rate limit check for ${ip} on ${pathname}`);
   }
   
-  return NextResponse.next();
+  return { status: 200, headers: new Map() };
 }
 
 // CSRF protection middleware
-export async function csrfMiddleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function csrfMiddleware(request: FrameworkRequest): Promise<FrameworkResponse> {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
   const method = request.method;
   
   // Apply CSRF protection to state-changing requests
   if (["POST", "PUT", "DELETE", "PATCH"].includes(method)) {
     if (pathname.startsWith("/api/auth")) {
       // BetterAuth handles CSRF protection internally
-      return NextResponse.next();
+      return { status: 200, headers: new Map() };
     }
     
     // Check for CSRF token in other API routes
     const csrfToken = request.headers.get("x-csrf-token");
     
     if (!csrfToken) {
-      return NextResponse.json(
-        { error: "CSRF token missing" },
-        { status: 403 }
-      );
+      return { status: 403, body: { error: "CSRF token missing" }, headers: new Map() };
     }
     
     // Validate CSRF token (implement your validation logic)
@@ -75,12 +75,12 @@ export async function csrfMiddleware(request: NextRequest) {
     console.log(`CSRF token check for ${pathname}: ${csrfToken}`);
   }
   
-  return NextResponse.next();
+  return { status: 200, headers: new Map() };
 }
 
 // Combined middleware
 export function createAuthMiddleware() {
-  return async function middleware(request: NextRequest) {
+  return async function middleware(request: FrameworkRequest): Promise<FrameworkResponse> {
     // Apply rate limiting
     const rateLimitResponse = await rateLimitMiddleware(request);
     if (rateLimitResponse.status !== 200) {
@@ -97,17 +97,3 @@ export function createAuthMiddleware() {
     return await authMiddleware(request);
   };
 }
-
-// Matcher configuration for Next.js middleware
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
-  ],
-};
