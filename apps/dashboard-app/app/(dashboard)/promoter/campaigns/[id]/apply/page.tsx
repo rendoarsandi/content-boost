@@ -1,8 +1,8 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-import { campaigns, campaignMaterials, users, campaignApplications } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaigns, campaignMaterials, users, campaignApplications } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge, Button } from '@repo/ui';
 import Link from 'next/link';
 import { CampaignApplicationForm } from '../../../../../components/campaign-application-form';
@@ -63,14 +63,15 @@ function getStatusColor(status: string) {
   }
 }
 
-export default async function CampaignApplicationPage({ params }: { params: { id: string } }) {
+export default async function CampaignApplicationPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
 
   if (!session?.user || (session.user as any).role !== 'promoter') {
     redirect('/auth/login');
   }
 
-  const campaignData = await getCampaignForApplication(params.id, (session.user as any).id);
+  const { id } = await params;
+  const campaignData = await getCampaignForApplication(id, (session.user as any).id);
 
   if (!campaignData) {
     return (

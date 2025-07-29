@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, viewRecords } from '@repo/database';
-import { eq, and, sum, count } from 'drizzle-orm';
+// import { campaigns, campaignApplications, viewRecords } from '@repo/database';
+// import { eq, and, sum, count } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
 // GET /api/campaigns/[id]/metrics - Get real-time campaign metrics

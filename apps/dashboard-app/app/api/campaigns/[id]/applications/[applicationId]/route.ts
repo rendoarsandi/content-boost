@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaigns, campaignApplications, users } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 import { ApplicationService, ReviewApplicationSchema } from '@repo/utils';
 
@@ -20,7 +20,7 @@ const EnhancedReviewApplicationSchema = z.object({
 // PUT /api/campaigns/[id]/applications/[applicationId] - Approve/reject application
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; applicationId: string } }
+  { params }: { params: Promise<{ id: string; applicationId: string }> }
 ) {
   try {
     const session = await auth();
@@ -40,7 +40,7 @@ export async function PUT(
       );
     }
 
-    const { id: campaignId, applicationId } = params;
+    const { id: campaignId, applicationId } = await params;
     const body = await request.json();
     const validatedData = EnhancedReviewApplicationSchema.parse(body);
 
@@ -185,7 +185,7 @@ export async function PUT(
 // GET /api/campaigns/[id]/applications/[applicationId] - Get specific application
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; applicationId: string } }
+  { params }: { params: Promise<{ id: string; applicationId: string }> }
 ) {
   try {
     const session = await auth();
@@ -197,7 +197,7 @@ export async function GET(
       );
     }
 
-    const { id: campaignId, applicationId } = params;
+    const { id: campaignId, applicationId } = await params;
 
     // Get application with campaign and user details
     const [applicationData] = await db

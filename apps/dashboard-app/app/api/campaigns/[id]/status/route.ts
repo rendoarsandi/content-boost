@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaigns } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaigns } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
 const UpdateStatusSchema = z.object({

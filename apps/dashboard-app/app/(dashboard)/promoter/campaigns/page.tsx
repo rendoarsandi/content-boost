@@ -1,8 +1,8 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users, campaignMaterials } from '@repo/database';
-import { eq, and, ne, notInArray, desc, isNull, or } from 'drizzle-orm';
+// import { campaigns, campaignApplications, users, campaignMaterials } from '@repo/database';
+// import { eq, and, ne, notInArray, desc, isNull, or } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
 import Link from 'next/link';
 

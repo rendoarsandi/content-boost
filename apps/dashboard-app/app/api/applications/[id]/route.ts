@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaignApplications, campaigns } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaignApplications, campaigns } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 import { generateTrackingLink } from '@repo/utils';
 
@@ -14,7 +14,7 @@ const CreateApplicationSchema = z.object({
 // POST /api/applications/[id] - Apply to a campaign
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -34,7 +34,7 @@ export async function POST(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
     const body = await request.json();
     const validatedData = CreateApplicationSchema.parse({ 
       ...body, 
@@ -124,7 +124,7 @@ export async function POST(
 // GET /api/applications/[id] - Get application details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -136,7 +136,7 @@ export async function GET(
       );
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
 
     // Get application with campaign details
     const [application] = await db

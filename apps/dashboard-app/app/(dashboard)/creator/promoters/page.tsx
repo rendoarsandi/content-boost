@@ -1,8 +1,8 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-import { campaignApplications, campaigns, users } from '@repo/database';
-import { eq, and, desc } from 'drizzle-orm';
+// import { campaignApplications, campaigns, users } from '@repo/database';
+// import { eq, and, desc } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
 import Link from 'next/link';
 import { PromoterApplicationActions } from '../components/promoter-application-actions';

@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { provider: string } }
+  { params }: { params: Promise<{ provider: string }> }
 ) {
   try {
-    const { provider } = params;
+    const { provider } = await params;
     
     if (!["tiktok", "instagram"].includes(provider)) {
       return NextResponse.json(
@@ -27,9 +27,9 @@ export async function POST(
       message: `${provider} account disconnected successfully` 
     });
   } catch (error) {
-    console.error(`Error disconnecting ${params.provider} account:`, error);
+    console.error(`Error disconnecting account:`, error);
     return NextResponse.json(
-      { error: `Failed to disconnect ${params.provider} account` },
+      { error: `Failed to disconnect account` },
       { status: 500 }
     );
   }

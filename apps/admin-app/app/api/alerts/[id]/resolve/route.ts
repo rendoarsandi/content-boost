@@ -7,9 +7,9 @@ import { resolveAlert } from '@repo/utils/alerting';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const alertId = params.id;
+  const { id: alertId } = await params;
   const alert = resolveAlert(alertId);
   
   if (!alert) {

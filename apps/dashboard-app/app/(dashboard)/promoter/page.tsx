@@ -1,8 +1,8 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, viewRecords, payouts } from '@repo/database';
-import { eq, count, sum, and, gte, desc } from 'drizzle-orm';
+// import { campaigns, campaignApplications, viewRecords, payouts } from '@repo/database';
+// import { eq, count, sum, and, gte, desc } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button } from '@repo/ui';
 import Link from 'next/link';
 

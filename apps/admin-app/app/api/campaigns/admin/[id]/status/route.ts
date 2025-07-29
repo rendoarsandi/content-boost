@@ -5,10 +5,10 @@ import { eq } from 'drizzle-orm';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
     const { status } = await request.json();
 
     if (!['draft', 'active', 'paused', 'completed'].includes(status)) {

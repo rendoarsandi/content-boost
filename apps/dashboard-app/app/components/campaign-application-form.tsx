@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button, Textarea, Input, Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { useRouter } from 'next/navigation';
 

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users } from '@repo/database';
-import { eq, and, desc } from 'drizzle-orm';
+// import { campaigns, campaignApplications, users } from '@repo/database';
+// import { eq, and, desc } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 
 // GET /api/campaigns/[id]/applications - List applications for a campaign (creators only)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -27,7 +27,7 @@ export async function GET(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
 
     // Check if campaign exists and user owns it
     const [campaign] = await db

@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { provider: string } }
+  { params }: { params: Promise<{ provider: string }> }
 ) {
   try {
-    const { provider } = params;
+    const { provider } = await params;
     
     if (!["tiktok", "instagram"].includes(provider)) {
       return NextResponse.json(
@@ -25,7 +25,7 @@ export async function GET(
     
     return NextResponse.redirect(authUrl);
   } catch (error) {
-    console.error(`Error connecting ${params.provider} account:`, error);
+    console.error(`Error connecting account:`, error);
     return NextResponse.json(
       { error: "Failed to connect account" },
       { status: 500 }

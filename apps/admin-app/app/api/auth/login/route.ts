@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { users } from '@repo/database/schemas';
-import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -17,23 +15,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by email
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
+    const foundUser = await db.user.findUnique({
+      where: { email }
+    });
 
-    if (user.length === 0) {
+    if (!foundUser) {
       return NextResponse.json(
         { message: 'Invalid credentials' },
         { status: 401 }
       );
     }
 
-    const foundUser = user[0];
-
     // Check if user is admin
-    if (foundUser.role !== 'admin') {
+    if (foundUser.role !== 'ADMIN') {
       return NextResponse.json(
         { message: 'Access denied. Admin privileges required.' },
         { status: 403 }

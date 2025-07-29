@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users } from '@repo/database';
-import { eq, and, inArray } from 'drizzle-orm';
+// import { campaigns, campaignApplications, users } from '@repo/database';
+// import { eq, and, inArray } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 import { ApplicationService } from '@repo/utils';
 
@@ -21,7 +21,7 @@ const BulkActionSchema = z.object({
 // POST /api/campaigns/[id]/applications/bulk - Perform bulk actions on applications
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -41,7 +41,7 @@ export async function POST(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
     const body = await request.json();
     const validatedData = BulkActionSchema.parse(body);
 

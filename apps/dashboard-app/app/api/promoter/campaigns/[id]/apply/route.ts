@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, campaignMaterials } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// // import { campaigns, campaignApplications, campaignMaterials } from '@repo/database';
+// // import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 import { generateTrackingLink } from '@repo/utils';
 

@@ -279,7 +279,7 @@ export default function CampaignOversight() {
                         <DialogHeader>
                           <DialogTitle>Pause Campaign</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to pause "{campaign.title}"? This will stop all promotions.
+                            Are you sure you want to pause &quot;{campaign.title}&quot;? This will stop all promotions.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
@@ -311,7 +311,7 @@ export default function CampaignOversight() {
                         <DialogHeader>
                           <DialogTitle>Resume Campaign</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to resume "{campaign.title}"? This will reactivate all promotions.
+                            Are you sure you want to resume &quot;{campaign.title}&quot;? This will reactivate all promotions.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
@@ -342,7 +342,7 @@ export default function CampaignOversight() {
                         <DialogHeader>
                           <DialogTitle>End Campaign</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to end "{campaign.title}"? This action cannot be undone.
+                            Are you sure you want to end &quot;{campaign.title}&quot;? This action cannot be undone.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>

@@ -17,7 +17,7 @@ export function toFrameworkRequest(nextRequest: NextRequest): FrameworkRequest {
 export function toNextResponse(frameworkResponse: FrameworkResponse): NextResponse {
   const response = new NextResponse(frameworkResponse.body ? JSON.stringify(frameworkResponse.body) : null, {
     status: frameworkResponse.status,
-    headers: frameworkResponse.headers,
+    headers: frameworkResponse.headers ? Object.fromEntries(frameworkResponse.headers) : undefined,
   });
 
   if (frameworkResponse.redirect) {

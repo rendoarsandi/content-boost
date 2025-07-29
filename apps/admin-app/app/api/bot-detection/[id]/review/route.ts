@@ -5,10 +5,10 @@ import { eq } from 'drizzle-orm';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const detectionId = params.id;
+    const { id: detectionId } = await params;
     const { action } = await request.json();
 
     if (!['approve', 'dismiss'].includes(action)) {

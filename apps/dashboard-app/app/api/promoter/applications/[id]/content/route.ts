@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaignApplications, campaigns, campaignMaterials } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaignApplications, campaigns, campaignMaterials } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
 const UpdateContentSchema = z.object({

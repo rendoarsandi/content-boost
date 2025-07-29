@@ -8,7 +8,7 @@ export default function UnauthorizedPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl text-red-600">Access Denied</CardTitle>
           <CardDescription>
-            You don't have permission to access this admin panel
+            You don&apos;t have permission to access this admin panel
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">

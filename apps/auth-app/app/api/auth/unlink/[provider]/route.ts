@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { provider: string } }
+  { params }: { params: Promise<{ provider: string }> }
 ) {
   try {
-    const { provider } = params;
+    const { provider } = await params;
     
     if (!["tiktok", "instagram"].includes(provider)) {
       return NextResponse.json(
@@ -27,9 +27,9 @@ export async function POST(
       message: `${provider} account unlinked successfully`
     });
   } catch (error) {
-    console.error(`Error unlinking ${params.provider} account:`, error);
+    console.error(`Error unlinking account:`, error);
     return NextResponse.json(
-      { error: `Failed to unlink ${params.provider} account` },
+      { error: `Failed to unlink account` },
       { status: 500 }
     );
   }

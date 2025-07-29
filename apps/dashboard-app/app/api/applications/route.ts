@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users } from '@repo/database';
-import { eq, desc, and } from 'drizzle-orm';
+// import { campaigns, campaignApplications, users } from '@repo/database';
+// import { eq, desc, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
 // GET /api/applications - List promoter's applications

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaigns, campaignMaterials } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaigns, campaignMaterials } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 
 const UpdateCampaignSchema = z.object({
@@ -19,7 +19,7 @@ const UpdateCampaignSchema = z.object({
 // GET /api/campaigns/[id] - Get specific campaign
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -31,7 +31,7 @@ export async function GET(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
 
     // Get campaign with materials
     const [campaign] = await db
@@ -78,7 +78,7 @@ export async function GET(
 // PUT /api/campaigns/[id] - Update campaign
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -98,7 +98,7 @@ export async function PUT(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
     const body = await request.json();
     const validatedData = UpdateCampaignSchema.parse(body);
 
@@ -205,7 +205,7 @@ export async function PUT(
 // DELETE /api/campaigns/[id] - Delete campaign
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -225,7 +225,7 @@ export async function DELETE(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
 
     // Check if campaign exists and user owns it
     const [existingCampaign] = await db

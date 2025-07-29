@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaignApplications, campaigns } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaignApplications, campaigns } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
 const UpdateStatusSchema = z.object({
@@ -15,7 +15,7 @@ const UpdateStatusSchema = z.object({
 // PATCH /api/applications/[id]/status - Update application status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -35,7 +35,7 @@ export async function PATCH(
       );
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
     const body = await request.json();
     const validatedData = UpdateStatusSchema.parse(body);
 

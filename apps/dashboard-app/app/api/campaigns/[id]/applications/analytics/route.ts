@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users } from '@repo/database';
-import { eq, and, desc, count } from 'drizzle-orm';
+// import { campaigns, campaignApplications, users } from '@repo/database';
+// import { eq, and, desc, count } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 import { ApplicationService } from '@repo/utils';
 
 // GET /api/campaigns/[id]/applications/analytics - Get application analytics for campaign
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -28,7 +28,7 @@ export async function GET(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
 
     // Check if campaign exists and user owns it (for creators)
     const [campaign] = await db

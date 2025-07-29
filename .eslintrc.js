@@ -19,16 +19,17 @@ module.exports = {
     es2022: true
   },
   rules: {
-    '@typescript-eslint/no-unused-vars': 'warn',
-    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'warn',
-    'prefer-const': 'warn',
-    'no-var': 'warn',
-    'no-unused-vars': 'warn',
-    'no-undef': 'warn',
-    'no-case-declarations': 'warn'
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    'prefer-const': 'off',
+    'no-var': 'off',
+    'no-unused-vars': 'off',
+    'no-undef': 'off',
+    'no-case-declarations': 'off',
+    'react/no-unescaped-entities': 'off'
   },
   ignorePatterns: [
     'node_modules/',

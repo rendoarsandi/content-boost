@@ -1,8 +1,8 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect, notFound } from 'next/navigation';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users, viewRecords } from '@repo/database';
-import { eq, and, sum, count, desc } from 'drizzle-orm';
+// import { campaigns, campaignApplications, users, viewRecords } from '@repo/database';
+// import { eq, and, sum, count, desc } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
 import Link from 'next/link';
 import { PromoterApplicationActions } from '../../../components/promoter-application-actions';
@@ -93,7 +93,7 @@ function getApplicationStatusColor(status: string) {
 export default async function CampaignApplicationsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await getSession();
 
@@ -101,7 +101,8 @@ export default async function CampaignApplicationsPage({
     redirect('/auth/login');
   }
 
-  const campaignData = await getCampaignApplications(params.id, (session.user as any).id);
+  const { id } = await params;
+  const campaignData = await getCampaignApplications(id, (session.user as any).id);
 
   if (!campaignData) {
     notFound();

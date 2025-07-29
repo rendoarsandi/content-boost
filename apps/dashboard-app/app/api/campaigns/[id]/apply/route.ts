@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, users } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaigns, campaignApplications, users } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 import { CampaignService } from '@repo/utils';
 import { ApplicationService, ApplicationValidationSchema } from '@repo/utils';
@@ -22,7 +22,7 @@ const EnhancedApplicationSchema = z.object({
 // POST /api/campaigns/[id]/apply - Apply to a campaign
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -42,7 +42,7 @@ export async function POST(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
     const body = await request.json();
     const validatedData = EnhancedApplicationSchema.parse(body);
 
@@ -266,7 +266,7 @@ export async function POST(
 // GET /api/campaigns/[id]/apply - Get application status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -278,7 +278,7 @@ export async function GET(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
 
     // Get application if exists
     const [application] = await db

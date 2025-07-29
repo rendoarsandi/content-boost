@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { viewRecords, campaigns, campaignApplications, payouts } from '@repo/database';
-import { eq, and, gte, desc, sum, count, avg } from 'drizzle-orm';
+// import { viewRecords, campaigns, campaignApplications, payouts } from '@repo/database';
+// import { eq, and, gte, desc, sum, count, avg } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
 // GET /api/promoter/analytics - Get promoter analytics with bot detection insights

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns, campaignApplications, campaignMaterials } from '@repo/database';
-import { eq, and } from 'drizzle-orm';
+// import { campaigns, campaignApplications, campaignMaterials } from '@repo/database';
+// import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 import { ApplicationService } from '@repo/utils';
 
