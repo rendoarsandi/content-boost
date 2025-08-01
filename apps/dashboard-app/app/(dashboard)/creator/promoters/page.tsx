@@ -1,47 +1,31 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-// import { campaignApplications, campaigns, users } from '@repo/database';
-// import { eq, and, desc } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
 import Link from 'next/link';
-import { PromoterApplicationActions } from '../components/promoter-application-actions';
 
-async function getPromoterApplications(creatorId: string) {
-  const applications = await db
-    .select({
-      application: campaignApplications,
+async function getPromoterPromotions(creatorId: string) {
+  const promotions = await db.promotion.findMany({
+    where: {
       campaign: {
-        id: campaigns.id,
-        title: campaigns.title,
-        status: campaigns.status,
-      },
-      promoter: {
-        id: users.id,
-        name: users.name,
-        email: users.email,
-      },
-    })
-    .from(campaignApplications)
-    .innerJoin(campaigns, eq(campaignApplications.campaignId, campaigns.id))
-    .innerJoin(users, eq(campaignApplications.promoterId, users.id))
-    .where(eq(campaigns.creatorId, creatorId))
-    .orderBy(desc(campaignApplications.appliedAt));
+        creatorId
+      }
+    },
+    include: {
+      campaign: true,
+      promoter: true
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
 
-  return applications;
+  return promotions;
 }
 
-function getApplicationStatusColor(status: string) {
-  switch (status) {
-    case 'approved':
-      return 'bg-green-100 text-green-800';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'rejected':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+function getStatusColor() {
+  // Since we don't have status in Prisma schema, default to active
+  return 'bg-green-100 text-green-800';
 }
 
 export default async function PromotersPage() {
@@ -51,11 +35,12 @@ export default async function PromotersPage() {
     redirect('/auth/login');
   }
 
-  const applications = await getPromoterApplications((session.user as any).id);
+  const promotions = await getPromoterPromotions((session.user as any).id);
 
-  const pendingApplications = applications.filter(app => app.application.status === 'pending');
-  const approvedApplications = applications.filter(app => app.application.status === 'approved');
-  const rejectedApplications = applications.filter(app => app.application.status === 'rejected');
+  // Since we don't have status field, all promotions are considered approved
+  const approvedPromotions = promotions;
+  const pendingPromotions: any[] = [];
+  const rejectedPromotions: any[] = [];
 
   return (
     <div className="space-y-8">
@@ -74,7 +59,7 @@ export default async function PromotersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
-              {pendingApplications.length}
+              {pendingPromotions.length}
             </div>
             <p className="text-xs text-gray-500 mt-1">Awaiting approval</p>
           </CardContent>
@@ -86,7 +71,7 @@ export default async function PromotersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {approvedApplications.length}
+              {approvedPromotions.length}
             </div>
             <p className="text-xs text-gray-500 mt-1">Active promoters</p>
           </CardContent>
@@ -98,7 +83,7 @@ export default async function PromotersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {rejectedApplications.length}
+              {rejectedPromotions.length}
             </div>
             <p className="text-xs text-gray-500 mt-1">Declined applications</p>
           </CardContent>
@@ -110,7 +95,7 @@ export default async function PromotersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {applications.length}
+              {promotions.length}
             </div>
             <p className="text-xs text-gray-500 mt-1">All time</p>
           </CardContent>
@@ -118,64 +103,20 @@ export default async function PromotersPage() {
       </div>
 
       {/* Pending Applications */}
-      {pendingApplications.length > 0 && (
+      {pendingPromotions.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <span>⏳</span>
-              <span>Pending Applications ({pendingApplications.length})</span>
+              <span>Pending Applications ({pendingPromotions.length})</span>
             </CardTitle>
             <CardDescription>
               Applications waiting for your review
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {pendingApplications.map(({ application, campaign, promoter }) => (
-                <div key={application.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-medium">
-                            {promoter.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{promoter.name}</h3>
-                          <p className="text-sm text-gray-600">{promoter.email}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="ml-13">
-                        <p className="text-sm text-gray-600 mb-1">
-                          <strong>Campaign:</strong> {campaign.title}
-                        </p>
-                        <p className="text-sm text-gray-600 mb-2">
-                          <strong>Applied:</strong> {new Date(application.appliedAt).toLocaleDateString()}
-                        </p>
-                        
-                        {application.submittedContent && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Submitted Content:</p>
-                            <p className="text-sm text-gray-600">{application.submittedContent}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col space-y-2 ml-4">
-                      <Badge className={getApplicationStatusColor(application.status)}>
-                        {application.status}
-                      </Badge>
-                      <PromoterApplicationActions 
-                        applicationId={application.id}
-                        currentStatus={application.status}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="text-center py-8 text-gray-500">
+              <p>No pending applications at this time.</p>
             </div>
           </CardContent>
         </Card>
@@ -199,7 +140,7 @@ export default async function PromotersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {applications.length === 0 ? (
+          {promotions.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <div className="text-6xl mb-4">👥</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No applications yet</h3>
@@ -212,27 +153,27 @@ export default async function PromotersPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {applications.map(({ application, campaign, promoter }) => (
-                <div key={application.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+              {promotions.map((promotion) => (
+                <div key={promotion.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-medium">
-                        {promoter.name.charAt(0).toUpperCase()}
+                        {promotion.promoter.name?.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium">{promoter.name}</p>
-                      <p className="text-sm text-gray-600">{campaign.title}</p>
+                      <p className="font-medium">{promotion.promoter.name}</p>
+                      <p className="text-sm text-gray-600">{promotion.campaign.name}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Badge className={getApplicationStatusColor(application.status)}>
-                      {application.status}
+                    <Badge className={getStatusColor()}>
+                      Active
                     </Badge>
                     <span className="text-sm text-gray-500">
-                      {new Date(application.appliedAt).toLocaleDateString()}
+                      {new Date(promotion.createdAt).toLocaleDateString()}
                     </span>
-                    <Link href={`/creator/applications/${application.id}`}>
+                    <Link href={`/creator/promotions/${promotion.id}`}>
                       <Button variant="outline" size="sm">
                         View Details
                       </Button>

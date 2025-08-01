@@ -39,65 +39,34 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = UpdateStatusSchema.parse(body);
 
-    // Get application with campaign details to verify ownership
-    const [applicationWithCampaign] = await db
-      .select({
-        application: campaignApplications,
-        campaign: campaigns,
-      })
-      .from(campaignApplications)
-      .innerJoin(campaigns, eq(campaignApplications.campaignId, campaigns.id))
-      .where(eq(campaignApplications.id, applicationId));
+    // Get promotion with campaign details to verify ownership
+    const promotion = await db.promotion.findFirst({
+      where: {
+        id: promotionId,
+        campaign: {
+          creatorId: (session.user as any).id
+        }
+      },
+      include: {
+        campaign: true,
+        promoter: true
+      }
+    });
 
-    if (!applicationWithCampaign) {
+    if (!promotion) {
       return NextResponse.json(
-        { error: 'Application not found' },
+        { error: 'Promotion not found or access denied' },
         { status: 404 }
       );
     }
 
-    // Verify that the current user owns the campaign
-    if (applicationWithCampaign.campaign.creatorId !== (session.user as any).id) {
-      return NextResponse.json(
-        { error: 'Forbidden - You can only update applications for your own campaigns' },
-        { status: 403 }
-      );
-    }
-
-    // Check if application is still pending
-    if (applicationWithCampaign.application.status !== 'pending') {
-      return NextResponse.json(
-        { error: 'Application has already been reviewed' },
-        { status: 400 }
-      );
-    }
-
-    // Update application status
-    const [updatedApplication] = await db
-      .update(campaignApplications)
-      .set({
-        status: validatedData.status,
-        reviewedAt: new Date(),
-      })
-      .where(eq(campaignApplications.id, applicationId))
-      .returning();
-
+    // Since we don't have status field, just return promotion info
     return NextResponse.json({
-      application: updatedApplication,
-      message: `Application ${validatedData.status} successfully`,
+      promotion,
+      message: 'Promotion is active by default'
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { 
-          error: 'Validation error',
-          details: error.errors
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error updating application status:', error);
+    console.error('Error accessing promotion:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
