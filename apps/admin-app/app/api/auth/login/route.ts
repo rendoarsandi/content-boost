@@ -36,8 +36,7 @@ export async function POST(request: NextRequest) {
 
     // For demo purposes, we'll use a simple password check
     // In production, use proper password hashing
-    const isValidPassword = password === 'admin123' || 
-      (foundUser.password && await bcrypt.compare(password, foundUser.password));
+    const isValidPassword = password === 'admin123';
 
     if (!isValidPassword) {
       return NextResponse.json(

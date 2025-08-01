@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-// import { campaigns, campaignApplications, campaignMaterials } from '@repo/database';
-// import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
-import { ApplicationService } from '@repo/utils';
 
 // GET /api/campaigns/[id]/materials-access - Get campaign materials for approved promoters
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -28,90 +25,52 @@ export async function GET(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
 
-    // Check if promoter has an approved application for this campaign
-    const [application] = await db
-      .select({
-        application: campaignApplications,
-        campaign: campaigns,
-      })
-      .from(campaignApplications)
-      .innerJoin(campaigns, eq(campaignApplications.campaignId, campaigns.id))
-      .where(
-        and(
-          eq(campaignApplications.campaignId, campaignId),
-          eq(campaignApplications.promoterId, session.user.id),
-          eq(campaignApplications.status, 'approved')
-        )
-      );
+    // Check if promoter has a promotion for this campaign
+    const promotion = await db.promotion.findFirst({
+      where: {
+        campaignId,
+        promoterId: session.user.id
+      },
+      include: {
+        campaign: {
+          include: {
+            creator: true
+          }
+        }
+      }
+    });
 
-    if (!application) {
+    if (!promotion) {
       return NextResponse.json(
-        { error: 'Access denied - You must have an approved application to access campaign materials' },
+        { error: 'Access denied - You must be part of this campaign to access materials' },
         { status: 403 }
       );
     }
 
-    // Check if campaign is still active
-    if (application.campaign.status !== 'active') {
-      return NextResponse.json(
-        { error: 'Campaign is no longer active' },
-        { status: 400 }
-      );
-    }
-
-    // Get campaign materials
-    const materials = await db
-      .select()
-      .from(campaignMaterials)
-      .where(eq(campaignMaterials.campaignId, campaignId));
-
     // Get campaign details (without sensitive creator information)
     const campaignDetails = {
-      id: application.campaign.id,
-      title: application.campaign.title,
-      description: application.campaign.description,
-      ratePerView: application.campaign.ratePerView,
-      requirements: application.campaign.requirements,
-      startDate: application.campaign.startDate,
-      endDate: application.campaign.endDate,
+      id: promotion.campaign.id,
+      name: promotion.campaign.name,
+      budget: promotion.campaign.budget,
     };
 
     // Log materials access for analytics
     console.log('Materials accessed:', {
       campaignId,
       promoterId: session.user.id,
-      accessedAt: new Date(),
-      materialsCount: materials.length
+      accessedAt: new Date()
     });
-
-    // Generate notification for creator about materials access
-    // TODO: This would integrate with a notification service
-    console.log('Notification to creator:', {
-      recipientId: application.campaign.creatorId,
-      title: 'Campaign Materials Accessed',
-      message: `${session.user.name} has accessed the materials for campaign "${application.campaign.title}". They can now start creating promotional content.`,
-      type: 'materials_accessed',
-      metadata: {
-        campaignId,
-        promoterId: session.user.id,
-        materialsCount: materials.length
-      }
-    });
-
-    // Decode tracking link to provide additional context
-    const trackingInfo = ApplicationService.decodeEnhancedTrackingLink(application.application.trackingLink);
 
     return NextResponse.json({
       campaign: campaignDetails,
-      materials,
-      application: {
-        id: application.application.id,
-        trackingLink: application.application.trackingLink,
-        appliedAt: application.application.appliedAt,
-        reviewedAt: application.application.reviewedAt,
-        trackingInfo: trackingInfo.error ? null : trackingInfo
+      promotion: {
+        id: promotion.id,
+        contentUrl: promotion.contentUrl,
+        views: promotion.views,
+        earnings: promotion.earnings,
+        createdAt: promotion.createdAt
       },
       guidelines: {
         contentCreation: [

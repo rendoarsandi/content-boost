@@ -1,59 +1,58 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-// import { campaigns, campaignApplications, users, campaignMaterials } from '@repo/database';
-// import { eq, and, ne, notInArray, desc, isNull, or } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
 import Link from 'next/link';
 
 async function getAvailableCampaigns(promoterId: string) {
   // Get campaigns that the promoter hasn't applied to yet
-  const appliedCampaignIds = await db
-    .select({ campaignId: campaignApplications.campaignId })
-    .from(campaignApplications)
-    .where(eq(campaignApplications.promoterId, promoterId));
+  const appliedPromotions = await db.promotion.findMany({
+    where: {
+      promoterId
+    },
+    select: {
+      campaignId: true
+    }
+  });
 
-  const appliedIds = appliedCampaignIds.map(app => app.campaignId);
+  const appliedIds = appliedPromotions.map(p => p.campaignId);
 
-  // Get available campaigns (active status, not applied by this promoter)
-  const availableCampaigns = await db
-    .select({
-      campaign: campaigns,
-      creator: {
-        id: users.id,
-        name: users.name,
-      },
-    })
-    .from(campaigns)
-    .innerJoin(users, eq(campaigns.creatorId, users.id))
-    .where(
-      and(
-        eq(campaigns.status, 'active'),
-        appliedIds.length > 0 ? notInArray(campaigns.id, appliedIds) : undefined
-      )
-    )
-    .orderBy(desc(campaigns.createdAt));
+  // Get available campaigns (not applied by this promoter)
+  const availableCampaigns = await db.campaign.findMany({
+    where: {
+      id: {
+        notIn: appliedIds
+      }
+    },
+    include: {
+      creator: true
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
 
   return availableCampaigns;
 }
 
-async function getPromoterApplications(promoterId: string) {
-  const applications = await db
-    .select({
-      application: campaignApplications,
-      campaign: campaigns,
-      creator: {
-        id: users.id,
-        name: users.name,
-      },
-    })
-    .from(campaignApplications)
-    .innerJoin(campaigns, eq(campaignApplications.campaignId, campaigns.id))
-    .innerJoin(users, eq(campaigns.creatorId, users.id))
-    .where(eq(campaignApplications.promoterId, promoterId))
-    .orderBy(desc(campaignApplications.appliedAt));
+async function getPromoterPromotions(promoterId: string) {
+  const promotions = await db.promotion.findMany({
+    where: {
+      promoterId
+    },
+    include: {
+      campaign: {
+        include: {
+          creator: true
+        }
+      }
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
 
-  return applications;
+  return promotions;
 }
 
 function getStatusColor(status: string) {

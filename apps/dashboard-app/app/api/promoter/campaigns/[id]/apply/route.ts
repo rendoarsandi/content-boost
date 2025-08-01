@@ -14,7 +14,7 @@ const ApplyCampaignSchema = z.object({
 // POST /api/promoter/campaigns/[id]/apply - Apply to campaign
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -26,7 +26,7 @@ export async function POST(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
     const promoterId = (session.user as any).id;
 
     // Check if campaign exists and is active

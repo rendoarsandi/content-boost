@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-// import { campaigns, campaignApplications, users } from '@repo/database';
-// import { eq, and, desc, notInArray, isNull, or, lt, gt } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
-import { CampaignService } from '@repo/utils';
 
 // GET /api/campaigns/available - List available campaigns for promoters to apply
 export async function GET(request: NextRequest) {
@@ -28,81 +25,51 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    const offset = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
-    // Get campaigns that are active and the promoter hasn't applied to yet
-    const existingApplications = await db
-      .select({ campaignId: campaignApplications.campaignId })
-      .from(campaignApplications)
-      .where(eq(campaignApplications.promoterId, session.user.id));
+    // Get campaigns that the promoter hasn't applied to yet
+    const existingPromotions = await db.promotion.findMany({
+      where: {
+        promoterId: session.user.id
+      },
+      select: {
+        campaignId: true
+      }
+    });
 
-    const appliedCampaignIds = existingApplications.map(app => app.campaignId);
+    const appliedCampaignIds = existingPromotions.map(p => p.campaignId);
 
-    // Build query conditions
-    const conditions = [
-      eq(campaigns.status, 'active'),
-      // Campaign should be within date range or have no date restrictions
-      or(
-        isNull(campaigns.startDate),
-        lt(campaigns.startDate, new Date())
-      ),
-      or(
-        isNull(campaigns.endDate),
-        gt(campaigns.endDate, new Date())
-      )
-    ];
-
-    // Exclude campaigns the promoter has already applied to
-    if (appliedCampaignIds.length > 0) {
-      conditions.push(notInArray(campaigns.id, appliedCampaignIds));
-    }
-
-    const availableCampaigns = await db
-      .select({
-        campaign: campaigns,
-        creator: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
+    // Get available campaigns
+    const availableCampaigns = await db.campaign.findMany({
+      where: {
+        id: {
+          notIn: appliedCampaignIds
         }
-      })
-      .from(campaigns)
-      .innerJoin(users, eq(campaigns.creatorId, users.id))
-      .where(and(...conditions))
-      .orderBy(desc(campaigns.createdAt))
-      .limit(limit)
-      .offset(offset);
-
-    // Calculate campaign progress for each campaign
-    const campaignsWithProgress = availableCampaigns.map(({ campaign, creator }) => {
-      const progress = CampaignService.calculateCampaignProgress({
-        budget: parseFloat(campaign.budget),
-        ratePerView: parseFloat(campaign.ratePerView)
-      });
-
-      return {
-        ...campaign,
-        creator,
-        progress,
-        isActive: CampaignService.isCampaignActive({
-          status: campaign.status,
-          startDate: campaign.startDate,
-          endDate: campaign.endDate
-        })
-      };
+      },
+      include: {
+        creator: true,
+        promotions: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip,
+      take: limit
     });
 
     // Get total count for pagination
-    const totalCountResult = await db
-      .select({ count: campaigns.id })
-      .from(campaigns)
-      .where(and(...conditions));
+    const totalCount = await db.campaign.count({
+      where: {
+        id: {
+          notIn: appliedCampaignIds
+        }
+      }
+    });
 
-    const totalCount = totalCountResult.length;
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
-      campaigns: campaignsWithProgress,
+      campaigns: availableCampaigns,
       pagination: {
         page,
         limit,

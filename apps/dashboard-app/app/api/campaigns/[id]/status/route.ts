@@ -15,7 +15,7 @@ const UpdateStatusSchema = z.object({
 // PATCH /api/campaigns/[id]/status - Update campaign status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -35,7 +35,7 @@ export async function PATCH(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
     const body = await request.json();
     const validatedData = UpdateStatusSchema.parse(body);
 

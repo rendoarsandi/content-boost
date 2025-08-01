@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-// import { campaigns, campaignApplications, users } from '@repo/database';
-// import { eq, desc, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
 // GET /api/applications - List promoter's applications
@@ -26,56 +24,40 @@ export async function GET(request: NextRequest) {
     // }
 
     const { searchParams } = request.nextUrl;
-    const status = searchParams.get('status'); // pending, approved, rejected
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    const offset = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
-    // Build query conditions
-    const conditions = [eq(campaignApplications.promoterId, (session.user as any).id)];
-    
-    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
-      conditions.push(eq(campaignApplications.status, status as any));
-    }
-
-    // Get applications with campaign and creator details
-    const applications = await db
-      .select({
-        application: campaignApplications,
+    // Get promotions (applications) for this promoter
+    const promotions = await db.promotion.findMany({
+      where: {
+        promoterId: (session.user as any).id
+      },
+      include: {
         campaign: {
-          id: campaigns.id,
-          title: campaigns.title,
-          description: campaigns.description,
-          budget: campaigns.budget,
-          ratePerView: campaigns.ratePerView,
-          status: campaigns.status,
-          startDate: campaigns.startDate,
-          endDate: campaigns.endDate,
-        },
-        creator: {
-          id: users.id,
-          name: users.name,
+          include: {
+            creator: true
+          }
         }
-      })
-      .from(campaignApplications)
-      .innerJoin(campaigns, eq(campaignApplications.campaignId, campaigns.id))
-      .innerJoin(users, eq(campaigns.creatorId, users.id))
-      .where(conditions.length > 1 ? and(...conditions) : conditions[0])
-      .orderBy(desc(campaignApplications.appliedAt))
-      .limit(limit)
-      .offset(offset);
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip,
+      take: limit
+    });
 
     // Get total count for pagination
-    const totalCountResult = await db
-      .select({ count: campaignApplications.id })
-      .from(campaignApplications)
-      .where(conditions.length > 1 ? and(...conditions) : conditions[0]);
+    const totalCount = await db.promotion.count({
+      where: {
+        promoterId: (session.user as any).id
+      }
+    });
 
-    const totalCount = totalCountResult.length;
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
-      applications,
+      promotions,
       pagination: {
         page,
         limit,

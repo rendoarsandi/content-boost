@@ -7,7 +7,7 @@ import { getSession } from '@repo/auth/server-only';
 // GET /api/campaigns/[id]/metrics - Get real-time campaign metrics
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -27,7 +27,7 @@ export async function GET(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
 
     // Verify campaign ownership
     const [campaign] = await db

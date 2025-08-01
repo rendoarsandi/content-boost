@@ -5,7 +5,7 @@ import { getSession } from '@repo/auth/server-only';
 // GET /api/promoter/campaigns/[id] - Get campaign details for promoter
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    const campaignId = params.id;
+    const { id: campaignId } = await params;
     const promoterId = (session.user as any).id;
 
     // Get campaign with creator info

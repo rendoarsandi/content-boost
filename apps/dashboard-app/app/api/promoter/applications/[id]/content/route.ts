@@ -13,7 +13,7 @@ const UpdateContentSchema = z.object({
 // GET /api/promoter/applications/[id]/content - Get application content and materials
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -25,7 +25,7 @@ export async function GET(
       );
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
     const promoterId = (session.user as any).id;
 
     // Get application with campaign info
@@ -89,7 +89,7 @@ export async function GET(
 // PUT /api/promoter/applications/[id]/content - Update application content
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -101,7 +101,7 @@ export async function PUT(
       );
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
     const promoterId = (session.user as any).id;
 
     // Verify application ownership

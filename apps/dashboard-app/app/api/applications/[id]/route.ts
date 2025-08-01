@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-// import { campaignApplications, campaigns } from '@repo/database';
-// import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
-import { generateTrackingLink } from '@repo/utils';
 
 const CreateApplicationSchema = z.object({
-  campaignId: z.string().uuid('Invalid campaign ID'),
-  submittedContent: z.string().optional(),
+  campaignId: z.string().cuid('Invalid campaign ID'),
+  contentUrl: z.string().url('Invalid content URL'),
 });
 
 // POST /api/applications/[id] - Apply to a campaign
@@ -41,11 +38,10 @@ export async function POST(
       campaignId 
     });
 
-    // Check if campaign exists and is active
-    const [campaign] = await db
-      .select()
-      .from(campaigns)
-      .where(eq(campaigns.id, campaignId));
+    // Check if campaign exists
+    const campaign = await db.campaign.findUnique({
+      where: { id: campaignId }
+    });
 
     if (!campaign) {
       return NextResponse.json(
@@ -54,50 +50,35 @@ export async function POST(
       );
     }
 
-    if (campaign.status !== 'active') {
-      return NextResponse.json(
-        { error: 'Campaign is not active' },
-        { status: 400 }
-      );
-    }
+    // Check if user already has a promotion for this campaign
+    const existingPromotion = await db.promotion.findFirst({
+      where: {
+        campaignId,
+        promoterId: (session.user as any).id
+      }
+    });
 
-    // Check if user already applied
-    const existingApplication = await db
-      .select()
-      .from(campaignApplications)
-      .where(
-        and(
-          eq(campaignApplications.campaignId, campaignId),
-          eq(campaignApplications.promoterId, (session.user as any).id)
-        )
-      );
-
-    if (existingApplication.length > 0) {
+    if (existingPromotion) {
       return NextResponse.json(
         { error: 'You have already applied to this campaign' },
         { status: 400 }
       );
     }
 
-    // Generate unique tracking link
-    const trackingLink = generateTrackingLink((session.user as any).id, campaignId);
-
-    // Create application
-    const [newApplication] = await db
-      .insert(campaignApplications)
-      .values({
+    // Create promotion (application)
+    const newPromotion = await db.promotion.create({
+      data: {
         campaignId,
         promoterId: (session.user as any).id,
-        status: 'pending',
-        submittedContent: validatedData.submittedContent,
-        trackingLink,
-        appliedAt: new Date(),
-      })
-      .returning();
+        contentUrl: validatedData.contentUrl,
+        views: 0,
+        earnings: 0,
+      }
+    });
 
     return NextResponse.json(
       { 
-        application: newApplication,
+        promotion: newPromotion,
         message: 'Application submitted successfully'
       },
       { status: 201 }
@@ -138,26 +119,29 @@ export async function GET(
 
     const { id: applicationId } = await params;
 
-    // Get application with campaign details
-    const [application] = await db
-      .select({
-        application: campaignApplications,
-        campaign: campaigns,
-      })
-      .from(campaignApplications)
-      .innerJoin(campaigns, eq(campaignApplications.campaignId, campaigns.id))
-      .where(eq(campaignApplications.id, applicationId));
+    // Get promotion with campaign details
+    const promotion = await db.promotion.findUnique({
+      where: { id: applicationId },
+      include: {
+        campaign: {
+          include: {
+            creator: true
+          }
+        },
+        promoter: true
+      }
+    });
 
-    if (!application) {
+    if (!promotion) {
       return NextResponse.json(
         { error: 'Application not found' },
         { status: 404 }
       );
     }
 
-    // Check if user owns this application or is the campaign creator
-    const isOwner = application.application.promoterId === (session.user as any).id;
-    const isCreator = application.campaign.creatorId === (session.user as any).id;
+    // Check if user owns this promotion or is the campaign creator
+    const isOwner = promotion.promoterId === (session.user as any).id;
+    const isCreator = promotion.campaign.creatorId === (session.user as any).id;
 
     if (!isOwner && !isCreator) {
       return NextResponse.json(
@@ -167,8 +151,8 @@ export async function GET(
     }
 
     return NextResponse.json({ 
-      application: application.application,
-      campaign: application.campaign
+      promotion,
+      campaign: promotion.campaign
     });
   } catch (error) {
     console.error('Error fetching application:', error);

@@ -15,7 +15,7 @@ const UpdateMaterialSchema = z.object({
 // GET /api/campaigns/[id]/materials/[materialId] - Get specific material
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; materialId: string } }
+  { params }: { params: Promise<{ id: string; materialId: string }> }
 ) {
   try {
     const session = await auth();
@@ -27,7 +27,7 @@ export async function GET(
       );
     }
 
-    const { id: campaignId, materialId } = params;
+    const { id: campaignId, materialId } = await params;
 
     // Get material with campaign info
     const [material] = await db
@@ -72,7 +72,7 @@ export async function GET(
 // PUT /api/campaigns/[id]/materials/[materialId] - Update material
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; materialId: string } }
+  { params }: { params: Promise<{ id: string; materialId: string }> }
 ) {
   try {
     const session = await auth();
@@ -92,7 +92,7 @@ export async function PUT(
       );
     }
 
-    const { id: campaignId, materialId } = params;
+    const { id: campaignId, materialId } = await params;
     const body = await request.json();
     const validatedData = UpdateMaterialSchema.parse(body);
 
@@ -163,7 +163,7 @@ export async function PUT(
 // DELETE /api/campaigns/[id]/materials/[materialId] - Delete material
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; materialId: string } }
+  { params }: { params: Promise<{ id: string; materialId: string }> }
 ) {
   try {
     const session = await auth();
@@ -183,7 +183,7 @@ export async function DELETE(
       );
     }
 
-    const { id: campaignId, materialId } = params;
+    const { id: campaignId, materialId } = await params;
 
     // Check if material exists and user owns the campaign
     const [existingMaterial] = await db

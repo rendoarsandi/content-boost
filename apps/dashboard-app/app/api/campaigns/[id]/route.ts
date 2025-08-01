@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-// import { campaigns, campaignMaterials } from '@repo/database';
-// import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 
 const UpdateCampaignSchema = z.object({
-  title: z.string().min(1).max(255).optional(),
+  name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
   budget: z.number().positive().optional(),
-  ratePerView: z.number().positive().optional(),
-  status: z.enum(['draft', 'active', 'paused', 'completed']).optional(),
   requirements: z.array(z.string()).optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
@@ -33,11 +29,14 @@ export async function GET(
 
     const { id: campaignId } = await params;
 
-    // Get campaign with materials
-    const [campaign] = await db
-      .select()
-      .from(campaigns)
-      .where(eq(campaigns.id, campaignId));
+    // Get campaign
+    const campaign = await db.campaign.findUnique({
+      where: { id: campaignId },
+      include: {
+        creator: true,
+        promotions: true
+      }
+    });
 
     if (!campaign) {
       return NextResponse.json(
@@ -54,17 +53,8 @@ export async function GET(
       );
     }
 
-    // Get campaign materials
-    const materials = await db
-      .select()
-      .from(campaignMaterials)
-      .where(eq(campaignMaterials.campaignId, campaignId));
-
     return NextResponse.json({
-      campaign: {
-        ...campaign,
-        materials
-      }
+      campaign
     });
   } catch (error) {
     console.error('Error fetching campaign:', error);
@@ -103,15 +93,12 @@ export async function PUT(
     const validatedData = UpdateCampaignSchema.parse(body);
 
     // Check if campaign exists and user owns it
-    const [existingCampaign] = await db
-      .select()
-      .from(campaigns)
-      .where(
-        and(
-          eq(campaigns.id, campaignId),
-          eq(campaigns.creatorId, session.user.id)
-        )
-      );
+    const existingCampaign = await db.campaign.findFirst({
+      where: {
+        id: campaignId,
+        creatorId: session.user.id
+      }
+    });
 
     if (!existingCampaign) {
       return NextResponse.json(
@@ -120,41 +107,9 @@ export async function PUT(
       );
     }
 
-    // Validate budget vs rate if both are being updated
-    if (validatedData.budget && validatedData.ratePerView) {
-      const maxViews = Math.floor(validatedData.budget / validatedData.ratePerView);
-      if (maxViews < 1) {
-        return NextResponse.json(
-          { error: 'Budget too low for the specified rate per view' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Validate status transitions
-    if (validatedData.status) {
-      const validTransitions: Record<string, string[]> = {
-        'draft': ['active'],
-        'active': ['paused', 'completed'],
-        'paused': ['active', 'completed'],
-        'completed': [] // Cannot transition from completed
-      };
-
-      const allowedTransitions = validTransitions[existingCampaign.status];
-      if (!allowedTransitions.includes(validatedData.status)) {
-        return NextResponse.json(
-          { 
-            error: `Invalid status transition from ${existingCampaign.status} to ${validatedData.status}` 
-          },
-          { status: 400 }
-        );
-      }
-    }
-
     // Update campaign
     const updateData: any = {
       ...validatedData,
-      updatedAt: new Date(),
     };
 
     // Convert string dates to Date objects
@@ -165,19 +120,10 @@ export async function PUT(
       updateData.endDate = new Date(validatedData.endDate);
     }
 
-    // Convert numbers to strings for decimal fields
-    if (validatedData.budget) {
-      updateData.budget = validatedData.budget.toString();
-    }
-    if (validatedData.ratePerView) {
-      updateData.ratePerView = validatedData.ratePerView.toString();
-    }
-
-    const [updatedCampaign] = await db
-      .update(campaigns)
-      .set(updateData)
-      .where(eq(campaigns.id, campaignId))
-      .returning();
+    const updatedCampaign = await db.campaign.update({
+      where: { id: campaignId },
+      data: updateData
+    });
 
     return NextResponse.json({
       campaign: updatedCampaign,
@@ -228,15 +174,12 @@ export async function DELETE(
     const { id: campaignId } = await params;
 
     // Check if campaign exists and user owns it
-    const [existingCampaign] = await db
-      .select()
-      .from(campaigns)
-      .where(
-        and(
-          eq(campaigns.id, campaignId),
-          eq(campaigns.creatorId, session.user.id)
-        )
-      );
+    const existingCampaign = await db.campaign.findFirst({
+      where: {
+        id: campaignId,
+        creatorId: session.user.id
+      }
+    });
 
     if (!existingCampaign) {
       return NextResponse.json(
@@ -245,18 +188,10 @@ export async function DELETE(
       );
     }
 
-    // Only allow deletion of draft campaigns
-    if (existingCampaign.status !== 'draft') {
-      return NextResponse.json(
-        { error: 'Only draft campaigns can be deleted' },
-        { status: 400 }
-      );
-    }
-
-    // Delete campaign (materials will be deleted via cascade)
-    await db
-      .delete(campaigns)
-      .where(eq(campaigns.id, campaignId));
+    // Delete campaign (promotions will be deleted via cascade)
+    await db.campaign.delete({
+      where: { id: campaignId }
+    });
 
     return NextResponse.json({
       message: 'Campaign deleted successfully'
