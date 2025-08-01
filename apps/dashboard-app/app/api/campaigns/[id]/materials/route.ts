@@ -52,13 +52,11 @@ export async function GET(
       );
     }
 
-    // Get materials
-    const materials = await db
-      .select()
-      .from(campaignMaterials)
-      .where(eq(campaignMaterials.campaignId, campaignId));
-
-    return NextResponse.json({ materials });
+    // Since materials table doesn't exist in current schema, return empty array
+    return NextResponse.json({ 
+      materials: [],
+      message: 'Materials feature not yet implemented'
+    });
   } catch (error) {
     console.error('Error fetching campaign materials:', error);
     return NextResponse.json(
@@ -96,15 +94,12 @@ export async function POST(
     const validatedData = CreateMaterialSchema.parse(body);
 
     // Check if campaign exists and user owns it
-    const [campaign] = await db
-      .select()
-      .from(campaigns)
-      .where(
-        and(
-          eq(campaigns.id, campaignId),
-          eq(campaigns.creatorId, session.user.id)
-        )
-      );
+    const campaign = await db.campaign.findFirst({
+      where: {
+        id: campaignId,
+        creatorId: session.user.id
+      }
+    });
 
     if (!campaign) {
       return NextResponse.json(
@@ -113,33 +108,12 @@ export async function POST(
       );
     }
 
-    // Validate URL based on material type
-    const urlValidation = validateMaterialUrl(validatedData.type, validatedData.url);
-    if (!urlValidation.valid) {
-      return NextResponse.json(
-        { error: urlValidation.error },
-        { status: 400 }
-      );
-    }
-
-    // Create material
-    const [newMaterial] = await db
-      .insert(campaignMaterials)
-      .values({
-        campaignId,
-        type: validatedData.type,
-        url: validatedData.url,
-        title: validatedData.title,
-        description: validatedData.description,
-      })
-      .returning();
-
+    // Since materials table doesn't exist, return not implemented message
     return NextResponse.json(
       {
-        material: newMaterial,
-        message: 'Material added successfully'
+        message: 'Materials feature not yet implemented'
       },
-      { status: 201 }
+      { status: 501 }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {

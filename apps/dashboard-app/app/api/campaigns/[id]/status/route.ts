@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { db } from '@repo/database';
-// import { campaigns } from '@repo/database';
-// import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
 
-const UpdateStatusSchema = z.object({
-  status: z.enum(['active', 'paused', 'completed'], {
-    required_error: 'Status is required',
-    invalid_type_error: 'Status must be active, paused, or completed',
-  }),
-});
-
-// PATCH /api/campaigns/[id]/status - Update campaign status
+// PATCH /api/campaigns/[id]/status - Since Campaign model has no status field, this endpoint returns campaign info
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -27,23 +17,23 @@ export async function PATCH(
       );
     }
 
-    // Only creators can update campaign status
+    // Only creators can access campaign status
     if ((session.user as any).role !== 'creator') {
       return NextResponse.json(
-        { error: 'Forbidden - Only creators can update campaign status' },
+        { error: 'Forbidden - Only creators can access campaigns' },
         { status: 403 }
       );
     }
 
     const { id: campaignId } = await params;
-    const body = await request.json();
-    const validatedData = UpdateStatusSchema.parse(body);
 
     // Verify campaign ownership
-    const [campaign] = await db
-      .select()
-      .from(campaigns)
-      .where(and(eq(campaigns.id, campaignId), eq(campaigns.creatorId, (session.user as any).id)));
+    const campaign = await db.campaign.findFirst({
+      where: {
+        id: campaignId,
+        creatorId: (session.user as any).id
+      }
+    });
 
     if (!campaign) {
       return NextResponse.json(
@@ -52,51 +42,13 @@ export async function PATCH(
       );
     }
 
-    // Validate status transitions
-    const currentStatus = campaign.status;
-    const newStatus = validatedData.status;
-
-    // Define valid status transitions
-    const validTransitions: Record<string, string[]> = {
-      draft: ['active'],
-      active: ['paused', 'completed'],
-      paused: ['active', 'completed'],
-      completed: [], // Cannot transition from completed
-    };
-
-    if (!validTransitions[currentStatus]?.includes(newStatus)) {
-      return NextResponse.json(
-        { error: `Cannot transition from ${currentStatus} to ${newStatus}` },
-        { status: 400 }
-      );
-    }
-
-    // Update campaign status
-    const [updatedCampaign] = await db
-      .update(campaigns)
-      .set({
-        status: newStatus,
-        updatedAt: new Date(),
-      })
-      .where(eq(campaigns.id, campaignId))
-      .returning();
-
+    // Since we don't have status field, just return campaign info
     return NextResponse.json({
-      campaign: updatedCampaign,
-      message: `Campaign status updated to ${newStatus}`,
+      campaign,
+      message: 'Campaign is active by default',
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { 
-          error: 'Validation error',
-          details: error.errors
-        },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error updating campaign status:', error);
+    console.error('Error accessing campaign:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

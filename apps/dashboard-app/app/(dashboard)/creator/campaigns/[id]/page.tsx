@@ -1,53 +1,37 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect, notFound } from 'next/navigation';
 import { db } from '@repo/database';
-// import { campaigns, campaignMaterials, campaignApplications, users, viewRecords } from '@repo/database';
-// import { eq, and, count, sum } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
 import Link from 'next/link';
-import { RealTimeMetrics } from '../../components/real-time-metrics';
-import { CampaignStatusActions } from '../../components/campaign-status-actions';
 
 async function getCampaignDetails(campaignId: string, creatorId: string) {
-  // Get campaign with materials
-  const [campaign] = await db
-    .select()
-    .from(campaigns)
-    .where(and(eq(campaigns.id, campaignId), eq(campaigns.creatorId, creatorId)));
+  // Get campaign with promotions
+  const campaign = await db.campaign.findFirst({
+    where: {
+      id: campaignId,
+      creatorId
+    },
+    include: {
+      promotions: {
+        include: {
+          promoter: true
+        }
+      },
+      _count: {
+        select: {
+          promotions: true
+        }
+      }
+    }
+  });
 
   if (!campaign) {
     return null;
   }
 
-  const materials = await db
-    .select()
-    .from(campaignMaterials)
-    .where(eq(campaignMaterials.campaignId, campaignId));
-
-  // Get applications with promoter details
-  const applications = await db
-    .select({
-      application: campaignApplications,
-      promoter: {
-        id: users.id,
-        name: users.name,
-        email: users.email,
-      },
-    })
-    .from(campaignApplications)
-    .innerJoin(users, eq(campaignApplications.promoterId, users.id))
-    .where(eq(campaignApplications.campaignId, campaignId));
-
-  // Get view statistics
-  const viewStats = await db
-    .select({
-      totalViews: sum(viewRecords.viewCount),
-      legitimateViews: sum(viewRecords.viewCount),
-    })
-    .from(viewRecords)
-    .where(
-      and(
-        eq(viewRecords.campaignId, campaignId),
+  // Calculate statistics from promotions
+  const totalViews = campaign.promotions.reduce((sum, p) => sum + p.views, 0);
+  const totalEarnings = campaign.promotions.reduce((sum, p) => sum + p.earnings, 0);
         eq(viewRecords.isLegitimate, true)
       )
     );
