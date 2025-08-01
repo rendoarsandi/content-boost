@@ -1,78 +1,34 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-// import { campaigns, campaignApplications, viewRecords, payouts } from '@repo/database';
-// import { eq, count, sum, and, gte, desc } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button } from '@repo/ui';
 import Link from 'next/link';
 
 async function getPromoterStats(promoterId: string) {
-  // Get application counts by status
-  const applicationStats = await db
-    .select({
-      status: campaignApplications.status,
-      count: count(),
-    })
-    .from(campaignApplications)
-    .where(eq(campaignApplications.promoterId, promoterId))
-    .groupBy(campaignApplications.status);
+  // Get promotions for this promoter
+  const promotions = await db.promotion.findMany({
+    where: {
+      promoterId
+    },
+    include: {
+      campaign: true
+    }
+  });
 
-  // Get recent view metrics (last 7 days)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-  const viewStats = await db
-    .select({
-      totalViews: sum(viewRecords.viewCount),
-      legitimateViews: count(viewRecords.id),
-    })
-    .from(viewRecords)
-    .where(
-      and(
-        eq(viewRecords.promoterId, promoterId),
-        gte(viewRecords.timestamp, sevenDaysAgo),
-        eq(viewRecords.isLegitimate, true)
-      )
-    );
-
-  // Get earnings data
-  const earningsStats = await db
-    .select({
-      totalEarnings: sum(payouts.netAmount),
-      pendingEarnings: sum(payouts.netAmount),
-      completedPayouts: count(payouts.id),
-    })
-    .from(payouts)
-    .where(eq(payouts.promoterId, promoterId))
-    .groupBy(payouts.status);
-
-  // Get recent payouts (last 30 days)
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  const recentEarnings = await db
-    .select({
-      totalEarnings: sum(payouts.netAmount),
-    })
-    .from(payouts)
-    .where(
-      and(
-        eq(payouts.promoterId, promoterId),
-        gte(payouts.createdAt, thirtyDaysAgo),
-        eq(payouts.status, 'completed')
-      )
-    );
+  // Calculate basic stats from promotions
+  const totalPromotions = promotions.length;
+  const totalViews = promotions.reduce((sum, p) => sum + p.views, 0);
+  const totalEarnings = promotions.reduce((sum, p) => sum + p.earnings, 0);
 
   return {
-    applications: applicationStats.reduce((acc, stat) => {
-      acc[stat.status] = stat.count;
-      return acc;
-    }, {} as Record<string, number>),
-    totalViews: Number(viewStats[0]?.totalViews || 0),
-    legitimateViews: Number(viewStats[0]?.legitimateViews || 0),
-    totalEarnings: Number(earningsStats.find(e => e.completedPayouts)?.totalEarnings || 0),
-    recentEarnings: Number(recentEarnings[0]?.totalEarnings || 0),
-    completedPayouts: Number(earningsStats.find(e => e.completedPayouts)?.completedPayouts || 0),
+    applications: {
+      approved: totalPromotions,
+      pending: 0,
+      rejected: 0
+    },
+    legitimateViews: totalViews,
+    totalEarnings: totalEarnings,
+    recentPayouts: []
   };
 }
 
