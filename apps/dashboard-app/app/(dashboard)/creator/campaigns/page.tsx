@@ -114,7 +114,7 @@ export default async function CampaignsPage() {
                 </div>
               </CardContent>
             </Card>
-          ))
+          ))}
         </div>
       )}
     </div>

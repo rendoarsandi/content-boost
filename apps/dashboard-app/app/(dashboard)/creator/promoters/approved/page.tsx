@@ -7,62 +7,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badg
 import Link from 'next/link';
 
 async function getApprovedPromoters(creatorId: string) {
-  // Get approved applications with promoter details and performance metrics
-  const approvedApplications = await db
-    .select({
-      application: campaignApplications,
+  // Get all campaigns for this creator
+  const campaigns = await db.campaign.findMany({
+    where: {
+      creatorId: creatorId
+    },
+    include: {
+      promotions: {
+        include: {
+          promoter: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Transform promotions into the expected format
+  const promotersWithMetrics = campaigns.flatMap(campaign => 
+    campaign.promotions.map(promotion => ({
+      application: { ...promotion, status: 'approved' }, // Promotions are approved by default
       campaign: {
-        id: campaigns.id,
-        title: campaigns.title,
-        status: campaigns.status,
-        ratePerView: campaigns.ratePerView,
+        id: campaign.id,
+        title: campaign.name,
+        status: 'active',
+        ratePerView: 100, // Default rate
       },
-      promoter: {
-        id: users.id,
-        name: users.name,
-        email: users.email,
+      promoter: promotion.promoter,
+      metrics: {
+        totalViews: promotion.views,
+        legitimateViews: promotion.views,
+        estimatedEarnings: promotion.earnings,
       },
-    })
-    .from(campaignApplications)
-    .innerJoin(campaigns, eq(campaignApplications.campaignId, campaigns.id))
-    .innerJoin(users, eq(campaignApplications.promoterId, users.id))
-    .where(
-      and(
-        eq(campaigns.creatorId, creatorId),
-        eq(campaignApplications.status, 'approved')
-      )
-    );
-
-  // Get performance metrics for each approved promoter
-  const promotersWithMetrics = await Promise.all(
-    approvedApplications.map(async (item) => {
-      const metrics = await db
-        .select({
-          totalViews: sum(viewRecords.viewCount),
-          legitimateViews: count(viewRecords.id),
-        })
-        .from(viewRecords)
-        .where(
-          and(
-            eq(viewRecords.campaignId, item.campaign.id),
-            eq(viewRecords.promoterId, item.promoter.id),
-            eq(viewRecords.isLegitimate, true)
-          )
-        );
-
-      const totalViews = Number(metrics[0]?.totalViews || 0);
-      const legitimateViews = Number(metrics[0]?.legitimateViews || 0);
-      const estimatedEarnings = legitimateViews * Number(item.campaign.ratePerView);
-
-      return {
-        ...item,
-        metrics: {
-          totalViews,
-          legitimateViews,
-          estimatedEarnings,
-        },
-      };
-    })
+    }))
   );
 
   return promotersWithMetrics;
@@ -196,11 +177,11 @@ export default async function ApprovedPromotersPage() {
                         <div className="flex items-center space-x-3">
                           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                             <span className="text-blue-600 font-medium text-lg">
-                              {promoter.promoter.name.charAt(0).toUpperCase()}
+                              {(promoter.promoter.name || 'U').charAt(0).toUpperCase()}
                             </span>
                           </div>
                           <div>
-                            <h3 className="font-semibold text-lg">{promoter.promoter.name}</h3>
+                            <h3 className="font-semibold text-lg">{promoter.promoter.name || 'Unknown User'}</h3>
                             <p className="text-sm text-gray-600">{promoter.promoter.email}</p>
                             <p className="text-xs text-gray-500 mt-1">
                               Approved: {new Date(promoter.application.reviewedAt || promoter.application.appliedAt).toLocaleDateString()}

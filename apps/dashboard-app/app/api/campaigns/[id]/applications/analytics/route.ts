@@ -98,7 +98,7 @@ export async function GET(
       .slice(0, 10)
       .map(app => ({
         id: app.promoter.id,
-        name: app.promoter.name,
+        name: app.promoter.name || 'Unknown User',
         appliedAt: app.application.appliedAt,
         score: app.application.metadata?.applicationScore || 0
       }));

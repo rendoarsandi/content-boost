@@ -158,11 +158,11 @@ export default async function PromotersPage() {
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-medium">
-                        {promotion.promoter.name?.charAt(0).toUpperCase()}
+                        {(promotion.promoter.name || 'U').charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium">{promotion.promoter.name}</p>
+                      <p className="font-medium">{promotion.promoter.name || 'Unknown User'}</p>
                       <p className="text-sm text-gray-600">{promotion.campaign.name}</p>
                     </div>
                   </div>

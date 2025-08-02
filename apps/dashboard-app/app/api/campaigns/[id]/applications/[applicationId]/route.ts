@@ -109,7 +109,7 @@ export async function PUT(
       validatedData.status === 'approved' ? 'application_approved' : 'application_rejected',
       {
         campaignTitle: applicationWithCampaign.campaign.title,
-        promoterName: applicationWithCampaign.promoter.name,
+        promoterName: applicationWithCampaign.promoter.name || 'Unknown User',
         creatorName: session.user.name || 'Creator',
         reviewMessage: validatedData.reviewMessage,
         feedback: validatedData.feedback

@@ -102,7 +102,7 @@ export async function POST(
             nonPendingApplications: nonPendingApps.map(app => ({
               id: app.application.id,
               status: app.application.status,
-              promoterName: app.promoter.name
+              promoterName: app.promoter.name || 'Unknown User'
             }))
           },
           { status: 400 }
@@ -154,7 +154,7 @@ export async function POST(
             newStatus === 'approved' ? 'application_approved' : 'application_rejected',
             {
               campaignTitle: campaign.title,
-              promoterName: appData.promoter.name,
+              promoterName: appData.promoter.name || 'Unknown User',
               creatorName: session.user.name || 'Creator',
               reviewMessage: validatedData.reviewMessage,
               feedback: validatedData.feedback
@@ -178,7 +178,7 @@ export async function POST(
         results.processed++;
       } catch (error) {
         results.failed++;
-        results.errors.push(`Failed to process application for ${appData.promoter.name}: ${error}`);
+        results.errors.push(`Failed to process application for ${appData.promoter.name || 'Unknown User'}: ${error}`);
         console.error(`Bulk action error for application ${appData.application.id}:`, error);
       }
     }
