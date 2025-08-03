@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { users } from '@repo/database/schemas';
-import { eq } from 'drizzle-orm';
 
 export async function POST(
   request: NextRequest,
@@ -10,20 +8,12 @@ export async function POST(
   try {
     const { id: userId } = await params;
 
-    // Update user status to active
-    await db
-      .update(users)
-      .set({ 
-        status: 'active',
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId));
-
-    // Log the unban action
+    // TODO: Add status field to User model in Prisma schema
+    // For now, just log the unban action
     console.log(`User ${userId} has been unbanned by admin`);
 
     return NextResponse.json({ 
-      message: 'User unbanned successfully' 
+      message: 'User unban acknowledged (stubbed)' 
     });
   } catch (error) {
     console.error('Unban user error:', error);

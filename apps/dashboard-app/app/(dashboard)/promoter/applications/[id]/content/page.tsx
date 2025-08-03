@@ -6,6 +6,7 @@ import { db } from '@repo/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button } from '@repo/ui';
 import Link from 'next/link';
 import { ContentEditor } from '../../../../../components/content-editor';
+import { ApplicationService } from '@repo/utils/application-service';
 
 async function getApplicationContent(applicationId: string, promoterId: string) {
   // Get promotion with campaign info using Prisma
@@ -191,30 +192,12 @@ export default async function ContentEditPage({ params }: { params: Promise<{ id
               <div>
                 <p className="text-sm text-gray-600">Tracking Link</p>
                 <div className="bg-gray-50 p-2 rounded text-xs font-mono break-all">
-                  {application.trackingLink}
+                  {ApplicationService.generateEnhancedTrackingLink(application.campaignId, application.promoterId)}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Requirements */}
-          {campaign.requirements && Array.isArray(campaign.requirements) && campaign.requirements.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Requirements</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1 text-sm">
-                  {(campaign.requirements as string[]).map((requirement, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <span className="text-green-500 mt-0.5">•</span>
-                      <span className="text-gray-700">{requirement}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

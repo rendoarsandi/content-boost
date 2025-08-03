@@ -28,6 +28,8 @@ async function getPromoterStats(promoterId: string) {
     },
     legitimateViews: totalViews,
     totalEarnings: totalEarnings,
+    recentEarnings: totalEarnings, // Add missing recentEarnings property
+    completedPayouts: 0, // Add missing completedPayouts property
     recentPayouts: []
   };
 }

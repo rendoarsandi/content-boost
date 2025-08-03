@@ -1,2 +1,1 @@
-// Placeholder for Campaign related utilities
-export const CampaignService = {};
+// Campaign related utilities moved to campaign-service.ts

@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-// import { campaigns, campaignMaterials } from '@repo/database';
-// import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 
 const UpdateMaterialSchema = z.object({
-  type: z.enum(['google_drive', 'youtube', 'image', 'video']).optional(),
+  type: z.enum(['GOOGLE_DRIVE', 'YOUTUBE', 'IMAGE', 'VIDEO']).optional(),
   url: z.string().url('Invalid URL').optional(),
   title: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
@@ -30,19 +28,20 @@ export async function GET(
     const { id: campaignId, materialId } = await params;
 
     // Get material with campaign info
-    const [material] = await db
-      .select({
-        material: campaignMaterials,
-        campaign: campaigns,
-      })
-      .from(campaignMaterials)
-      .innerJoin(campaigns, eq(campaignMaterials.campaignId, campaigns.id))
-      .where(
-        and(
-          eq(campaignMaterials.id, materialId),
-          eq(campaignMaterials.campaignId, campaignId)
-        )
-      );
+    const material = await db.campaignMaterial.findFirst({
+      where: {
+        id: materialId,
+        campaignId: campaignId,
+      },
+      include: {
+        campaign: {
+          select: {
+            id: true,
+            creatorId: true,
+          },
+        },
+      },
+    });
 
     if (!material) {
       return NextResponse.json(
@@ -59,7 +58,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ material: material.material });
+    return NextResponse.json({ material });
   } catch (error) {
     console.error('Error fetching campaign material:', error);
     return NextResponse.json(
@@ -97,20 +96,23 @@ export async function PUT(
     const validatedData = UpdateMaterialSchema.parse(body);
 
     // Check if material exists and user owns the campaign
-    const [existingMaterial] = await db
-      .select({
-        material: campaignMaterials,
-        campaign: campaigns,
-      })
-      .from(campaignMaterials)
-      .innerJoin(campaigns, eq(campaignMaterials.campaignId, campaigns.id))
-      .where(
-        and(
-          eq(campaignMaterials.id, materialId),
-          eq(campaignMaterials.campaignId, campaignId),
-          eq(campaigns.creatorId, session.user.id)
-        )
-      );
+    const existingMaterial = await db.campaignMaterial.findFirst({
+      where: {
+        id: materialId,
+        campaignId: campaignId,
+        campaign: {
+          creatorId: session.user.id,
+        },
+      },
+      include: {
+        campaign: {
+          select: {
+            id: true,
+            creatorId: true,
+          },
+        },
+      },
+    });
 
     if (!existingMaterial) {
       return NextResponse.json(
@@ -131,11 +133,12 @@ export async function PUT(
     }
 
     // Update material
-    const [updatedMaterial] = await db
-      .update(campaignMaterials)
-      .set(validatedData)
-      .where(eq(campaignMaterials.id, materialId))
-      .returning();
+    const updatedMaterial = await db.campaignMaterial.update({
+      where: {
+        id: materialId,
+      },
+      data: validatedData,
+    });
 
     return NextResponse.json({
       material: updatedMaterial,
@@ -146,7 +149,7 @@ export async function PUT(
       return NextResponse.json(
         { 
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         },
         { status: 400 }
       );
@@ -186,20 +189,23 @@ export async function DELETE(
     const { id: campaignId, materialId } = await params;
 
     // Check if material exists and user owns the campaign
-    const [existingMaterial] = await db
-      .select({
-        material: campaignMaterials,
-        campaign: campaigns,
-      })
-      .from(campaignMaterials)
-      .innerJoin(campaigns, eq(campaignMaterials.campaignId, campaigns.id))
-      .where(
-        and(
-          eq(campaignMaterials.id, materialId),
-          eq(campaignMaterials.campaignId, campaignId),
-          eq(campaigns.creatorId, session.user.id)
-        )
-      );
+    const existingMaterial = await db.campaignMaterial.findFirst({
+      where: {
+        id: materialId,
+        campaignId: campaignId,
+        campaign: {
+          creatorId: session.user.id,
+        },
+      },
+      include: {
+        campaign: {
+          select: {
+            id: true,
+            creatorId: true,
+          },
+        },
+      },
+    });
 
     if (!existingMaterial) {
       return NextResponse.json(
@@ -209,9 +215,11 @@ export async function DELETE(
     }
 
     // Delete material
-    await db
-      .delete(campaignMaterials)
-      .where(eq(campaignMaterials.id, materialId));
+    await db.campaignMaterial.delete({
+      where: {
+        id: materialId,
+      },
+    });
 
     return NextResponse.json({
       message: 'Material deleted successfully'
@@ -231,17 +239,17 @@ function validateMaterialUrl(type: string, url: string): { valid: boolean; error
     const urlObj = new URL(url);
     
     switch (type) {
-      case 'google_drive':
+      case 'GOOGLE_DRIVE':
         if (!urlObj.hostname.includes('drive.google.com') && !urlObj.hostname.includes('docs.google.com')) {
           return { valid: false, error: 'Google Drive URL must be from drive.google.com or docs.google.com' };
         }
         break;
-      case 'youtube':
+      case 'YOUTUBE':
         if (!urlObj.hostname.includes('youtube.com') && !urlObj.hostname.includes('youtu.be')) {
           return { valid: false, error: 'YouTube URL must be from youtube.com or youtu.be' };
         }
         break;
-      case 'image':
+      case 'IMAGE':
         const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
         const imageHosts = ['imgur.com', 'cloudinary.com', 'unsplash.com', 'pexels.com'];
         
@@ -256,7 +264,7 @@ function validateMaterialUrl(type: string, url: string): { valid: boolean; error
           return { valid: false, error: 'Image URL should point to an image file or known image hosting service' };
         }
         break;
-      case 'video':
+      case 'VIDEO':
         const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'];
         const videoHosts = ['vimeo.com', 'dailymotion.com', 'twitch.tv'];
         

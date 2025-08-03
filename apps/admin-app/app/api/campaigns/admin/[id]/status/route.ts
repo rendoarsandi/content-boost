@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { campaigns } from '@repo/database/schemas';
-import { eq } from 'drizzle-orm';
 
 export async function PATCH(
   request: NextRequest,
@@ -18,20 +16,12 @@ export async function PATCH(
       );
     }
 
-    // Update campaign status
-    await db
-      .update(campaigns)
-      .set({ 
-        status,
-        updatedAt: new Date()
-      })
-      .where(eq(campaigns.id, campaignId));
-
-    // Log the status change
-    console.log(`Campaign ${campaignId} status changed to ${status} by admin`);
+    // TODO: Add status field to Campaign model in Prisma schema
+    // For now, just log the operation
+    console.log(`Campaign ${campaignId} status change to ${status} requested by admin`);
 
     return NextResponse.json({ 
-      message: 'Campaign status updated successfully' 
+      message: 'Campaign status update acknowledged (stubbed)' 
     });
   } catch (error) {
     console.error('Update campaign status error:', error);

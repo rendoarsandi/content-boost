@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { complaints } from '@repo/database/schemas';
-import { eq } from 'drizzle-orm';
 
 export async function PATCH(
   request: NextRequest,
@@ -11,28 +9,19 @@ export async function PATCH(
     const { id: complaintId } = await params;
     const { status, adminNotes } = await request.json();
 
-    if (!['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
+    if (!['pending', 'investigating', 'resolved', 'rejected'].includes(status)) {
       return NextResponse.json(
         { message: 'Invalid status' },
         { status: 400 }
       );
     }
 
-    // Update complaint
-    await db
-      .update(complaints)
-      .set({
-        status,
-        adminNotes,
-        updatedAt: new Date(),
-      })
-      .where(eq(complaints.id, complaintId));
+    // TODO: Add Complaint model to Prisma schema
+    // For now, just log the operation
+    console.log(`Complaint ${complaintId} status change to ${status} with notes: ${adminNotes}`);
 
-    // Log the update
-    console.log(`Complaint ${complaintId} updated to ${status} by admin`);
-
-    return NextResponse.json({
-      message: 'Complaint updated successfully',
+    return NextResponse.json({ 
+      message: 'Complaint status update acknowledged (stubbed)' 
     });
   } catch (error) {
     console.error('Update complaint error:', error);

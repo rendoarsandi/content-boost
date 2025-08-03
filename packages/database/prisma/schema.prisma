@@ -59,6 +59,13 @@ enum UserRole {
   ADMIN
 }
 
+enum MaterialType {
+  GOOGLE_DRIVE
+  YOUTUBE
+  IMAGE
+  VIDEO
+}
+
 model User {
   id            String     @id @default(cuid())
   name          String?
@@ -73,14 +80,26 @@ model User {
 }
 
 model Campaign {
-  id          String      @id @default(cuid())
+  id          String            @id @default(cuid())
   name        String
   budget      Float
   creatorId   String
-  creator     User        @relation(fields: [creatorId], references: [id])
+  creator     User              @relation(fields: [creatorId], references: [id])
   promotions  Promotion[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  materials   CampaignMaterial[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model CampaignMaterial {
+  id          String       @id @default(cuid())
+  campaignId  String
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  type        MaterialType
+  url         String       @db.VarChar(1000)
+  title       String       @db.VarChar(255)
+  description String?      @db.Text
+  createdAt   DateTime     @default(now())
 }
 
 model Promotion {

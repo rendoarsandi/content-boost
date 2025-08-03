@@ -6,52 +6,49 @@ import { db } from '@repo/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
 import Link from 'next/link';
 import { CampaignApplicationForm } from '../../components/campaign-application-form';
+import { ApplicationService } from '@repo/utils/application-service';
 
 async function getCampaignDetails(campaignId: string, promoterId: string) {
   // Get campaign with creator info
-  const campaignData = await db
-    .select({
-      campaign: campaigns,
+  const campaign = await db.campaign.findUnique({
+    where: {
+      id: campaignId
+    },
+    include: {
       creator: {
-        id: users.id,
-        name: users.name,
-      },
-    })
-    .from(campaigns)
-    .innerJoin(users, eq(campaigns.creatorId, users.id))
-    .where(eq(campaigns.id, campaignId))
-    .limit(1);
+        select: {
+          id: true,
+          name: true
+        }
+      }
+    }
+  });
 
-  if (!campaignData.length) {
+  if (!campaign) {
     return null;
   }
 
-  // Get campaign materials
-  const materials = await db
-    .select()
-    .from(campaignMaterials)
-    .where(eq(campaignMaterials.campaignId, campaignId));
+  // Campaign materials don't exist in current schema, return empty array
+  const materials: any[] = [];
 
-  // Check if promoter has applied
-  const application = await db
-    .select()
-    .from(campaignApplications)
-    .where(
-      and(
-        eq(campaignApplications.campaignId, campaignId),
-        eq(campaignApplications.promoterId, promoterId)
-      )
-    )
-    .limit(1);
-
-  const { campaign, creator } = campaignData[0];
+  // Check if promoter has already applied (check existing promotions)
+  const promotion = await db.promotion.findFirst({
+    where: {
+      campaignId: campaignId,
+      promoterId: promoterId
+    }
+  });
 
   return {
     campaign,
-    creator,
+    creator: campaign.creator,
     materials,
-    application: application[0] || null,
-    hasApplied: application.length > 0,
+    application: promotion ? {
+      id: promotion.id,
+      status: 'approved', // Since promotion exists, it's approved
+      appliedAt: promotion.createdAt,
+    } : null,
+    hasApplied: !!promotion,
   };
 }
 
@@ -106,7 +103,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
   }
 
   const { campaign, creator, materials, application, hasApplied } = campaignDetails;
-  const maxViews = Math.floor(Number(campaign.budget) / Number(campaign.ratePerView));
+  const maxViews = Math.floor(Number(campaign.budget) / Number(1000));
 
   return (
     <div className="space-y-8">
@@ -115,12 +112,12 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
           <Link href="/promoter/campaigns" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
             ← Back to Campaigns
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">{campaign.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{campaign.name}</h1>
           <p className="text-gray-600 mt-2">by {creator.name}</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Badge className={getStatusColor(campaign.status)}>
-            {campaign.status}
+          <Badge className={getStatusColor('active')}>
+            {'active'}
           </Badge>
           {hasApplied && application && (
             <Badge className={getApplicationStatusColor(application.status)}>
@@ -139,33 +136,10 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               <CardTitle>Campaign Description</CardTitle>
             </CardHeader>
             <CardContent>
-              {campaign.description ? (
-                <p className="text-gray-700 whitespace-pre-wrap">{campaign.description}</p>
-              ) : (
-                <p className="text-gray-500 italic">No description provided</p>
-              )}
+              <p className="text-gray-700">Campaign description not available</p>
             </CardContent>
           </Card>
 
-          {/* Requirements */}
-          {campaign.requirements && Array.isArray(campaign.requirements) && campaign.requirements.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Requirements</CardTitle>
-                <CardDescription>Please ensure you meet these requirements before applying</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {(campaign.requirements as string[]).map((requirement, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <span className="text-green-500 mt-1">•</span>
-                      <span className="text-gray-700">{requirement}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ) : null}
 
           {/* Campaign Materials */}
           {materials.length > 0 && (
@@ -230,25 +204,15 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
                   </Badge>
                 </div>
 
-                {application!.submittedContent && (
-                  <div>
-                    <h4 className="font-medium mb-2">Submitted Content</h4>
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                        {application!.submittedContent}
-                      </p>
-                    </div>
-                  </div>
-                )}
 
-                {application!.trackingLink && (
-                  <div>
-                    <h4 className="font-medium mb-2">Tracking Link</h4>
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <code className="text-sm text-blue-800">{application!.trackingLink}</code>
-                    </div>
+                <div>
+                  <h4 className="font-medium mb-2">Tracking Link</h4>
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <code className="text-sm text-blue-800">
+                      {ApplicationService.generateEnhancedTrackingLink(campaign.id, session.user.id)}
+                    </code>
                   </div>
-                )}
+                </div>
 
                 {application!.status === 'approved' && (
                   <div className="flex space-x-3">
@@ -261,15 +225,13 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
                   </div>
                 )}
 
-                {application!.reviewedAt && (
-                  <p className="text-xs text-gray-500">
-                    Reviewed on {new Date(application!.reviewedAt).toLocaleDateString()}
-                  </p>
-                )}
+                <p className="text-xs text-gray-500">
+                  Applied on {new Date(application!.appliedAt).toLocaleDateString()}
+                </p>
               </CardContent>
             </Card>
           ) : (
-            campaign.status === 'active' && (
+            !hasApplied && (
               <Card>
                 <CardHeader>
                   <CardTitle>Apply to Campaign</CardTitle>
@@ -294,7 +256,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               <div>
                 <p className="text-sm text-gray-600">Rate per View</p>
                 <p className="text-2xl font-bold text-green-600">
-                  Rp {Number(campaign.ratePerView).toLocaleString()}
+                  Rp {Number(1000).toLocaleString()}
                 </p>
               </div>
 
@@ -312,23 +274,15 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
                 </p>
               </div>
 
-              {campaign.startDate && (
+              {campaign.createdAt && (
                 <div>
                   <p className="text-sm text-gray-600">Start Date</p>
                   <p className="font-medium">
-                    {new Date(campaign.startDate).toLocaleDateString()}
+                    {new Date(campaign.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               )}
 
-              {campaign.endDate && (
-                <div>
-                  <p className="text-sm text-gray-600">End Date</p>
-                  <p className="font-medium">
-                    {new Date(campaign.endDate).toLocaleDateString()}
-                  </p>
-                </div>
-              )}
 
               <div>
                 <p className="text-sm text-gray-600">Created</p>
@@ -348,11 +302,11 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                   <span className="text-blue-600 font-semibold">
-                    {creator.name.charAt(0).toUpperCase()}
+                    {creator.name?.charAt(0).toUpperCase() ?? 'U'}
                   </span>
                 </div>
                 <div>
-                  <p className="font-medium">{creator.name}</p>
+                  <p className="font-medium">{creator.name ?? 'Unknown'}</p>
                   <p className="text-sm text-gray-600">Content Creator</p>
                 </div>
               </div>

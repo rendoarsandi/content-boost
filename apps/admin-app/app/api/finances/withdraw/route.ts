@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@repo/database';
-import { platformRevenue } from '@repo/database/schemas';
-import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,45 +12,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get current platform revenue
-    const currentRevenue = await db
-      .select()
-      .from(platformRevenue)
-      .orderBy(platformRevenue.createdAt)
-      .limit(1);
-
-    if (currentRevenue.length === 0) {
-      return NextResponse.json(
-        { message: 'No revenue data found' },
-        { status: 404 }
-      );
-    }
-
-    const revenue = currentRevenue[0];
-
-    if (amount > revenue.availableBalance) {
-      return NextResponse.json(
-        { message: 'Insufficient balance for withdrawal' },
-        { status: 400 }
-      );
-    }
-
-    // Update platform revenue
-    await db
-      .update(platformRevenue)
-      .set({
-        withdrawnAmount: String(Number(revenue.withdrawnAmount) + amount),
-        availableBalance: String(Number(revenue.availableBalance) - amount),
-      })
-      .where(eq(platformRevenue.id, revenue.id));
-
-    // Log the withdrawal
-    console.log(`Platform withdrawal of Rp ${amount.toLocaleString('id-ID')} processed by admin`);
+    // TODO: Add PlatformRevenue model to Prisma schema
+    // For now, just acknowledge the withdrawal request
+    console.log(`Withdrawal request: Rp ${amount.toLocaleString('id-ID')}`);
 
     return NextResponse.json({
-      message: 'Withdrawal processed successfully',
+      message: 'Withdrawal request acknowledged (stubbed)',
       amount,
-      newBalance: Number(revenue.availableBalance) - amount,
+      newBalance: 0,
     });
   } catch (error) {
     console.error('Withdrawal error:', error);

@@ -1,12 +1,3 @@
-export * from './alerting';
-export * from './performance';
-export * from './logging';
-export * from './middleware/logging';
-export * from './application';
-export * from './campaign';
-export * from './tracking';
+// Temporarily simplified exports to isolate bundling issue
+export * from './campaign-service';
 export * from './application-service';
-export * from './payment-history';
-export * from './payment-notifications';
-export * from './payment-processor';
-export * from './validation';

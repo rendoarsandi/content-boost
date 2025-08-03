@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@repo/database';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,67 +11,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email
-    const foundUser = await db.user.findUnique({
-      where: { email }
-    });
+    // Simple auth check for demo
+    if (email === 'admin@example.com' && password === 'admin123') {
+      // Set cookie
+      const response = NextResponse.json({
+        message: 'Login successful',
+        user: {
+          id: '1',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
+        },
+      });
 
-    if (!foundUser) {
-      return NextResponse.json(
-        { message: 'Invalid credentials' },
-        { status: 401 }
-      );
+      response.cookies.set('auth-token', 'demo-admin-token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60, // 24 hours
+      });
+
+      return response;
     }
 
-    // Check if user is admin
-    if (foundUser.role !== 'ADMIN') {
-      return NextResponse.json(
-        { message: 'Access denied. Admin privileges required.' },
-        { status: 403 }
-      );
-    }
-
-    // For demo purposes, we'll use a simple password check
-    // In production, use proper password hashing
-    const isValidPassword = password === 'admin123';
-
-    if (!isValidPassword) {
-      return NextResponse.json(
-        { message: 'Invalid credentials' },
-        { status: 401 }
-      );
-    }
-
-    // Create JWT token
-    const token = jwt.sign(
-      { 
-        userId: foundUser.id, 
-        email: foundUser.email, 
-        role: foundUser.role 
-      },
-      process.env.JWT_SECRET || 'admin-secret-key',
-      { expiresIn: '24h' }
+    return NextResponse.json(
+      { message: 'Invalid credentials' },
+      { status: 401 }
     );
-
-    // Set cookie
-    const response = NextResponse.json({
-      message: 'Login successful',
-      user: {
-        id: foundUser.id,
-        email: foundUser.email,
-        name: foundUser.name,
-        role: foundUser.role,
-      },
-    });
-
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // 24 hours
-    });
-
-    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

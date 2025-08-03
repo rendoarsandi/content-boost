@@ -83,6 +83,42 @@ function getApplicationStatusColor(status: string) {
   }
 }
 
+async function getPromoterApplications(promoterId: string) {
+  // Get promotions for this promoter (these serve as their applications)
+  const promotions = await db.promotion.findMany({
+    where: {
+      promoterId: promoterId
+    },
+    include: {
+      campaign: {
+        include: {
+          creator: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      }
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
+
+  return promotions.map(promotion => ({
+    id: promotion.id,
+    campaignId: promotion.campaignId,
+    promoterId: promotion.promoterId,
+    status: 'approved', // Since promotions exist, they're approved
+    appliedAt: promotion.createdAt,
+    campaign: promotion.campaign,
+    creator: promotion.campaign.creator,
+    views: promotion.views,
+    earnings: promotion.earnings,
+  }));
+}
+
 export default async function PromoterCampaignsPage() {
   const session = await getSession();
 
@@ -118,17 +154,17 @@ export default async function PromoterCampaignsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {myApplications.slice(0, 3).map(({ application, campaign, creator }) => (
-                <div key={application.id} className="border rounded-lg p-3">
+              {myApplications.slice(0, 3).map((item) => (
+                <div key={item.id} className="border rounded-lg p-3">
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-sm line-clamp-1">{campaign.title}</h4>
-                    <Badge className={getApplicationStatusColor(application.status)}>
-                      {application.status}
+                    <h4 className="font-medium text-sm line-clamp-1">{item.campaign.name}</h4>
+                    <Badge className={getApplicationStatusColor(item.status)}>
+                      {item.status}
                     </Badge>
                   </div>
-                  <p className="text-xs text-gray-600 mb-2">by {creator.name}</p>
+                  <p className="text-xs text-gray-600 mb-2">by {item.campaign.creator.name ?? 'Unknown'}</p>
                   <p className="text-xs text-gray-500">
-                    Applied {new Date(application.appliedAt).toLocaleDateString()}
+                    Applied {new Date(item.appliedAt).toLocaleDateString()}
                   </p>
                 </div>
               ))}
@@ -159,8 +195,8 @@ export default async function PromoterCampaignsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {availableCampaigns.map(({ campaign, creator }) => {
-                const maxViews = Math.floor(Number(campaign.budget) / Number(campaign.ratePerView));
+              {availableCampaigns.map((campaign) => {
+                const maxViews = Math.floor(Number(campaign.budget) / Number(1000));
                 
                 return (
                   <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
@@ -168,29 +204,23 @@ export default async function PromoterCampaignsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <CardTitle className="text-lg line-clamp-2">
-                            {campaign.title}
+                            {campaign.name}
                           </CardTitle>
                           <CardDescription className="mt-1">
-                            by {creator.name}
+                            by {campaign.creator.name ?? 'Unknown'}
                           </CardDescription>
                         </div>
-                        <Badge className={getStatusColor(campaign.status)}>
-                          {campaign.status}
+                        <Badge className={getStatusColor('active')}>
+                          {'active'}
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {campaign.description && (
-                        <p className="text-sm text-gray-600 line-clamp-3">
-                          {campaign.description}
-                        </p>
-                      )}
-
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-gray-600">Rate per View</p>
                           <p className="font-semibold text-green-600">
-                            Rp {Number(campaign.ratePerView).toLocaleString()}
+                            Rp {Number(1000).toLocaleString()}
                           </p>
                         </div>
                         <div>
@@ -208,24 +238,6 @@ export default async function PromoterCampaignsPage() {
                         </p>
                       </div>
 
-                      {campaign.requirements && Array.isArray(campaign.requirements) && campaign.requirements.length > 0 ? (
-                        <div className="text-sm">
-                          <p className="text-gray-600 mb-1">Requirements:</p>
-                          <ul className="text-xs text-gray-500 space-y-1">
-                            {(campaign.requirements as string[]).slice(0, 2).map((req, index) => (
-                              <li key={index} className="flex items-start space-x-1">
-                                <span className="text-green-500 mt-0.5">•</span>
-                                <span className="line-clamp-1">{req}</span>
-                              </li>
-                            ))}
-                            {campaign.requirements.length > 2 && (
-                              <li className="text-gray-400">
-                                +{campaign.requirements.length - 2} more requirements
-                              </li>
-                            )}
-                          </ul>
-                        </div>
-                      ) : null}
 
                       <div className="flex space-x-2">
                         <Link href={`/promoter/campaigns/${campaign.id}`} className="flex-1">

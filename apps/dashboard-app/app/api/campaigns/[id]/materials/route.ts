@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@repo/database';
-// import { campaigns, campaignMaterials } from '@repo/database';
-// import { eq, and } from 'drizzle-orm';
 import { auth } from '@repo/auth/server-only';
 
 const CreateMaterialSchema = z.object({
@@ -11,6 +9,28 @@ const CreateMaterialSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title too long'),
   description: z.string().optional(),
 });
+
+// Map frontend enum values to Prisma enum values
+const mapTypeToEnum = (type: string) => {
+  switch (type) {
+    case 'google_drive': return 'GOOGLE_DRIVE';
+    case 'youtube': return 'YOUTUBE';
+    case 'image': return 'IMAGE';
+    case 'video': return 'VIDEO';
+    default: throw new Error(`Invalid material type: ${type}`);
+  }
+};
+
+// Map Prisma enum values to frontend values
+const mapEnumToType = (enumValue: string) => {
+  switch (enumValue) {
+    case 'GOOGLE_DRIVE': return 'google_drive';
+    case 'YOUTUBE': return 'youtube';
+    case 'IMAGE': return 'image';
+    case 'VIDEO': return 'video';
+    default: return enumValue.toLowerCase();
+  }
+};
 
 const UpdateMaterialSchema = CreateMaterialSchema.partial();
 
@@ -32,10 +52,14 @@ export async function GET(
     const { id: campaignId } = await params;
 
     // Check if campaign exists and user has access
-    const [campaign] = await db
-      .select()
-      .from(campaigns)
-      .where(eq(campaigns.id, campaignId));
+    const campaign = await db.campaign.findUnique({
+      where: { id: campaignId },
+      include: {
+        materials: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
 
     if (!campaign) {
       return NextResponse.json(
@@ -52,11 +76,17 @@ export async function GET(
       );
     }
 
-    // Since materials table doesn't exist in current schema, return empty array
-    return NextResponse.json({ 
-      materials: [],
-      message: 'Materials feature not yet implemented'
-    });
+    // Map materials to frontend format
+    const materials = campaign.materials.map(material => ({
+      id: material.id,
+      type: mapEnumToType(material.type),
+      url: material.url,
+      title: material.title,
+      description: material.description,
+      createdAt: material.createdAt
+    }));
+
+    return NextResponse.json({ materials });
   } catch (error) {
     console.error('Error fetching campaign materials:', error);
     return NextResponse.json(
@@ -108,19 +138,49 @@ export async function POST(
       );
     }
 
-    // Since materials table doesn't exist, return not implemented message
+    // Validate the URL based on type
+    const urlValidation = validateMaterialUrl(validatedData.type, validatedData.url);
+    if (!urlValidation.valid) {
+      return NextResponse.json(
+        { error: urlValidation.error },
+        { status: 400 }
+      );
+    }
+
+    // Create the material
+    const material = await db.campaignMaterial.create({
+      data: {
+        campaignId,
+        type: mapTypeToEnum(validatedData.type) as any,
+        url: validatedData.url,
+        title: validatedData.title,
+        description: validatedData.description
+      }
+    });
+
+    // Return material in frontend format
+    const formattedMaterial = {
+      id: material.id,
+      type: mapEnumToType(material.type),
+      url: material.url,
+      title: material.title,
+      description: material.description,
+      createdAt: material.createdAt
+    };
+
     return NextResponse.json(
       {
-        message: 'Materials feature not yet implemented'
+        material: formattedMaterial,
+        message: 'Material added successfully'
       },
-      { status: 501 }
+      { status: 201 }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { 
           error: 'Validation error',
-          details: error.errors
+          details: error.issues
         },
         { status: 400 }
       );
