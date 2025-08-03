@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@repo/ui', '@repo/config', '@repo/database', '@repo/cache', '@repo/utils'],
+  transpilePackages: ['@repo/ui', '@repo/config', '@repo/database', '@repo/cache'],
   experimental: {
     turbo: {
       rules: {

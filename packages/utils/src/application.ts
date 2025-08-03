@@ -1,2 +1,2 @@
-// Placeholder for Application related utilities  
-export const generateTrackingLink = () => {};
+// This file is a placeholder.
+export {};

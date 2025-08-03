@@ -4,7 +4,7 @@ import { db } from '@repo/database';
 // // import { campaigns, campaignApplications, campaignMaterials } from '@repo/database';
 // // import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
-import { CampaignService } from '@repo/utils';
+import { generateTrackingLink } from '@repo/utils';
 
 const ApplyCampaignSchema = z.object({
   submittedContent: z.string().optional(),
@@ -68,7 +68,7 @@ export async function POST(
     const validatedData = ApplyCampaignSchema.parse(body);
 
     // Generate unique tracking link
-    const trackingLink = CampaignService.generateTrackingLink(campaignId, promoterId);
+    const trackingLink = generateTrackingLink(campaignId, promoterId);
 
     // Create application (using promotion as application)
     const newApplication = await db.promotion.create({

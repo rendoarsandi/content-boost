@@ -17,6 +17,8 @@
     "axios": "^1.6.0",
     "zod": "^4.0.10",
     "node-fetch": "^3.3.2",
+    "fetch-blob": "*",
+    "formdata-polyfill": "*",
     "winston": "^3.11.0",
     "@sentry/node": "^9.42.1",
     "@sentry/nextjs": "^9.42.1"
