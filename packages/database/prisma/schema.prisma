@@ -11,52 +11,44 @@ datasource db {
 }
 
 // =================================================
-// AUTH MODELS
-// =================================================
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-// =================================================
-// APPLICATION MODELS
+// ENUMS
 // =================================================
 
 enum UserRole {
   CREATOR
   PROMOTER
   ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SocialPlatform {
+  TIKTOK
+  INSTAGRAM
 }
 
 enum MaterialType {
@@ -66,29 +58,63 @@ enum MaterialType {
   VIDEO
 }
 
+
+// =================================================
+// APPLICATION MODELS
+// =================================================
+
 model User {
   id            String     @id @default(cuid())
   name          String?
-  email         String?    @unique
-  emailVerified DateTime?
-  image         String?
+  email         String     @unique
+  password      String?
   role          UserRole   @default(CREATOR)
-  accounts      Account[]
-  sessions      Session[]
+  status        UserStatus @default(ACTIVE)
+  lastActive    DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
   campaigns     Campaign[]
-  promotions    Promotion[]
+  applications  CampaignApplication[]
+  socialAccounts SocialAccount[]
+  payouts       Payout[]
+}
+
+model SocialAccount {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform       SocialPlatform
+  platformUserId String
+  accessToken    String         @db.Text
+  refreshToken   String?        @db.Text
+  expiresAt      DateTime?
+  createdAt      DateTime       @default(now())
+
+  @@unique([platform, platformUserId])
 }
 
 model Campaign {
-  id          String            @id @default(cuid())
-  name        String
-  budget      Float
-  creatorId   String
-  creator     User              @relation(fields: [creatorId], references: [id])
-  promotions  Promotion[]
-  materials   CampaignMaterial[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id            String       @id @default(cuid())
+  creatorId     String
+  creator       User         @relation(fields: [creatorId], references: [id])
+  
+  title         String
+  description   String?      @db.Text
+  budget        Float
+  ratePerView   Float
+  status        CampaignStatus @default(DRAFT)
+  requirements  Json?
+  startDate     DateTime?
+  endDate       DateTime?
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  materials     CampaignMaterial[]
+  applications  CampaignApplication[]
+  viewRecords   ViewRecord[]
+  payouts       Payout[]
 }
 
 model CampaignMaterial {
@@ -102,15 +128,99 @@ model CampaignMaterial {
   createdAt   DateTime     @default(now())
 }
 
-model Promotion {
-  id          String   @id @default(cuid())
-  campaignId  String
-  campaign    Campaign @relation(fields: [campaignId], references: [id])
-  promoterId  String
-  promoter    User     @relation(fields: [promoterId], references: [id])
-  contentUrl  String
-  views       Int      @default(0)
-  earnings    Float    @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model CampaignApplication {
+  id                String            @id @default(cuid())
+  campaignId        String
+  campaign          Campaign          @relation(fields: [campaignId], references: [id])
+  promoterId        String
+  promoter          User              @relation(fields: [promoterId], references: [id])
+  
+  status            ApplicationStatus @default(PENDING)
+  submittedContent  String?           @db.Text
+  trackingLink      String            @unique
+  appliedAt         DateTime          @default(now())
+  reviewedAt        DateTime?
+  
+  viewRecords       ViewRecord[]
+  trackingSessions  TrackingSession[]
+  payouts           Payout[]
+}
+
+model ViewRecord {
+  id              String    @id @default(cuid())
+  applicationId   String
+  application     CampaignApplication @relation(fields: [applicationId], references: [id])
+  campaignId      String
+  campaign        Campaign  @relation(fields: [campaignId], references: [id])
+  promoterId      String
+  
+  platform        SocialPlatform
+  contentId       String
+  timestamp       DateTime
+  viewCount       Int
+  likeCount       Int
+  commentCount    Int
+  shareCount      Int
+  botScore        Float
+  isLegitimate    Boolean
+
+  @@index([applicationId])
+}
+
+model TrackingSession {
+  id              String    @id @default(cuid())
+  applicationId   String
+  application     CampaignApplication @relation(fields: [applicationId], references: [id])
+  
+  startTime       DateTime
+  lastChecked     DateTime
+  totalViews      Int
+  legitimateViews Int
+  isActive        Boolean
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Payout {
+  id              String        @id @default(cuid())
+  applicationId   String
+  application     CampaignApplication @relation(fields: [applicationId], references: [id])
+  campaignId      String
+  campaign        Campaign      @relation(fields: [campaignId], references: [id])
+  promoterId      String
+  promoter        User          @relation(fields: [promoterId], references: [id])
+  
+  amount          Float
+  status          PayoutStatus  @default(PENDING)
+  processedAt     DateTime?
+  failureReason   String?       @db.Text
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model PlatformRevenue {
+  id              String      @id @default(cuid())
+  periodStart     DateTime
+  periodEnd       DateTime
+  totalFees       Float
+  withdrawnAmount Float
+  availableBalance Float
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  withdrawals     Withdrawal[]
+}
+
+model Withdrawal {
+  id              String        @id @default(cuid())
+  revenueId       String
+  revenue         PlatformRevenue @relation(fields: [revenueId], references: [id])
+  
+  amount          Float
+  status          PayoutStatus  @default(PENDING)
+  processedAt     DateTime?
+  failureReason   String?       @db.Text
+  createdAt       DateTime      @default(now())
 }

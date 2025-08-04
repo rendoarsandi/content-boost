@@ -1,17 +1,23 @@
 import { PrismaClient } from '@prisma/client';
 import { getPrismaClient } from '../connection';
 
-export abstract class BaseRepository<T> {
-  protected db: PrismaClient;
+type TransactionalClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
-  constructor() {
-    this.db = getPrismaClient();
+export abstract class BaseRepository<T, C, U> {
+  protected db: PrismaClient | TransactionalClient;
+
+  constructor(client?: TransactionalClient) {
+    this.db = client || getPrismaClient();
   }
 
-  // Abstract methods that must be implemented by concrete repositories
+  public withClient(client: TransactionalClient): this {
+    const newInstance = new (this.constructor as any)(client);
+    return newInstance;
+  }
+
   abstract findById(id: string): Promise<T | null>;
-  abstract create(data: Partial<T>): Promise<T>;
-  abstract update(id: string, data: Partial<T>): Promise<T | null>;
+  abstract create(data: C): Promise<T>;
+  abstract update(id: string, data: U): Promise<T | null>;
   abstract delete(id: string): Promise<boolean>;
   abstract findAll(options?: { limit?: number; offset?: number }): Promise<T[]>;
 }

@@ -33,11 +33,12 @@
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.32.0",
     "jsdom": "^26.1.0",
+    "madge": "^7.0.0",
     "prettier": "^3.0.0",
     "turbo": "^2.5.5",
     "typescript": "^5.0.0",
-    "vitest": "^3.2.4",
-    "madge": "^7.0.0"
+    "typescript-eslint": "^8.38.0",
+    "vitest": "^3.2.4"
   },
   "packageManager": "npm@9.0.0",
   "workspaces": [
