@@ -14,6 +14,8 @@ import {
 } from '@repo/ui';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getApprovedPromoters(creatorId: string) {
   // Get all campaigns for this creator
   const campaigns = await db.campaign.findMany({

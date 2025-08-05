@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { ContentEditor } from '../../../../../components/content-editor';
 import { ApplicationService } from '@repo/utils/application-service';
 
+export const dynamic = 'force-dynamic';
+
 async function getApplicationContent(
   applicationId: string,
   promoterId: string

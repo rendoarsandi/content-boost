@@ -16,6 +16,8 @@ import Link from 'next/link';
 import { CampaignApplicationForm } from '../../components/campaign-application-form';
 import { ApplicationService } from '@repo/utils/application-service';
 
+export const dynamic = 'force-dynamic';
+
 async function getCampaignDetails(campaignId: string, promoterId: string) {
   // Get campaign with creator info
   const campaign = await db.campaign.findUnique({

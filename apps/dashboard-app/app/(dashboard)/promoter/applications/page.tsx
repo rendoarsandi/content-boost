@@ -14,6 +14,8 @@ import {
 } from '@repo/ui';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getPromoterApplications(promoterId: string) {
   // Get promotions (which serve as applications in the current schema)
   const promotions = await db.campaignApplication.findMany({

@@ -11,6 +11,8 @@ import {
 } from '@repo/ui';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getPromoterStats(promoterId: string) {
   // Get promotions for this promoter
   const promotions = await db.campaignApplication.findMany({

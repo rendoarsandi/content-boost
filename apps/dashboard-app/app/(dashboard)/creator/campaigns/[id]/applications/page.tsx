@@ -15,6 +15,8 @@ import {
 import Link from 'next/link';
 import { PromoterApplicationActions } from '../../../components/promoter-application-actions';
 
+export const dynamic = 'force-dynamic';
+
 async function getCampaignApplications(campaignId: string, creatorId: string) {
   // Verify campaign ownership using Prisma
   const campaign = await db.campaign.findFirst({

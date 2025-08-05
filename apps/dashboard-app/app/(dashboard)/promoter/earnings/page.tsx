@@ -11,6 +11,8 @@ import {
 } from '@repo/ui';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getPromoterEarnings(promoterId: string) {
   // TODO: Add Payout and ViewRecord models to Prisma schema
   // Return stub data for now

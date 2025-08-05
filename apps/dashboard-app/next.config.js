@@ -6,6 +6,7 @@ const nextConfig = {
     '@repo/database',
     '@repo/cache',
   ],
+  output: 'standalone',
   experimental: {
     turbo: {
       rules: {

@@ -9,6 +9,9 @@ import {
   CardTitle,
 } from '@repo/ui';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 async function getCreatorAnalytics(creatorId: string) {
   // Get date ranges
   const now = new Date();

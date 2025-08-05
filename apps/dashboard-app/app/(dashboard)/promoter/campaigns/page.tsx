@@ -12,6 +12,8 @@ import {
 } from '@repo/ui';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getAvailableCampaigns(promoterId: string) {
   // Get campaigns that the promoter hasn't applied to yet
   const appliedPromotions = await db.campaignApplication.findMany({

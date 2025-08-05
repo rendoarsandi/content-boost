@@ -15,6 +15,8 @@ import {
 import Link from 'next/link';
 import { PromoterApplicationActions } from '../../components/promoter-application-actions';
 
+export const dynamic = 'force-dynamic';
+
 async function getApplicationDetails(applicationId: string, creatorId: string) {
   // Get application with campaign and promoter details using Prisma
   const applicationData = await db.campaignApplication.findFirst({

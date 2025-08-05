@@ -2,6 +2,7 @@
 const nextConfig = {
   transpilePackages: ['@repo/ui', '@repo/config'],
   trailingSlash: true,
+  output: 'standalone',
   experimental: {
     turbo: {
       rules: {

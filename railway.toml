@@ -1,58 +1,85 @@
 # Railway Configuration for Creator Promotion Platform
 
 [build]
-builder = "nixpacks"
-buildCommand = "npm run build"
+builder = "dockerfile"
 buildTimeout = 600 # 10 minutes
 
 [deploy]
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
-startCommand = "npm start"
 
-# Multiple services deployment
+# Landing Page Service
 [[services]]
 name = "landing-page"
 source = "apps/landing-page"
 domains = ["www.domain.com"]
-buildTimeout = 600
-envVarFiles = [".env.production"]
 
+[services.build]
+builder = "dockerfile"
+dockerfilePath = "apps/landing-page/Dockerfile"
+buildTimeout = 600
+
+[services.deploy]
+healthcheckPath = "/api/health"
+restartPolicyType = "on_failure"
+
+# Auth App Service
 [[services]]
 name = "auth-app"
 source = "apps/auth-app"
 domains = ["auth.domain.com"]
-buildTimeout = 600
-envVarFiles = [".env.production"]
 
+[services.build]
+builder = "dockerfile"
+dockerfilePath = "apps/auth-app/Dockerfile"
+buildTimeout = 600
+
+[services.deploy]
+healthcheckPath = "/api/health"
+restartPolicyType = "on_failure"
+
+# Dashboard App Service
 [[services]]
 name = "dashboard-app"
 source = "apps/dashboard-app"
 domains = ["dashboard.domain.com"]
-buildTimeout = 600
-envVarFiles = [".env.production"]
 
+[services.build]
+builder = "dockerfile"
+dockerfilePath = "apps/dashboard-app/Dockerfile"
+buildTimeout = 600
+
+[services.deploy]
+healthcheckPath = "/api/health"
+restartPolicyType = "on_failure"
+
+# Admin App Service
 [[services]]
 name = "admin-app"
 source = "apps/admin-app"
 domains = ["admin.domain.com"]
-buildTimeout = 600
-envVarFiles = [".env.production"]
 
+[services.build]
+builder = "dockerfile"
+dockerfilePath = "apps/admin-app/Dockerfile"
+buildTimeout = 600
+
+[services.deploy]
+healthcheckPath = "/api/health"
+restartPolicyType = "on_failure"
+
+# API Server Service
 [[services]]
 name = "api-server"
 source = "apps/api-server"
 domains = ["api.domain.com"]
+
+[services.build]
+builder = "dockerfile"
+dockerfilePath = "apps/api-server/Dockerfile"
 buildTimeout = 600
-envVarFiles = [".env.production"]
 
-[[services]]
-name = "postgres"
-source = "docker/postgres"
-type = "database"
-
-[[services]]
-name = "redis"
-source = "docker/redis"
-type = "cache"
+[services.deploy]
+healthcheckPath = "/api/health"
+restartPolicyType = "on_failure"

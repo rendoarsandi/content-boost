@@ -14,6 +14,8 @@ import Link from 'next/link';
 import { CampaignStatusActions } from '../../components/campaign-status-actions';
 import { RealTimeMetrics } from '../../components/real-time-metrics';
 
+export const dynamic = 'force-dynamic';
+
 async function getCampaignDetails(campaignId: string, creatorId: string) {
   // Get campaign with promotions
   const campaign = await db.campaign.findFirst({

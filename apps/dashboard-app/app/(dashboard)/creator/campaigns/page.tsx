@@ -12,6 +12,8 @@ import {
 } from '@repo/ui';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getCreatorCampaigns(creatorId: string) {
   const campaignsWithStats = await db.campaign.findMany({
     where: {

@@ -15,6 +15,8 @@ import {
 import Link from 'next/link';
 import { CampaignApplicationForm } from '../../../../../components/campaign-application-form';
 
+export const dynamic = 'force-dynamic';
+
 async function getCampaignForApplication(
   campaignId: string,
   promoterId: string
