@@ -24,27 +24,36 @@ export const MaterialValidationSchema = z.object({
 /**
  * Calculate maximum possible views based on budget and rate
  */
-export const calculateMaxViews = (budget: number, ratePerView: number): number => {
+export const calculateMaxViews = (
+  budget: number,
+  ratePerView: number
+): number => {
   return Math.floor(budget / ratePerView);
 };
 
 /**
  * Calculate total cost for given views and rate
  */
-export const calculateTotalCost = (views: number, ratePerView: number): number => {
+export const calculateTotalCost = (
+  views: number,
+  ratePerView: number
+): number => {
   return views * ratePerView;
 };
 
 /**
  * Validate budget vs rate per view
  */
-export const validateBudgetRate = (budget: number, ratePerView: number): { valid: boolean; error?: string } => {
+export const validateBudgetRate = (
+  budget: number,
+  ratePerView: number
+): { valid: boolean; error?: string } => {
   const maxViews = calculateMaxViews(budget, ratePerView);
-  
+
   if (maxViews < 1) {
     return {
       valid: false,
-      error: `Budget (${budget}) is too low for rate per view (${ratePerView}). Minimum budget should be ${ratePerView}`
+      error: `Budget (${budget}) is too low for rate per view (${ratePerView}). Minimum budget should be ${ratePerView}`,
     };
   }
 
@@ -54,20 +63,23 @@ export const validateBudgetRate = (budget: number, ratePerView: number): { valid
 /**
  * Validate campaign status transitions
  */
-export const validateStatusTransition = (currentStatus: string, newStatus: string): { valid: boolean; error?: string } => {
+export const validateStatusTransition = (
+  currentStatus: string,
+  newStatus: string
+): { valid: boolean; error?: string } => {
   const validTransitions: Record<string, string[]> = {
-    'draft': ['active'],
-    'active': ['paused', 'completed'],
-    'paused': ['active', 'completed'],
-    'completed': [] // Cannot transition from completed
+    draft: ['active'],
+    active: ['paused', 'completed'],
+    paused: ['active', 'completed'],
+    completed: [], // Cannot transition from completed
   };
 
   const allowedTransitions = validTransitions[currentStatus] || [];
-  
+
   if (!allowedTransitions.includes(newStatus)) {
     return {
       valid: false,
-      error: `Invalid status transition from ${currentStatus} to ${newStatus}. Allowed transitions: ${allowedTransitions.join(', ')}`
+      error: `Invalid status transition from ${currentStatus} to ${newStatus}. Allowed transitions: ${allowedTransitions.join(', ')}`,
     };
   }
 
@@ -77,24 +89,27 @@ export const validateStatusTransition = (currentStatus: string, newStatus: strin
 /**
  * Validate campaign dates
  */
-export const validateCampaignDates = (startDate?: Date, endDate?: Date): { valid: boolean; error?: string } => {
+export const validateCampaignDates = (
+  startDate?: Date,
+  endDate?: Date
+): { valid: boolean; error?: string } => {
   if (!startDate || !endDate) {
     return { valid: true }; // Optional dates
   }
 
   const now = new Date();
-  
+
   if (startDate < now) {
     return {
       valid: false,
-      error: 'Start date cannot be in the past'
+      error: 'Start date cannot be in the past',
     };
   }
 
   if (endDate <= startDate) {
     return {
       valid: false,
-      error: 'End date must be after start date'
+      error: 'End date must be after start date',
     };
   }
 
@@ -129,64 +144,110 @@ export const isCampaignActive = (campaign: {
 /**
  * Generate tracking link for promoter
  */
-export const generateTrackingLink = (campaignId: string, promoterId: string): string => {
+export const generateTrackingLink = (
+  campaignId: string,
+  promoterId: string
+): string => {
   // Generate a unique tracking identifier
   const trackingId = `${campaignId}-${promoterId}-${Date.now()}`;
   const encodedId = Buffer.from(trackingId).toString('base64url');
-  
+
   return `https://track.domain.com/${encodedId}`;
 };
 
 /**
  * Validate material URL based on type
  */
-export const validateMaterialUrl = (type: string, url: string): { valid: boolean; error?: string } => {
+export const validateMaterialUrl = (
+  type: string,
+  url: string
+): { valid: boolean; error?: string } => {
   try {
     const urlObj = new URL(url);
-    
+
     switch (type) {
       case 'google_drive':
-        if (!urlObj.hostname.includes('drive.google.com') && !urlObj.hostname.includes('docs.google.com')) {
-          return { valid: false, error: 'Google Drive URL must be from drive.google.com or docs.google.com' };
+        if (
+          !urlObj.hostname.includes('drive.google.com') &&
+          !urlObj.hostname.includes('docs.google.com')
+        ) {
+          return {
+            valid: false,
+            error:
+              'Google Drive URL must be from drive.google.com or docs.google.com',
+          };
         }
         break;
       case 'youtube':
-        if (!urlObj.hostname.includes('youtube.com') && !urlObj.hostname.includes('youtu.be')) {
-          return { valid: false, error: 'YouTube URL must be from youtube.com or youtu.be' };
+        if (
+          !urlObj.hostname.includes('youtube.com') &&
+          !urlObj.hostname.includes('youtu.be')
+        ) {
+          return {
+            valid: false,
+            error: 'YouTube URL must be from youtube.com or youtu.be',
+          };
         }
         break;
       case 'image':
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-        const imageHosts = ['imgur.com', 'cloudinary.com', 'unsplash.com', 'pexels.com'];
-        
-        const hasImageExtension = imageExtensions.some(ext => 
+        const imageExtensions = [
+          '.jpg',
+          '.jpeg',
+          '.png',
+          '.gif',
+          '.webp',
+          '.svg',
+        ];
+        const imageHosts = [
+          'imgur.com',
+          'cloudinary.com',
+          'unsplash.com',
+          'pexels.com',
+        ];
+
+        const hasImageExtension = imageExtensions.some(ext =>
           urlObj.pathname.toLowerCase().includes(ext)
         );
-        const isImageHost = imageHosts.some(host => 
+        const isImageHost = imageHosts.some(host =>
           urlObj.hostname.includes(host)
         );
-        
+
         if (!hasImageExtension && !isImageHost) {
-          return { valid: false, error: 'Image URL should point to an image file or known image hosting service' };
+          return {
+            valid: false,
+            error:
+              'Image URL should point to an image file or known image hosting service',
+          };
         }
         break;
       case 'video':
-        const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'];
+        const videoExtensions = [
+          '.mp4',
+          '.avi',
+          '.mov',
+          '.wmv',
+          '.flv',
+          '.webm',
+        ];
         const videoHosts = ['vimeo.com', 'dailymotion.com', 'twitch.tv'];
-        
-        const hasVideoExtension = videoExtensions.some(ext => 
+
+        const hasVideoExtension = videoExtensions.some(ext =>
           urlObj.pathname.toLowerCase().includes(ext)
         );
-        const isVideoHost = videoHosts.some(host => 
+        const isVideoHost = videoHosts.some(host =>
           urlObj.hostname.includes(host)
         );
-        
+
         if (!hasVideoExtension && !isVideoHost) {
-          return { valid: false, error: 'Video URL should point to a video file or known video hosting service' };
+          return {
+            valid: false,
+            error:
+              'Video URL should point to a video file or known video hosting service',
+          };
         }
         break;
     }
-    
+
     return { valid: true };
   } catch {
     return { valid: false, error: 'Invalid URL format' };
@@ -196,10 +257,13 @@ export const validateMaterialUrl = (type: string, url: string): { valid: boolean
 /**
  * Calculate campaign progress metrics
  */
-export const calculateCampaignProgress = (campaign: {
-  budget: number;
-  ratePerView: number;
-}, totalViews: number = 0): {
+export const calculateCampaignProgress = (
+  campaign: {
+    budget: number;
+    ratePerView: number;
+  },
+  totalViews: number = 0
+): {
   maxViews: number;
   currentViews: number;
   remainingViews: number;
@@ -220,10 +284,9 @@ export const calculateCampaignProgress = (campaign: {
     remainingViews,
     progressPercentage: Math.round(progressPercentage * 100) / 100,
     remainingBudget: Math.max(0, remainingBudget),
-    spentBudget
+    spentBudget,
   };
 };
-
 
 // Error types
 export class CampaignError extends Error {
@@ -239,7 +302,11 @@ export class CampaignError extends Error {
 
 export class CampaignNotFoundError extends CampaignError {
   constructor(campaignId: string) {
-    super(`Campaign with ID ${campaignId} not found`, 'CAMPAIGN_NOT_FOUND', 404);
+    super(
+      `Campaign with ID ${campaignId} not found`,
+      'CAMPAIGN_NOT_FOUND',
+      404
+    );
   }
 }
 

@@ -12,25 +12,25 @@ const files = [
   'apps/dashboard-app/app/api/campaigns/[id]/applications/route.ts',
   'apps/dashboard-app/app/api/campaigns/[id]/applications/[applicationId]/route.ts',
   'apps/dashboard-app/app/api/campaigns/[id]/applications/bulk/route.ts',
-  'apps/dashboard-app/app/api/campaigns/available/route.ts'
+  'apps/dashboard-app/app/api/campaigns/available/route.ts',
 ];
 
 files.forEach(filePath => {
   try {
     let content = fs.readFileSync(filePath, 'utf8');
-    
+
     // Replace import statement
     content = content.replace(
       /import { auth } from '@repo\/auth\/server-only';/g,
       "import { getSession } from '@repo/auth/server-only';"
     );
-    
+
     // Replace auth() calls
     content = content.replace(
       /const session = await auth\(\);/g,
       'const session = await getSession();'
     );
-    
+
     fs.writeFileSync(filePath, content, 'utf8');
     console.log(`Updated ${filePath}`);
   } catch (error) {

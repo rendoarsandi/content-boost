@@ -7,10 +7,7 @@ export async function POST(request: NextRequest) {
 
     // Validate role
     if (!role || !['creator', 'promoter', 'admin'].includes(role)) {
-      return NextResponse.json(
-        { error: 'Invalid role' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
     // For development/demo purposes, simulate successful role update

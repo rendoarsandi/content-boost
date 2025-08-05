@@ -21,20 +21,23 @@ export async function GET(
       name: 'Sample Campaign',
       description: 'This is a sample campaign description',
       budget: 1000000,
-      requirements: ['Must have 1000+ followers', 'Content must be family-friendly'],
+      requirements: [
+        'Must have 1000+ followers',
+        'Content must be family-friendly',
+      ],
       status: 'active',
       createdAt: new Date().toISOString(),
       creator: {
         id: 'creator-123',
         name: 'Sample Creator',
-        email: 'creator@example.com'
+        email: 'creator@example.com',
       },
       stats: {
         totalApplications: 25,
         approvedApplications: 15,
         totalViews: 50000,
-        totalSpent: 250000
-      }
+        totalSpent: 250000,
+      },
     });
   } catch (error) {
     console.error('Error fetching campaign:', error);
@@ -59,14 +62,14 @@ export async function PUT(
       id: campaignId,
       ...validatedData,
       updatedAt: new Date().toISOString(),
-      message: 'Campaign updated successfully'
+      message: 'Campaign updated successfully',
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation error',
-          details: error.issues
+          details: error.issues,
         },
         { status: 400 }
       );
@@ -90,7 +93,7 @@ export async function DELETE(
 
     return NextResponse.json({
       id: campaignId,
-      message: 'Campaign deleted successfully'
+      message: 'Campaign deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting campaign:', error);

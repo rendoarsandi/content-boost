@@ -5,21 +5,21 @@ export interface EnvironmentConfig {
   // Database
   DATABASE_URL: string;
   REDIS_URL: string;
-  
+
   // Authentication
   NEXTAUTH_SECRET: string;
   NEXTAUTH_URL: string;
-  
+
   // Social Media APIs
   TIKTOK_CLIENT_ID: string;
   TIKTOK_CLIENT_SECRET: string;
   INSTAGRAM_CLIENT_ID: string;
   INSTAGRAM_CLIENT_SECRET: string;
-  
+
   // Platform
   PLATFORM_FEE_PERCENTAGE: number;
   BOT_DETECTION_ENABLED: boolean;
-  
+
   // Monitoring
   SENTRY_DSN?: string;
   LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';

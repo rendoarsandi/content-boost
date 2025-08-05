@@ -2,19 +2,19 @@ import { RedisCache } from '@repo/cache';
 import { SocialMediaMetrics } from '../social-media-api';
 import { MetricsValidator } from './validator';
 import { MetricsNormalizer } from './normalizer';
-import { 
-  DataPipelineConfig, 
-  PipelineStage, 
-  ProcessedMetrics, 
-  ValidationResult 
+import {
+  DataPipelineConfig,
+  PipelineStage,
+  ProcessedMetrics,
+  ValidationResult,
 } from './types';
 import { PIPELINE_STAGES } from './constants';
 
-export type { 
-  DataPipelineConfig, 
-  PipelineStage, 
-  ProcessedMetrics, 
-  ValidationResult 
+export type {
+  DataPipelineConfig,
+  PipelineStage,
+  ProcessedMetrics,
+  ValidationResult,
 };
 
 export class MetricsDataPipeline {
@@ -35,7 +35,7 @@ export class MetricsDataPipeline {
     this.normalizer = normalizer || new MetricsNormalizer();
     this.config = this.createDefaultConfig(config);
     this.stages = new Map();
-    
+
     this.initializeDefaultStages();
   }
 
@@ -45,7 +45,7 @@ export class MetricsDataPipeline {
   ): Promise<ProcessedMetrics> {
     const startTime = Date.now();
     let currentData = { ...rawMetrics };
-    
+
     try {
       // Execute pipeline stages in order
       const sortedStages = Array.from(this.stages.values())
@@ -57,7 +57,7 @@ export class MetricsDataPipeline {
           currentData = await stage.processor(currentData);
         } catch (error) {
           console.error(`Pipeline stage '${stage.name}' failed:`, error);
-          
+
           if (this.config.errorHandling === 'stop') {
             throw error;
           } else if (this.config.errorHandling === 'retry') {
@@ -65,7 +65,10 @@ export class MetricsDataPipeline {
             try {
               currentData = await stage.processor(currentData);
             } catch (retryError) {
-              console.error(`Pipeline stage '${stage.name}' failed on retry:`, retryError);
+              console.error(
+                `Pipeline stage '${stage.name}' failed on retry:`,
+                retryError
+              );
               // After a failed retry, we always stop to prevent infinite loops or bad data
               throw retryError;
             }
@@ -82,7 +85,7 @@ export class MetricsDataPipeline {
           normalizationApplied: [], // Will be populated by normalization stage
           qualityScore: 0, // Will be calculated by validation stage
           anomalyDetected: false, // Will be determined by validation stage
-          processingTimestamp: new Date()
+          processingTimestamp: new Date(),
         },
         raw: {
           originalMetrics: rawMetrics,
@@ -90,32 +93,33 @@ export class MetricsDataPipeline {
           collectionMetadata: {
             collectionTime: new Date(),
             processingTime: Date.now() - startTime,
-            retryCount: 0
-          }
-        }
+            retryCount: 0,
+          },
+        },
       };
 
       return processedMetrics;
-
     } catch (error) {
       console.error('Pipeline processing failed:', error);
-      
+
       // Return a basic processed metrics object with error information
       return {
         ...rawMetrics,
         processed: {
-          validationResults: [{
-            rule: 'pipeline_error',
-            field: 'processing',
-            passed: false,
-            value: null,
-            message: `Pipeline processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            severity: 'error'
-          }],
+          validationResults: [
+            {
+              rule: 'pipeline_error',
+              field: 'processing',
+              passed: false,
+              value: null,
+              message: `Pipeline processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              severity: 'error',
+            },
+          ],
           normalizationApplied: [],
           qualityScore: 0,
           anomalyDetected: false,
-          processingTimestamp: new Date()
+          processingTimestamp: new Date(),
         },
         raw: {
           originalMetrics: rawMetrics,
@@ -123,9 +127,9 @@ export class MetricsDataPipeline {
           collectionMetadata: {
             collectionTime: new Date(),
             processingTime: Date.now() - startTime,
-            retryCount: 0
-          }
-        }
+            retryCount: 0,
+          },
+        },
       };
     }
   }
@@ -136,7 +140,7 @@ export class MetricsDataPipeline {
   ): Promise<ProcessedMetrics[]> {
     if (this.config.parallelProcessing) {
       return Promise.all(
-        metricsList.map((metrics, index) => 
+        metricsList.map((metrics, index) =>
           this.processMetrics(metrics, originalApiResponses?.[index])
         )
       );
@@ -144,7 +148,7 @@ export class MetricsDataPipeline {
       const results: ProcessedMetrics[] = [];
       for (let i = 0; i < metricsList.length; i++) {
         const result = await this.processMetrics(
-          metricsList[i], 
+          metricsList[i],
           originalApiResponses?.[i]
         );
         results.push(result);
@@ -187,13 +191,15 @@ export class MetricsDataPipeline {
     return { ...this.config };
   }
 
-  private createDefaultConfig(config?: Partial<DataPipelineConfig>): DataPipelineConfig {
+  private createDefaultConfig(
+    config?: Partial<DataPipelineConfig>
+  ): DataPipelineConfig {
     return {
       stages: [],
       parallelProcessing: false,
       errorHandling: 'continue',
       outputFormat: 'normalized',
-      ...config
+      ...config,
     };
   }
 
@@ -203,35 +209,41 @@ export class MetricsDataPipeline {
       name: PIPELINE_STAGES.VALIDATION,
       processor: async (data: any) => {
         const validationResults = await this.validator.validateMetrics(data);
-        const qualityScore = this.validator.calculateQualityScore(validationResults);
+        const qualityScore =
+          this.validator.calculateQualityScore(validationResults);
         const anomalyDetected = this.validator.detectAnomalies(data);
-        
+
         if (data.processed) {
           data.processed.validationResults = validationResults;
           data.processed.qualityScore = qualityScore;
           data.processed.anomalyDetected = anomalyDetected;
         }
-        
+
         return data;
       },
       enabled: true,
-      order: 1
+      order: 1,
     });
 
     // Normalization stage
     this.addStage({
       name: PIPELINE_STAGES.NORMALIZATION,
       processor: async (data: any) => {
-        const { normalizedMetrics, appliedRules } = await this.normalizer.normalizeMetrics(data);
-        
+        const { normalizedMetrics, appliedRules } =
+          await this.normalizer.normalizeMetrics(data);
+
         if (data.processed) {
           data.processed.normalizationApplied = appliedRules;
         }
-        
-        return { ...normalizedMetrics, processed: data.processed, raw: data.raw };
+
+        return {
+          ...normalizedMetrics,
+          processed: data.processed,
+          raw: data.raw,
+        };
       },
       enabled: true,
-      order: 2
+      order: 2,
     });
 
     // Caching stage
@@ -245,16 +257,20 @@ export class MetricsDataPipeline {
           console.error('Caching stage error:', error);
           // Don't fail the pipeline if caching fails
         }
-        
+
         return data;
       },
       enabled: true,
-      order: 3
+      order: 3,
     });
   }
 
   // Utility methods for common pipeline operations
-  async getCachedMetrics(userId: string, campaignId: string, postId: string): Promise<ProcessedMetrics | null> {
+  async getCachedMetrics(
+    userId: string,
+    campaignId: string,
+    postId: string
+  ): Promise<ProcessedMetrics | null> {
     try {
       const cacheKey = `processed_metrics:${userId}:${campaignId}:${postId}`;
       return await this.cache.get<ProcessedMetrics>(cacheKey);
@@ -270,7 +286,7 @@ export class MetricsDataPipeline {
       if (userId) pattern += `${userId}:`;
       if (campaignId) pattern += `${campaignId}:`;
       pattern += '*';
-      
+
       await this.cache.deletePattern(pattern);
     } catch (error) {
       console.error('Cache clearing error:', error);
@@ -290,7 +306,7 @@ export class MetricsDataPipeline {
       totalProcessed: 0,
       averageProcessingTime: 0,
       errorRate: 0,
-      cacheHitRate: 0
+      cacheHitRate: 0,
     };
   }
 }

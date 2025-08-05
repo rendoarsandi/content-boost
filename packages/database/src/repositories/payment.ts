@@ -1,27 +1,41 @@
-import { BaseRepository, PaginationOptions } from './base';
+import { BaseRepository, PaginationOptions, TransactionClient } from './base';
 import { Prisma, Payout, PlatformRevenue, Withdrawal } from '@prisma/client';
 
-export class PayoutRepository extends BaseRepository<Payout, Prisma.PayoutCreateInput, Prisma.PayoutUpdateInput> {
-  async findById(id: string): Promise<Payout | null> {
-    return this.db.payout.findUnique({ where: { id } });
+export class PayoutRepository extends BaseRepository {
+  async findById(id: string, tx?: TransactionClient): Promise<Payout | null> {
+    return this.getClient(tx).payout.findUnique({ where: { id } });
   }
 
-  async create(data: Prisma.PayoutCreateInput): Promise<Payout> {
-    return this.db.payout.create({ data });
+  async create(
+    data: Prisma.PayoutCreateInput,
+    tx?: TransactionClient
+  ): Promise<Payout> {
+    return this.getClient(tx).payout.create({ data });
   }
 
-  async update(id: string, data: Prisma.PayoutUpdateInput): Promise<Payout | null> {
-    return this.db.payout.update({ where: { id }, data });
+  async update(
+    id: string,
+    data: Prisma.PayoutUpdateInput,
+    tx?: TransactionClient
+  ): Promise<Payout> {
+    return this.getClient(tx).payout.update({ where: { id }, data });
   }
 
-  async delete(id: string): Promise<boolean> {
-    await this.db.payout.delete({ where: { id } });
-    return true;
+  async delete(id: string, tx?: TransactionClient): Promise<Payout> {
+    return this.getClient(tx).payout.delete({ where: { id } });
   }
 
-  async findAll(options: PaginationOptions = {}): Promise<Payout[]> {
-    const { limit = 50, offset = 0, orderBy = 'createdAt', orderDirection = 'desc' } = options;
-    return this.db.payout.findMany({
+  async findAll(
+    options: PaginationOptions = {},
+    tx?: TransactionClient
+  ): Promise<Payout[]> {
+    const {
+      limit = 50,
+      offset = 0,
+      orderBy = 'createdAt',
+      orderDirection = 'desc',
+    } = options;
+    return this.getClient(tx).payout.findMany({
       take: limit,
       skip: offset,
       orderBy: { [orderBy]: orderDirection },
@@ -29,27 +43,44 @@ export class PayoutRepository extends BaseRepository<Payout, Prisma.PayoutCreate
   }
 }
 
-export class PlatformRevenueRepository extends BaseRepository<PlatformRevenue, Prisma.PlatformRevenueCreateInput, Prisma.PlatformRevenueUpdateInput> {
-  async findById(id: string): Promise<PlatformRevenue | null> {
-    return this.db.platformRevenue.findUnique({ where: { id } });
+export class PlatformRevenueRepository extends BaseRepository {
+  async findById(
+    id: string,
+    tx?: TransactionClient
+  ): Promise<PlatformRevenue | null> {
+    return this.getClient(tx).platformRevenue.findUnique({ where: { id } });
   }
 
-  async create(data: Prisma.PlatformRevenueCreateInput): Promise<PlatformRevenue> {
-    return this.db.platformRevenue.create({ data });
+  async create(
+    data: Prisma.PlatformRevenueCreateInput,
+    tx?: TransactionClient
+  ): Promise<PlatformRevenue> {
+    return this.getClient(tx).platformRevenue.create({ data });
   }
 
-  async update(id: string, data: Prisma.PlatformRevenueUpdateInput): Promise<PlatformRevenue | null> {
-    return this.db.platformRevenue.update({ where: { id }, data });
+  async update(
+    id: string,
+    data: Prisma.PlatformRevenueUpdateInput,
+    tx?: TransactionClient
+  ): Promise<PlatformRevenue> {
+    return this.getClient(tx).platformRevenue.update({ where: { id }, data });
   }
 
-  async delete(id: string): Promise<boolean> {
-    await this.db.platformRevenue.delete({ where: { id } });
-    return true;
+  async delete(id: string, tx?: TransactionClient): Promise<PlatformRevenue> {
+    return this.getClient(tx).platformRevenue.delete({ where: { id } });
   }
 
-  async findAll(options: PaginationOptions = {}): Promise<PlatformRevenue[]> {
-    const { limit = 50, offset = 0, orderBy = 'createdAt', orderDirection = 'desc' } = options;
-    return this.db.platformRevenue.findMany({
+  async findAll(
+    options: PaginationOptions = {},
+    tx?: TransactionClient
+  ): Promise<PlatformRevenue[]> {
+    const {
+      limit = 50,
+      offset = 0,
+      orderBy = 'createdAt',
+      orderDirection = 'desc',
+    } = options;
+    return this.getClient(tx).platformRevenue.findMany({
       take: limit,
       skip: offset,
       orderBy: { [orderBy]: orderDirection },
@@ -57,27 +88,44 @@ export class PlatformRevenueRepository extends BaseRepository<PlatformRevenue, P
   }
 }
 
-export class WithdrawalRepository extends BaseRepository<Withdrawal, Prisma.WithdrawalCreateInput, Prisma.WithdrawalUpdateInput> {
-  async findById(id: string): Promise<Withdrawal | null> {
-    return this.db.withdrawal.findUnique({ where: { id } });
+export class WithdrawalRepository extends BaseRepository {
+  async findById(
+    id: string,
+    tx?: TransactionClient
+  ): Promise<Withdrawal | null> {
+    return this.getClient(tx).withdrawal.findUnique({ where: { id } });
   }
 
-  async create(data: Prisma.WithdrawalCreateInput): Promise<Withdrawal> {
-    return this.db.withdrawal.create({ data });
+  async create(
+    data: Prisma.WithdrawalCreateInput,
+    tx?: TransactionClient
+  ): Promise<Withdrawal> {
+    return this.getClient(tx).withdrawal.create({ data });
   }
 
-  async update(id: string, data: Prisma.WithdrawalUpdateInput): Promise<Withdrawal | null> {
-    return this.db.withdrawal.update({ where: { id }, data });
+  async update(
+    id: string,
+    data: Prisma.WithdrawalUpdateInput,
+    tx?: TransactionClient
+  ): Promise<Withdrawal> {
+    return this.getClient(tx).withdrawal.update({ where: { id }, data });
   }
 
-  async delete(id: string): Promise<boolean> {
-    await this.db.withdrawal.delete({ where: { id } });
-    return true;
+  async delete(id: string, tx?: TransactionClient): Promise<Withdrawal> {
+    return this.getClient(tx).withdrawal.delete({ where: { id } });
   }
 
-  async findAll(options: PaginationOptions = {}): Promise<Withdrawal[]> {
-    const { limit = 50, offset = 0, orderBy = 'createdAt', orderDirection = 'desc' } = options;
-    return this.db.withdrawal.findMany({
+  async findAll(
+    options: PaginationOptions = {},
+    tx?: TransactionClient
+  ): Promise<Withdrawal[]> {
+    const {
+      limit = 50,
+      offset = 0,
+      orderBy = 'createdAt',
+      orderDirection = 'desc',
+    } = options;
+    return this.getClient(tx).withdrawal.findMany({
       take: limit,
       skip: offset,
       orderBy: { [orderBy]: orderDirection },

@@ -18,7 +18,7 @@ export async function POST(
 ) {
   try {
     const session = await getSession();
-    
+
     if (!session?.user || (session.user as any).role !== 'promoter') {
       return NextResponse.json(
         { error: 'Unauthorized - Only promoters can apply to campaigns' },
@@ -31,7 +31,7 @@ export async function POST(
 
     // Check if campaign exists and is active
     const campaign = await db.campaign.findUnique({
-      where: { id: campaignId }
+      where: { id: campaignId },
     });
 
     if (!campaign) {
@@ -50,11 +50,11 @@ export async function POST(
     // }
 
     // Check if promoter already applied
-    const existingApplication = await db.promotion.findFirst({
+    const existingApplication = await db.campaignApplication.findFirst({
       where: {
         campaignId: campaignId,
-        promoterId: promoterId
-      }
+        promoterId: promoterId,
+      },
     });
 
     if (existingApplication) {
@@ -71,29 +71,28 @@ export async function POST(
     const trackingLink = generateTrackingLink(campaignId, promoterId);
 
     // Create application (using promotion as application)
-    const newApplication = await db.promotion.create({
+    const newApplication = await db.campaignApplication.create({
       data: {
         campaignId,
         promoterId,
-        contentUrl: validatedData.submittedContent || '',
-        views: 0,
-        earnings: 0,
-      }
+        submittedContent: validatedData.submittedContent || '',
+        trackingLink: `https://track.example.com/${campaignId}/${promoterId}/${Date.now()}`,
+      },
     });
 
     return NextResponse.json(
-      { 
+      {
         application: newApplication,
-        message: 'Application submitted successfully'
+        message: 'Application submitted successfully',
       },
       { status: 201 }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation error',
-          details: error.issues
+          details: error.issues,
         },
         { status: 400 }
       );

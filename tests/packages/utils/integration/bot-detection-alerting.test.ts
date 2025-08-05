@@ -1,4 +1,7 @@
-import { BotDetectionAlerting, AlertConfig } from '../src/bot-detection-alerting';
+import {
+  BotDetectionAlerting,
+  AlertConfig,
+} from '../src/bot-detection-alerting';
 import { BotAnalysis } from '../src/bot-detection';
 import * as fs from 'fs';
 
@@ -18,7 +21,7 @@ describe('BotDetectionAlerting', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockConfig = {
       enabled: true,
       logPath: 'test-logs/bot-detection/',
@@ -26,13 +29,13 @@ describe('BotDetectionAlerting', () => {
       thresholds: {
         critical: 90,
         warning: 50,
-        monitor: 20
+        monitor: 20,
       },
       notifications: {
         email: true,
         dashboard: true,
-        webhook: false
-      }
+        webhook: false,
+      },
     };
 
     alerting = new BotDetectionAlerting(mockConfig);
@@ -45,7 +48,7 @@ describe('BotDetectionAlerting', () => {
         campaignId: 'campaign456',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 1000,
@@ -57,12 +60,12 @@ describe('BotDetectionAlerting', () => {
           spikePercentage: 600,
           totalViews: 10000,
           totalLikes: 100,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 95,
         action: 'ban',
         reason: 'High bot confidence: abnormal ratios and spike detected',
-        confidence: 95
+        confidence: 95,
       };
 
       await alerting.processAnalysis('promoter123', 'campaign456', analysis);
@@ -88,7 +91,7 @@ describe('BotDetectionAlerting', () => {
         campaignId: 'campaign123',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 500,
@@ -99,12 +102,12 @@ describe('BotDetectionAlerting', () => {
           spikeDetected: false,
           totalViews: 5000,
           totalLikes: 250,
-          totalComments: 50
+          totalComments: 50,
         },
         botScore: 65,
         action: 'warning',
         reason: 'Moderate bot confidence: suspicious ratios detected',
-        confidence: 65
+        confidence: 65,
       };
 
       await alerting.processAnalysis('promoter789', 'campaign123', analysis);
@@ -130,7 +133,7 @@ describe('BotDetectionAlerting', () => {
         campaignId: 'campaign789',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 200,
@@ -141,12 +144,12 @@ describe('BotDetectionAlerting', () => {
           spikeDetected: false,
           totalViews: 2000,
           totalLikes: 150,
-          totalComments: 30
+          totalComments: 30,
         },
         botScore: 35,
         action: 'monitor',
         reason: 'Low bot confidence: minor suspicious patterns',
-        confidence: 35
+        confidence: 35,
       };
 
       await alerting.processAnalysis('promoter456', 'campaign789', analysis);
@@ -172,7 +175,7 @@ describe('BotDetectionAlerting', () => {
         campaignId: 'campaign999',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 100,
@@ -183,12 +186,12 @@ describe('BotDetectionAlerting', () => {
           spikeDetected: false,
           totalViews: 1000,
           totalLikes: 100,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 15,
         action: 'none',
         reason: 'Normal activity detected',
-        confidence: 15
+        confidence: 15,
       };
 
       await alerting.processAnalysis('promoter999', 'campaign999', analysis);
@@ -201,9 +204,10 @@ describe('BotDetectionAlerting', () => {
       );
 
       // Should not generate notification for clean activity
-      const notificationCalls = (fs.promises.appendFile as jest.Mock).mock.calls
-        .filter(call => call[0].includes('notifications-'));
-      
+      const notificationCalls = (
+        fs.promises.appendFile as jest.Mock
+      ).mock.calls.filter(call => call[0].includes('notifications-'));
+
       expect(notificationCalls.length).toBe(0);
     });
 
@@ -213,7 +217,7 @@ describe('BotDetectionAlerting', () => {
         campaignId: 'error_campaign',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 100,
@@ -224,20 +228,23 @@ describe('BotDetectionAlerting', () => {
           spikeDetected: false,
           totalViews: 1000,
           totalLikes: 100,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 15,
         action: 'none',
         reason: 'Normal activity detected',
-        confidence: 15
+        confidence: 15,
       };
 
       // Mock fs.promises.appendFile to throw an error
-      (fs.promises.appendFile as jest.Mock).mockRejectedValueOnce(new Error('File write error'));
+      (fs.promises.appendFile as jest.Mock).mockRejectedValueOnce(
+        new Error('File write error')
+      );
 
       // Should not throw error
-      await expect(alerting.processAnalysis('error_promoter', 'error_campaign', analysis))
-        .resolves.not.toThrow();
+      await expect(
+        alerting.processAnalysis('error_promoter', 'error_campaign', analysis)
+      ).resolves.not.toThrow();
 
       // Verify error logging was attempted
       expect(fs.promises.appendFile).toHaveBeenCalled();
@@ -254,14 +261,26 @@ describe('BotDetectionAlerting', () => {
           analysis: {
             promoterId: 'promoter1',
             campaignId: 'campaign1',
-            analysisWindow: { start: new Date(Date.now() - 10 * 60 * 1000), end: new Date() },
-            metrics: {
-              avgViewsPerMinute: 100, avgLikesPerMinute: 10, avgCommentsPerMinute: 1,
-              viewLikeRatio: 10, viewCommentRatio: 100, spikeDetected: false,
-              totalViews: 1000, totalLikes: 100, totalComments: 10
+            analysisWindow: {
+              start: new Date(Date.now() - 10 * 60 * 1000),
+              end: new Date(),
             },
-            botScore: 25, action: 'monitor' as const, reason: 'Low risk', confidence: 25
-          }
+            metrics: {
+              avgViewsPerMinute: 100,
+              avgLikesPerMinute: 10,
+              avgCommentsPerMinute: 1,
+              viewLikeRatio: 10,
+              viewCommentRatio: 100,
+              spikeDetected: false,
+              totalViews: 1000,
+              totalLikes: 100,
+              totalComments: 10,
+            },
+            botScore: 25,
+            action: 'monitor' as const,
+            reason: 'Low risk',
+            confidence: 25,
+          },
         },
         {
           promoterId: 'promoter2',
@@ -269,15 +288,27 @@ describe('BotDetectionAlerting', () => {
           analysis: {
             promoterId: 'promoter2',
             campaignId: 'campaign2',
-            analysisWindow: { start: new Date(Date.now() - 10 * 60 * 1000), end: new Date() },
-            metrics: {
-              avgViewsPerMinute: 500, avgLikesPerMinute: 20, avgCommentsPerMinute: 3,
-              viewLikeRatio: 25, viewCommentRatio: 167, spikeDetected: false,
-              totalViews: 5000, totalLikes: 200, totalComments: 30
+            analysisWindow: {
+              start: new Date(Date.now() - 10 * 60 * 1000),
+              end: new Date(),
             },
-            botScore: 65, action: 'warning' as const, reason: 'Medium risk', confidence: 65
-          }
-        }
+            metrics: {
+              avgViewsPerMinute: 500,
+              avgLikesPerMinute: 20,
+              avgCommentsPerMinute: 3,
+              viewLikeRatio: 25,
+              viewCommentRatio: 167,
+              spikeDetected: false,
+              totalViews: 5000,
+              totalLikes: 200,
+              totalComments: 30,
+            },
+            botScore: 65,
+            action: 'warning' as const,
+            reason: 'Medium risk',
+            confidence: 65,
+          },
+        },
       ];
 
       for (const { promoterId, campaignId, analysis } of analyses) {
@@ -311,16 +342,33 @@ describe('BotDetectionAlerting', () => {
       const criticalAnalysis = {
         promoterId: 'critical_promoter',
         campaignId: 'critical_campaign',
-        analysisWindow: { start: new Date(Date.now() - 10 * 60 * 1000), end: new Date() },
-        metrics: {
-          avgViewsPerMinute: 2000, avgLikesPerMinute: 10, avgCommentsPerMinute: 1,
-          viewLikeRatio: 200, viewCommentRatio: 2000, spikeDetected: true,
-          spikePercentage: 600, totalViews: 20000, totalLikes: 100, totalComments: 10
+        analysisWindow: {
+          start: new Date(Date.now() - 10 * 60 * 1000),
+          end: new Date(),
         },
-        botScore: 95, action: 'ban' as const, reason: 'Critical bot activity', confidence: 95
+        metrics: {
+          avgViewsPerMinute: 2000,
+          avgLikesPerMinute: 10,
+          avgCommentsPerMinute: 1,
+          viewLikeRatio: 200,
+          viewCommentRatio: 2000,
+          spikeDetected: true,
+          spikePercentage: 600,
+          totalViews: 20000,
+          totalLikes: 100,
+          totalComments: 10,
+        },
+        botScore: 95,
+        action: 'ban' as const,
+        reason: 'Critical bot activity',
+        confidence: 95,
       };
 
-      await alerting.processAnalysis('critical_promoter', 'critical_campaign', criticalAnalysis);
+      await alerting.processAnalysis(
+        'critical_promoter',
+        'critical_campaign',
+        criticalAnalysis
+      );
 
       const stats = alerting.getStats();
 
@@ -340,7 +388,7 @@ describe('BotDetectionAlerting', () => {
         campaignId: 'test_campaign',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 2000,
@@ -352,15 +400,19 @@ describe('BotDetectionAlerting', () => {
           spikePercentage: 600,
           totalViews: 20000,
           totalLikes: 100,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 95,
         action: 'ban',
         reason: 'Critical bot activity',
-        confidence: 95
+        confidence: 95,
       };
 
-      await disabledAlerting.processAnalysis('test_promoter', 'test_campaign', analysis);
+      await disabledAlerting.processAnalysis(
+        'test_promoter',
+        'test_campaign',
+        analysis
+      );
 
       // Should still log analysis but not generate notifications
       expect(fs.promises.appendFile).toHaveBeenCalledWith(
@@ -370,9 +422,10 @@ describe('BotDetectionAlerting', () => {
       );
 
       // Should not generate notifications when disabled
-      const notificationCalls = (fs.promises.appendFile as jest.Mock).mock.calls
-        .filter(call => call[0].includes('notifications-'));
-      
+      const notificationCalls = (
+        fs.promises.appendFile as jest.Mock
+      ).mock.calls.filter(call => call[0].includes('notifications-'));
+
       expect(notificationCalls.length).toBe(0);
     });
 

@@ -1,62 +1,37 @@
-import { BaseRepository, PaginationOptions } from './base';
-import { Prisma, User, SocialAccount } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
+import { BaseRepository, TransactionClient } from './base';
 
-export class UserRepository extends BaseRepository<User, Prisma.UserCreateInput, Prisma.UserUpdateInput> {
-  async findById(id: string): Promise<User | null> {
-    return this.db.user.findUnique({ where: { id } });
+export class UserRepository extends BaseRepository {
+  async findById(id: string, tx?: TransactionClient): Promise<User | null> {
+    return this.getClient(tx).user.findUnique({ where: { id } });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.db.user.findUnique({ where: { email } });
+  async findByEmail(
+    email: string,
+    tx?: TransactionClient
+  ): Promise<User | null> {
+    return this.getClient(tx).user.findUnique({ where: { email } });
   }
 
-  async create(data: Prisma.UserCreateInput): Promise<User> {
-    return this.db.user.create({ data });
+  async create(
+    data: Prisma.UserCreateInput,
+    tx?: TransactionClient
+  ): Promise<User> {
+    return this.getClient(tx).user.create({ data });
   }
 
-  async update(id: string, data: Prisma.UserUpdateInput): Promise<User | null> {
-    return this.db.user.update({ where: { id }, data });
-  }
-
-  async delete(id: string): Promise<boolean> {
-    await this.db.user.delete({ where: { id } });
-    return true;
-  }
-
-  async findAll(options: PaginationOptions = {}): Promise<User[]> {
-    const { limit = 50, offset = 0, orderBy = 'createdAt', orderDirection = 'desc' } = options;
-    return this.db.user.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
+  async update(
+    id: string,
+    data: Prisma.UserUpdateInput,
+    tx?: TransactionClient
+  ): Promise<User> {
+    return this.getClient(tx).user.update({
+      where: { id },
+      data,
     });
   }
-}
 
-export class SocialAccountRepository extends BaseRepository<SocialAccount, Prisma.SocialAccountCreateInput, Prisma.SocialAccountUpdateInput> {
-  async findById(id: string): Promise<SocialAccount | null> {
-    return this.db.socialAccount.findUnique({ where: { id } });
-  }
-
-  async create(data: Prisma.SocialAccountCreateInput): Promise<SocialAccount> {
-    return this.db.socialAccount.create({ data });
-  }
-
-  async update(id: string, data: Prisma.SocialAccountUpdateInput): Promise<SocialAccount | null> {
-    return this.db.socialAccount.update({ where: { id }, data });
-  }
-
-  async delete(id: string): Promise<boolean> {
-    await this.db.socialAccount.delete({ where: { id } });
-    return true;
-  }
-
-  async findAll(options: PaginationOptions = {}): Promise<SocialAccount[]> {
-    const { limit = 50, offset = 0, orderBy = 'createdAt', orderDirection = 'desc' } = options;
-    return this.db.socialAccount.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
+  async delete(id: string, tx?: TransactionClient): Promise<User> {
+    return this.getClient(tx).user.delete({ where: { id } });
   }
 }

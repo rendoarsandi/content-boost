@@ -73,15 +73,19 @@ export const PaymentRequestSchema = z.object({
     name: z.string().min(1),
     email: z.string().email().optional(),
     phone: z.string().optional(),
-    bankAccount: z.object({
-      bankCode: z.string(),
-      accountNumber: z.string(),
-      accountName: z.string(),
-    }).optional(),
-    eWallet: z.object({
-      type: z.enum(['gopay', 'ovo', 'dana', 'linkaja']),
-      accountNumber: z.string(),
-    }).optional(),
+    bankAccount: z
+      .object({
+        bankCode: z.string(),
+        accountNumber: z.string(),
+        accountName: z.string(),
+      })
+      .optional(),
+    eWallet: z
+      .object({
+        type: z.enum(['gopay', 'ovo', 'dana', 'linkaja']),
+        accountNumber: z.string(),
+      })
+      .optional(),
   }),
   metadata: z.record(z.string(), z.any()).optional(),
   createdAt: z.date(),
@@ -132,7 +136,9 @@ export class MockPaymentGateway implements PaymentGateway {
         reference: `REF${Date.now()}`,
       },
       transactionId: shouldFail ? undefined : `TXN${Date.now()}`,
-      failureReason: shouldFail ? 'Insufficient funds or invalid account' : undefined,
+      failureReason: shouldFail
+        ? 'Insufficient funds or invalid account'
+        : undefined,
       processedAt: new Date(),
       completedAt: shouldFail ? undefined : new Date(),
     };
@@ -182,11 +188,15 @@ export class MockPaymentGateway implements PaymentGateway {
     let payments = Array.from(this.payments.values());
 
     if (filters?.startDate) {
-      payments = payments.filter(p => p.processedAt && p.processedAt >= filters.startDate!);
+      payments = payments.filter(
+        p => p.processedAt && p.processedAt >= filters.startDate!
+      );
     }
 
     if (filters?.endDate) {
-      payments = payments.filter(p => p.processedAt && p.processedAt <= filters.endDate!);
+      payments = payments.filter(
+        p => p.processedAt && p.processedAt <= filters.endDate!
+      );
     }
 
     if (filters?.status) {
@@ -239,7 +249,10 @@ export class PaymentProcessor {
     // Validate request
     const validatedRequest = PaymentRequestSchema.parse(request);
 
-    this.log('info', `Processing payment ${request.id} for promoter ${request.promoterId} - Amount: ${request.currency} ${request.amount.toLocaleString('id-ID')}`);
+    this.log(
+      'info',
+      `Processing payment ${request.id} for promoter ${request.promoterId} - Amount: ${request.currency} ${request.amount.toLocaleString('id-ID')}`
+    );
 
     let lastError: Error | null = null;
     let attemptNumber = 0;
@@ -263,7 +276,7 @@ export class PaymentProcessor {
         // Handle different response statuses
         if (response.status === 'completed') {
           this.log('info', `Payment completed successfully: ${request.id}`);
-          
+
           // Send success notification
           if (onNotification) {
             await onNotification({
@@ -282,13 +295,18 @@ export class PaymentProcessor {
           this.retryAttempts.delete(request.id);
 
           return response;
-
         } else if (response.status === 'processing') {
-          this.log('info', `Payment is processing: ${request.id} - Will check status periodically`);
-          
+          this.log(
+            'info',
+            `Payment is processing: ${request.id} - Will check status periodically`
+          );
+
           // Wait for completion or timeout
-          const finalResponse = await this.waitForCompletion(response, onStatusUpdate);
-          
+          const finalResponse = await this.waitForCompletion(
+            response,
+            onStatusUpdate
+          );
+
           if (finalResponse.status === 'completed') {
             // Send success notification
             if (onNotification) {
@@ -310,17 +328,21 @@ export class PaymentProcessor {
             return finalResponse;
           } else {
             // Processing failed or timed out
-            throw new Error(finalResponse.failureReason || 'Payment processing failed or timed out');
+            throw new Error(
+              finalResponse.failureReason ||
+                'Payment processing failed or timed out'
+            );
           }
-
         } else if (response.status === 'failed') {
           throw new Error(response.failureReason || 'Payment failed');
         }
-
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        
-        this.log('error', `Payment attempt ${attemptNumber} failed for ${request.id}: ${lastError.message}`);
+
+        this.log(
+          'error',
+          `Payment attempt ${attemptNumber} failed for ${request.id}: ${lastError.message}`
+        );
 
         // If we've reached max retries, give up
         if (attemptNumber >= this.retryConfig.maxRetries) {
@@ -329,7 +351,10 @@ export class PaymentProcessor {
 
         // Calculate delay for next retry
         const delay = calculateRetryDelay(attemptNumber, this.retryConfig);
-        this.log('info', `Retrying payment ${request.id} in ${delay}ms (attempt ${attemptNumber + 1}/${this.retryConfig.maxRetries})`);
+        this.log(
+          'info',
+          `Retrying payment ${request.id} in ${delay}ms (attempt ${attemptNumber + 1}/${this.retryConfig.maxRetries})`
+        );
 
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -337,7 +362,10 @@ export class PaymentProcessor {
     }
 
     // All retries failed
-    this.log('error', `Payment failed after ${this.retryConfig.maxRetries} attempts: ${request.id}`);
+    this.log(
+      'error',
+      `Payment failed after ${this.retryConfig.maxRetries} attempts: ${request.id}`
+    );
 
     // Send failure notification
     if (onNotification) {
@@ -364,7 +392,8 @@ export class PaymentProcessor {
       status: 'failed',
       amount: request.amount,
       currency: request.currency,
-      failureReason: lastError?.message || 'Payment failed after maximum retries',
+      failureReason:
+        lastError?.message || 'Payment failed after maximum retries',
       processedAt: new Date(),
     };
   }
@@ -374,7 +403,10 @@ export class PaymentProcessor {
    */
   async processBatchPayments(
     requests: PaymentRequest[],
-    onStatusUpdate?: (paymentId: string, status: PaymentResponse) => Promise<void>,
+    onStatusUpdate?: (
+      paymentId: string,
+      status: PaymentResponse
+    ) => Promise<void>,
     onNotification?: (notification: PaymentNotification) => Promise<void>,
     concurrency: number = 5
   ): Promise<PaymentResponse[]> {
@@ -383,28 +415,36 @@ export class PaymentProcessor {
     }
 
     this.isProcessing = true;
-    this.log('info', `Starting batch payment processing: ${requests.length} payments`);
+    this.log(
+      'info',
+      `Starting batch payment processing: ${requests.length} payments`
+    );
 
     try {
       const results: PaymentResponse[] = [];
-      
+
       // Process payments in batches with limited concurrency
       for (let i = 0; i < requests.length; i += concurrency) {
         const batch = requests.slice(i, i + concurrency);
-        
-        this.log('info', `Processing batch ${Math.floor(i / concurrency) + 1}/${Math.ceil(requests.length / concurrency)} (${batch.length} payments)`);
+
+        this.log(
+          'info',
+          `Processing batch ${Math.floor(i / concurrency) + 1}/${Math.ceil(requests.length / concurrency)} (${batch.length} payments)`
+        );
 
         // Process batch in parallel
         const batchPromises = batch.map(request =>
           this.processPayment(
             request,
-            onStatusUpdate ? (status) => onStatusUpdate(request.id, status) : undefined,
+            onStatusUpdate
+              ? status => onStatusUpdate(request.id, status)
+              : undefined,
             onNotification
           )
         );
 
         const batchResults = await Promise.allSettled(batchPromises);
-        
+
         // Collect results
         batchResults.forEach((result, index) => {
           if (result.status === 'fulfilled') {
@@ -418,7 +458,10 @@ export class PaymentProcessor {
               status: 'failed',
               amount: request.amount,
               currency: request.currency,
-              failureReason: result.reason instanceof Error ? result.reason.message : 'Unknown error',
+              failureReason:
+                result.reason instanceof Error
+                  ? result.reason.message
+                  : 'Unknown error',
               processedAt: new Date(),
             });
           }
@@ -432,11 +475,13 @@ export class PaymentProcessor {
 
       const successCount = results.filter(r => r.status === 'completed').length;
       const failureCount = results.filter(r => r.status === 'failed').length;
-      
-      this.log('info', `Batch payment processing completed: ${successCount} successful, ${failureCount} failed`);
+
+      this.log(
+        'info',
+        `Batch payment processing completed: ${successCount} successful, ${failureCount} failed`
+      );
 
       return results;
-
     } finally {
       this.isProcessing = false;
     }
@@ -459,7 +504,9 @@ export class PaymentProcessor {
 
       try {
         // Check payment status
-        currentResponse = await this.gateway.checkPaymentStatus(initialResponse.paymentId);
+        currentResponse = await this.gateway.checkPaymentStatus(
+          initialResponse.paymentId
+        );
 
         // Update status if callback provided
         if (onStatusUpdate) {
@@ -467,12 +514,17 @@ export class PaymentProcessor {
         }
 
         // Check if completed or failed
-        if (currentResponse.status === 'completed' || currentResponse.status === 'failed') {
+        if (
+          currentResponse.status === 'completed' ||
+          currentResponse.status === 'failed'
+        ) {
           return currentResponse;
         }
-
       } catch (error) {
-        this.log('error', `Error checking payment status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        this.log(
+          'error',
+          `Error checking payment status: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -503,12 +555,14 @@ export class PaymentProcessor {
       isProcessing: this.isProcessing,
       queueSize: this.processingQueue.size,
       retryConfig: this.retryConfig,
-      activePayments: Array.from(this.processingQueue.entries()).map(([id, request]) => ({
-        id,
-        promoterId: request.promoterId,
-        amount: request.amount,
-        attempts: this.retryAttempts.get(id) || 0,
-      })),
+      activePayments: Array.from(this.processingQueue.entries()).map(
+        ([id, request]) => ({
+          id,
+          promoterId: request.promoterId,
+          amount: request.amount,
+          attempts: this.retryAttempts.get(id) || 0,
+        })
+      ),
     };
   }
 
@@ -521,7 +575,10 @@ export class PaymentProcessor {
       this.log('info', `Payment cancelled: ${paymentId}`);
       return response;
     } catch (error) {
-      this.log('error', `Failed to cancel payment ${paymentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        'error',
+        `Failed to cancel payment ${paymentId}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       throw error;
     }
   }
@@ -549,7 +606,11 @@ export class PaymentProcessor {
   /**
    * Logging utility
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    ...args: any[]
+  ): void {
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}] [${level.toUpperCase()}] [PaymentProcessor]`;
     switch (level) {

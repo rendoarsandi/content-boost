@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 // Mock Next.js auth
 vi.mock('@repo/auth/server-only', () => ({
   auth: vi.fn(),
-  getSession: vi.fn()
+  getSession: vi.fn(),
 }));
 
 // Mock database
@@ -16,11 +16,11 @@ vi.mock('@repo/database', () => ({
   db: {
     update: vi.fn(() => ({
       set: vi.fn(() => ({
-        where: vi.fn(() => Promise.resolve())
-      }))
+        where: vi.fn(() => Promise.resolve()),
+      })),
     })),
   },
-  users: {}
+  users: {},
 }));
 
 // Mock console.log to verify logging
@@ -42,31 +42,40 @@ describe('Admin API Integration Tests', () => {
       // Mock database update
       vi.mocked(db.update).mockReturnValueOnce({
         set: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue(undefined)
-        })
+          where: vi.fn().mockResolvedValue(undefined),
+        }),
       } as any);
 
       const userId = 'test-user-id';
-      const request = new NextRequest(`http://localhost/api/users/${userId}/unban`, {
-        method: 'POST'
-      });
+      const request = new NextRequest(
+        `http://localhost/api/users/${userId}/unban`,
+        {
+          method: 'POST',
+        }
+      );
       const response = await unbanUser(request, { params: { id: userId } });
 
       expect(response.status).toBe(200);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        message: 'User unbanned successfully'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          message: 'User unbanned successfully',
+        })
+      );
 
       // Verify database update was called with correct parameters
       expect(db.update).toHaveBeenCalledTimes(1);
-      expect(vi.mocked(db.update).mock.results[0].value.set).toHaveBeenCalledWith(
+      expect(
+        vi.mocked(db.update).mock.results[0].value.set
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'active'
+          status: 'active',
         })
       );
 
       // Verify logging
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining(`User ${userId} has been unbanned by admin`));
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(`User ${userId} has been unbanned by admin`)
+      );
     });
 
     test('should handle database error', async () => {
@@ -76,15 +85,20 @@ describe('Admin API Integration Tests', () => {
       });
 
       const userId = 'test-user-id';
-      const request = new NextRequest(`http://localhost/api/users/${userId}/unban`, {
-        method: 'POST'
-      });
+      const request = new NextRequest(
+        `http://localhost/api/users/${userId}/unban`,
+        {
+          method: 'POST',
+        }
+      );
       const response = await unbanUser(request, { params: { id: userId } });
 
       expect(response.status).toBe(500);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        message: 'Failed to unban user'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          message: 'Failed to unban user',
+        })
+      );
     });
   });
 });

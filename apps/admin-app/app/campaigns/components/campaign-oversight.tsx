@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
   CardTitle,
   Input,
   Select,
@@ -46,7 +46,9 @@ export default function CampaignOversight() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
+    null
+  );
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -67,16 +69,22 @@ export default function CampaignOversight() {
     }
   };
 
-  const handleUpdateCampaignStatus = async (campaignId: string, newStatus: string) => {
+  const handleUpdateCampaignStatus = async (
+    campaignId: string,
+    newStatus: string
+  ) => {
     setActionLoading(campaignId);
     try {
-      const response = await fetch(`/api/campaigns/admin/${campaignId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+      const response = await fetch(
+        `/api/campaigns/admin/${campaignId}/status`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
       if (response.ok) {
         await fetchCampaigns();
       }
@@ -88,20 +96,27 @@ export default function CampaignOversight() {
   };
 
   const filteredCampaigns = campaigns.filter(campaign => {
-    const matchesSearch = campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         campaign.creatorName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter;
-    
+    const matchesSearch =
+      campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      campaign.creatorName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === 'all' || campaign.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'paused': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'paused':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      case 'draft':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -134,7 +149,7 @@ export default function CampaignOversight() {
                 <Input
                   placeholder="Search campaigns..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -162,8 +177,11 @@ export default function CampaignOversight() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredCampaigns.map((campaign) => (
-              <div key={campaign.id} className="flex items-center justify-between p-4 border rounded-lg">
+            {filteredCampaigns.map(campaign => (
+              <div
+                key={campaign.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
                     <h3 className="font-medium">{campaign.title}</h3>
@@ -171,14 +189,25 @@ export default function CampaignOversight() {
                       {campaign.status}
                     </Badge>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{campaign.description}</p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {campaign.description}
+                  </p>
                   <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                     <span>Creator: {campaign.creatorName}</span>
-                    <span>Budget: Rp {campaign.budget.toLocaleString('id-ID')}</span>
-                    <span>Rate: Rp {campaign.ratePerView.toLocaleString('id-ID')}/view</span>
+                    <span>
+                      Budget: Rp {campaign.budget.toLocaleString('id-ID')}
+                    </span>
+                    <span>
+                      Rate: Rp {campaign.ratePerView.toLocaleString('id-ID')}
+                      /view
+                    </span>
                     <span>Applications: {campaign.applicationsCount}</span>
-                    <span>Views: {campaign.totalViews.toLocaleString('id-ID')}</span>
-                    <span>Spent: Rp {campaign.totalSpent.toLocaleString('id-ID')}</span>
+                    <span>
+                      Views: {campaign.totalViews.toLocaleString('id-ID')}
+                    </span>
+                    <span>
+                      Spent: Rp {campaign.totalSpent.toLocaleString('id-ID')}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -204,65 +233,112 @@ export default function CampaignOversight() {
                         <div className="space-y-4 max-h-96 overflow-y-auto">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <label className="text-sm font-medium">Title</label>
-                              <p className="text-sm text-gray-600">{selectedCampaign.title}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Status</label>
-                              <p className="text-sm text-gray-600">{selectedCampaign.status}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Creator</label>
-                              <p className="text-sm text-gray-600">{selectedCampaign.creatorName}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Creator Email</label>
-                              <p className="text-sm text-gray-600">{selectedCampaign.creatorEmail}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Budget</label>
+                              <label className="text-sm font-medium">
+                                Title
+                              </label>
                               <p className="text-sm text-gray-600">
-                                Rp {selectedCampaign.budget.toLocaleString('id-ID')}
+                                {selectedCampaign.title}
                               </p>
                             </div>
                             <div>
-                              <label className="text-sm font-medium">Rate per View</label>
+                              <label className="text-sm font-medium">
+                                Status
+                              </label>
                               <p className="text-sm text-gray-600">
-                                Rp {selectedCampaign.ratePerView.toLocaleString('id-ID')}
+                                {selectedCampaign.status}
                               </p>
                             </div>
                             <div>
-                              <label className="text-sm font-medium">Applications</label>
-                              <p className="text-sm text-gray-600">{selectedCampaign.applicationsCount}</p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Total Views</label>
+                              <label className="text-sm font-medium">
+                                Creator
+                              </label>
                               <p className="text-sm text-gray-600">
-                                {selectedCampaign.totalViews.toLocaleString('id-ID')}
+                                {selectedCampaign.creatorName}
                               </p>
                             </div>
                             <div>
-                              <label className="text-sm font-medium">Total Spent</label>
+                              <label className="text-sm font-medium">
+                                Creator Email
+                              </label>
                               <p className="text-sm text-gray-600">
-                                Rp {selectedCampaign.totalSpent.toLocaleString('id-ID')}
+                                {selectedCampaign.creatorEmail}
                               </p>
                             </div>
                             <div>
-                              <label className="text-sm font-medium">Created</label>
+                              <label className="text-sm font-medium">
+                                Budget
+                              </label>
                               <p className="text-sm text-gray-600">
-                                {new Date(selectedCampaign.createdAt).toLocaleDateString('id-ID')}
+                                Rp{' '}
+                                {selectedCampaign.budget.toLocaleString(
+                                  'id-ID'
+                                )}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Rate per View
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                Rp{' '}
+                                {selectedCampaign.ratePerView.toLocaleString(
+                                  'id-ID'
+                                )}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Applications
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {selectedCampaign.applicationsCount}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Total Views
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {selectedCampaign.totalViews.toLocaleString(
+                                  'id-ID'
+                                )}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Total Spent
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                Rp{' '}
+                                {selectedCampaign.totalSpent.toLocaleString(
+                                  'id-ID'
+                                )}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium">
+                                Created
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {new Date(
+                                  selectedCampaign.createdAt
+                                ).toLocaleDateString('id-ID')}
                               </p>
                             </div>
                           </div>
                           <div>
-                            <label className="text-sm font-medium">Description</label>
-                            <p className="text-sm text-gray-600">{selectedCampaign.description}</p>
+                            <label className="text-sm font-medium">
+                              Description
+                            </label>
+                            <p className="text-sm text-gray-600">
+                              {selectedCampaign.description}
+                            </p>
                           </div>
                         </div>
                       )}
                     </DialogContent>
                   </Dialog>
-                  
+
                   {campaign.status === 'active' && (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -279,22 +355,28 @@ export default function CampaignOversight() {
                         <DialogHeader>
                           <DialogTitle>Pause Campaign</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to pause &quot;{campaign.title}&quot;? This will stop all promotions.
+                            Are you sure you want to pause &quot;
+                            {campaign.title}&quot;? This will stop all
+                            promotions.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                           <Button
                             variant="outline"
-                            onClick={() => handleUpdateCampaignStatus(campaign.id, 'paused')}
+                            onClick={() =>
+                              handleUpdateCampaignStatus(campaign.id, 'paused')
+                            }
                             disabled={actionLoading === campaign.id}
                           >
-                            {actionLoading === campaign.id ? 'Pausing...' : 'Pause Campaign'}
+                            {actionLoading === campaign.id
+                              ? 'Pausing...'
+                              : 'Pause Campaign'}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
                   )}
-                  
+
                   {campaign.status === 'paused' && (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -311,22 +393,29 @@ export default function CampaignOversight() {
                         <DialogHeader>
                           <DialogTitle>Resume Campaign</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to resume &quot;{campaign.title}&quot;? This will reactivate all promotions.
+                            Are you sure you want to resume &quot;
+                            {campaign.title}&quot;? This will reactivate all
+                            promotions.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                           <Button
-                            onClick={() => handleUpdateCampaignStatus(campaign.id, 'active')}
+                            onClick={() =>
+                              handleUpdateCampaignStatus(campaign.id, 'active')
+                            }
                             disabled={actionLoading === campaign.id}
                           >
-                            {actionLoading === campaign.id ? 'Resuming...' : 'Resume Campaign'}
+                            {actionLoading === campaign.id
+                              ? 'Resuming...'
+                              : 'Resume Campaign'}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
                   )}
-                  
-                  {(campaign.status === 'draft' || campaign.status === 'active') && (
+
+                  {(campaign.status === 'draft' ||
+                    campaign.status === 'active') && (
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
@@ -342,16 +431,24 @@ export default function CampaignOversight() {
                         <DialogHeader>
                           <DialogTitle>End Campaign</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to end &quot;{campaign.title}&quot;? This action cannot be undone.
+                            Are you sure you want to end &quot;{campaign.title}
+                            &quot;? This action cannot be undone.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                           <Button
                             variant="destructive"
-                            onClick={() => handleUpdateCampaignStatus(campaign.id, 'completed')}
+                            onClick={() =>
+                              handleUpdateCampaignStatus(
+                                campaign.id,
+                                'completed'
+                              )
+                            }
                             disabled={actionLoading === campaign.id}
                           >
-                            {actionLoading === campaign.id ? 'Ending...' : 'End Campaign'}
+                            {actionLoading === campaign.id
+                              ? 'Ending...'
+                              : 'End Campaign'}
                           </Button>
                         </DialogFooter>
                       </DialogContent>

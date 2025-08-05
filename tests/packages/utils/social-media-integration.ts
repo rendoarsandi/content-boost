@@ -21,7 +21,7 @@ export async function exampleUsage() {
       'video_id_123',
       'user_id_456'
     );
-    
+
     console.log('TikTok Metrics:', {
       views: tiktokMetrics.viewCount,
       likes: tiktokMetrics.likeCount,
@@ -36,7 +36,7 @@ export async function exampleUsage() {
       'media_id_789',
       'user_id_456'
     );
-    
+
     console.log('Instagram Metrics:', {
       impressions: instagramMetrics.viewCount, // Instagram uses impressions as views
       likes: instagramMetrics.likeCount,
@@ -51,18 +51,18 @@ export async function exampleUsage() {
         platform: 'tiktok' as const,
         accessToken: 'tiktok_token',
         postId: 'video_123',
-        userId: 'user_456'
+        userId: 'user_456',
       },
       {
         platform: 'instagram' as const,
         accessToken: 'instagram_token',
         postId: 'media_789',
-        userId: 'user_456'
-      }
+        userId: 'user_456',
+      },
     ];
 
     const batchResults = await apiManager.getBatchMetrics(batchRequests);
-    
+
     batchResults.forEach((result, index) => {
       if (result.success) {
         console.log(`Request ${index + 1} succeeded:`, result.data);
@@ -72,7 +72,10 @@ export async function exampleUsage() {
     });
 
     // Example 4: Check rate limit status
-    const tiktokRateLimit = await apiManager.getRateLimitInfo('tiktok', 'user_456');
+    const tiktokRateLimit = await apiManager.getRateLimitInfo(
+      'tiktok',
+      'user_456'
+    );
     console.log('TikTok Rate Limit:', {
       remaining: tiktokRateLimit.remaining,
       limit: tiktokRateLimit.limit,
@@ -80,9 +83,15 @@ export async function exampleUsage() {
     });
 
     // Example 5: Validate tokens
-    const isTikTokTokenValid = await apiManager.validateToken('tiktok', 'your_tiktok_token');
-    const isInstagramTokenValid = await apiManager.validateToken('instagram', 'your_instagram_token');
-    
+    const isTikTokTokenValid = await apiManager.validateToken(
+      'tiktok',
+      'your_tiktok_token'
+    );
+    const isInstagramTokenValid = await apiManager.validateToken(
+      'instagram',
+      'your_instagram_token'
+    );
+
     console.log('Token Validation:', {
       tiktok: isTikTokTokenValid,
       instagram: isInstagramTokenValid,
@@ -91,7 +100,10 @@ export async function exampleUsage() {
     // Example 6: Refresh tokens
     if (!isTikTokTokenValid) {
       try {
-        const newTokens = await apiManager.refreshToken('tiktok', 'your_refresh_token');
+        const newTokens = await apiManager.refreshToken(
+          'tiktok',
+          'your_refresh_token'
+        );
         console.log('New TikTok tokens:', newTokens);
       } catch (error) {
         console.error('Failed to refresh TikTok token:', error);
@@ -101,18 +113,21 @@ export async function exampleUsage() {
     // Example 7: Health check
     const healthStatus = await apiManager.healthCheck();
     console.log('API Health Status:', healthStatus);
-
   } catch (error) {
     console.error('API Error:', error);
-    
+
     // Handle different types of errors
     if (error && typeof error === 'object' && 'code' in error) {
       if (error.code === 'RATE_LIMIT_EXCEEDED') {
-        console.log(`Rate limit exceeded. Retry after: ${(error as any).retryAfter} seconds`);
+        console.log(
+          `Rate limit exceeded. Retry after: ${(error as any).retryAfter} seconds`
+        );
       } else if (error.code === 'TOKEN_REFRESH_FAILED') {
         console.log('Token refresh failed. User needs to re-authenticate.');
       } else if ('retryable' in error && error.retryable) {
-        console.log('Retryable error occurred. The system will automatically retry.');
+        console.log(
+          'Retryable error occurred. The system will automatically retry.'
+        );
       }
     }
   }
@@ -125,22 +140,23 @@ export function handleAPIErrors(error: any) {
       return {
         action: 'wait',
         retryAfter: error.retryAfter,
-        message: 'Rate limit exceeded. Please wait before making more requests.',
+        message:
+          'Rate limit exceeded. Please wait before making more requests.',
       };
-    
+
     case 'TOKEN_REFRESH_FAILED':
       return {
         action: 'reauth',
         message: 'Token refresh failed. User needs to re-authenticate.',
       };
-    
+
     case 'TIKTOK_API_ERROR':
     case 'INSTAGRAM_API_ERROR':
       return {
         action: error.retryable ? 'retry' : 'fail',
         message: `API error: ${error.message}`,
       };
-    
+
     default:
       return {
         action: 'fail',
@@ -152,18 +168,30 @@ export function handleAPIErrors(error: any) {
 // Example: Rate limiting best practices
 export class RateLimitManager {
   private apiManager: any;
-  
+
   constructor(apiManager: any) {
     this.apiManager = apiManager;
   }
 
-  async safeGetMetrics(platform: 'tiktok' | 'instagram', token: string, postId: string, userId: string) {
+  async safeGetMetrics(
+    platform: 'tiktok' | 'instagram',
+    token: string,
+    postId: string,
+    userId: string
+  ) {
     // Check rate limit before making request
-    const rateLimitInfo = await this.apiManager.getRateLimitInfo(platform, userId);
-    
+    const rateLimitInfo = await this.apiManager.getRateLimitInfo(
+      platform,
+      userId
+    );
+
     if (rateLimitInfo.remaining <= 0) {
-      const waitTime = Math.ceil((rateLimitInfo.resetTime.getTime() - Date.now()) / 1000);
-      throw new Error(`Rate limit exceeded. Wait ${waitTime} seconds before retrying.`);
+      const waitTime = Math.ceil(
+        (rateLimitInfo.resetTime.getTime() - Date.now()) / 1000
+      );
+      throw new Error(
+        `Rate limit exceeded. Wait ${waitTime} seconds before retrying.`
+      );
     }
 
     // Make the request
@@ -172,18 +200,18 @@ export class RateLimitManager {
 
   async distributeRequests(requests: any[], maxConcurrent: number = 5) {
     const results = [];
-    
+
     for (let i = 0; i < requests.length; i += maxConcurrent) {
       const batch = requests.slice(i, i + maxConcurrent);
       const batchResults = await this.apiManager.getBatchMetrics(batch);
       results.push(...batchResults);
-      
+
       // Add delay between batches to respect rate limits
       if (i + maxConcurrent < requests.length) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
-    
+
     return results;
   }
 }

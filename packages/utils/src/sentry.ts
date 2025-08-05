@@ -2,9 +2,11 @@ import { appLogger } from './logging';
 
 // Conditional Sentry import - not available in Edge Runtime
 const getSentry = () => {
-  if (typeof process !== 'undefined' && 
-      typeof require !== 'undefined' && 
-      process.env.NEXT_RUNTIME !== 'edge') {
+  if (
+    typeof process !== 'undefined' &&
+    typeof require !== 'undefined' &&
+    process.env.NEXT_RUNTIME !== 'edge'
+  ) {
     try {
       return require('@sentry/node');
     } catch {
@@ -28,7 +30,9 @@ export const initSentry = (
   release: string = '1.0.0'
 ) => {
   if (!dsn || !Sentry) {
-    appLogger.warn('Sentry DSN not provided or Sentry not available, error tracking disabled');
+    appLogger.warn(
+      'Sentry DSN not provided or Sentry not available, error tracking disabled'
+    );
     return;
   }
 
@@ -56,12 +60,18 @@ export const initSentry = (
  * @param error Error object
  * @param context Additional context
  */
-export const captureException = (error: Error, context?: Record<string, any>) => {
+export const captureException = (
+  error: Error,
+  context?: Record<string, any>
+) => {
   if (!Sentry) {
-    appLogger.error('Sentry not available, logging error locally', { error, context });
+    appLogger.error('Sentry not available, logging error locally', {
+      error,
+      context,
+    });
     return;
   }
-  
+
   if (context) {
     Sentry.setContext('additional', context);
   }
@@ -80,10 +90,14 @@ export const captureMessage = (
   context?: Record<string, any>
 ) => {
   if (!Sentry) {
-    appLogger.warn('Sentry not available, logging message locally', { message, level, context });
+    appLogger.warn('Sentry not available, logging message locally', {
+      message,
+      level,
+      context,
+    });
     return;
   }
-  
+
   if (context) {
     Sentry.setContext('additional', context);
   }
@@ -97,10 +111,13 @@ export const captureMessage = (
  */
 export const startTransaction = (name: string, op: string) => {
   if (!Sentry) {
-    appLogger.debug('Sentry not available, transaction not started', { name, op });
+    appLogger.debug('Sentry not available, transaction not started', {
+      name,
+      op,
+    });
     return null;
   }
-  
+
   return Sentry.startTransaction({
     name,
     op,

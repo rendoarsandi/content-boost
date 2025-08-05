@@ -27,7 +27,7 @@ describe('RateLimiter', () => {
     it('should return correct rate limit status when not limited', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.getRateLimit.mockResolvedValue(50);
 
       const result = await rateLimiter.checkRateLimit(platform, userId);
@@ -37,14 +37,14 @@ describe('RateLimiter', () => {
         userId,
         remaining: 50, // 100 - 50
         resetTime: expect.any(Date),
-        isLimited: false
+        isLimited: false,
       });
     });
 
     it('should return correct rate limit status when limited', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.getRateLimit.mockResolvedValue(100);
 
       const result = await rateLimiter.checkRateLimit(platform, userId);
@@ -54,14 +54,14 @@ describe('RateLimiter', () => {
         userId,
         remaining: 0,
         resetTime: expect.any(Date),
-        isLimited: true
+        isLimited: true,
       });
     });
 
     it('should handle cache errors gracefully', async () => {
       const platform: SocialPlatform = 'instagram';
       const userId = 'user123';
-      
+
       mockCache.getRateLimit.mockRejectedValue(new Error('Cache error'));
 
       const result = await rateLimiter.checkRateLimit(platform, userId);
@@ -75,25 +75,28 @@ describe('RateLimiter', () => {
     it('should increment rate limit and return updated status', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.incrementRateLimit.mockResolvedValue(51);
 
       const result = await rateLimiter.incrementRateLimit(platform, userId);
 
-      expect(mockCache.incrementRateLimit).toHaveBeenCalledWith(platform, userId);
+      expect(mockCache.incrementRateLimit).toHaveBeenCalledWith(
+        platform,
+        userId
+      );
       expect(result).toEqual({
         platform,
         userId,
         remaining: 49, // 100 - 51
         resetTime: expect.any(Date),
-        isLimited: false
+        isLimited: false,
       });
     });
 
     it('should handle rate limit reached', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.incrementRateLimit.mockResolvedValue(100);
 
       const result = await rateLimiter.incrementRateLimit(platform, userId);
@@ -107,7 +110,7 @@ describe('RateLimiter', () => {
     it('should return true when rate limited', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.getRateLimit.mockResolvedValue(100);
 
       const result = await rateLimiter.isRateLimited(platform, userId);
@@ -118,7 +121,7 @@ describe('RateLimiter', () => {
     it('should return false when not rate limited', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.getRateLimit.mockResolvedValue(50);
 
       const result = await rateLimiter.isRateLimited(platform, userId);
@@ -131,12 +134,14 @@ describe('RateLimiter', () => {
     it('should reset rate limit for user', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.del.mockResolvedValue(1);
 
       await rateLimiter.resetRateLimit(platform, userId);
 
-      expect(mockCache.del).toHaveBeenCalledWith('creator-platform:rate:tiktok:user123');
+      expect(mockCache.del).toHaveBeenCalledWith(
+        'creator-platform:rate:tiktok:user123'
+      );
     });
   });
 
@@ -144,7 +149,7 @@ describe('RateLimiter', () => {
     it('should not wait when not rate limited', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.getRateLimit.mockResolvedValue(50);
 
       const startTime = Date.now();
@@ -157,12 +162,12 @@ describe('RateLimiter', () => {
     it('should wait when rate limited', async () => {
       const platform: SocialPlatform = 'tiktok';
       const userId = 'user123';
-      
+
       mockCache.getRateLimit.mockResolvedValue(100);
 
       // Mock a short wait time for testing
       const originalSetTimeout = global.setTimeout;
-      global.setTimeout = jest.fn((callback) => {
+      global.setTimeout = jest.fn(callback => {
         setTimeout(callback, 10); // 10ms instead of full wait
         return {} as any;
       });
@@ -172,7 +177,7 @@ describe('RateLimiter', () => {
       const endTime = Date.now();
 
       expect(endTime - startTime).toBeGreaterThan(5);
-      
+
       global.setTimeout = originalSetTimeout;
     });
   });
@@ -180,7 +185,7 @@ describe('RateLimiter', () => {
   describe('getAllRateLimitStatus', () => {
     it('should return status for all platforms', async () => {
       const userId = 'user123';
-      
+
       mockCache.getRateLimit
         .mockResolvedValueOnce(50) // TikTok
         .mockResolvedValueOnce(100); // Instagram

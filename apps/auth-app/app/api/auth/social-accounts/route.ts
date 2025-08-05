@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +16,9 @@ export async function GET(request: NextRequest) {
         platformUserId: 'tiktok_user_123',
         username: '@demo_user',
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+        expiresAt: new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000
+        ).toISOString(), // 30 days
         isActive: true,
       },
       {
@@ -25,7 +27,9 @@ export async function GET(request: NextRequest) {
         platformUserId: 'instagram_user_123',
         username: '@demo_user_ig',
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days
+        expiresAt: new Date(
+          Date.now() + 60 * 24 * 60 * 60 * 1000
+        ).toISOString(), // 60 days
         isActive: true,
       },
     ];
@@ -35,9 +39,9 @@ export async function GET(request: NextRequest) {
       data: accounts,
     });
   } catch (error) {
-    console.error("Error fetching social accounts:", error);
+    console.error('Error fetching social accounts:', error);
     return NextResponse.json(
-      { error: "Failed to fetch social accounts" },
+      { error: 'Failed to fetch social accounts' },
       { status: 500 }
     );
   }

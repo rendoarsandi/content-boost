@@ -1,5 +1,9 @@
 import { RedisCache } from '@repo/cache';
-import { SocialMediaAPIManager, SocialMediaMetrics, APIError } from './social-media-api';
+import {
+  SocialMediaAPIManager,
+  SocialMediaMetrics,
+  APIError,
+} from './social-media-api';
 import { SocialTokenManager, SocialToken } from './social-token-manager';
 
 // Metrics Collection Types
@@ -36,7 +40,10 @@ export interface ProcessedMetrics extends SocialMediaMetrics {
 
 export interface MetricsValidationRule {
   name: string;
-  validate: (current: SocialMediaMetrics, previous?: SocialMediaMetrics) => {
+  validate: (
+    current: SocialMediaMetrics,
+    previous?: SocialMediaMetrics
+  ) => {
     isValid: boolean;
     error?: string;
   };
@@ -58,16 +65,19 @@ export interface MetricsCollectionConfig {
 export const DEFAULT_VALIDATION_RULES: MetricsValidationRule[] = [
   {
     name: 'non-negative-values',
-    validate: (current) => {
+    validate: current => {
       const negativeFields = [];
       if (current.viewCount < 0) negativeFields.push('viewCount');
       if (current.likeCount < 0) negativeFields.push('likeCount');
       if (current.commentCount < 0) negativeFields.push('commentCount');
       if (current.shareCount < 0) negativeFields.push('shareCount');
-      
+
       return {
         isValid: negativeFields.length === 0,
-        error: negativeFields.length > 0 ? `Negative values found in: ${negativeFields.join(', ')}` : undefined,
+        error:
+          negativeFields.length > 0
+            ? `Negative values found in: ${negativeFields.join(', ')}`
+            : undefined,
       };
     },
   },
@@ -75,11 +85,11 @@ export const DEFAULT_VALIDATION_RULES: MetricsValidationRule[] = [
     name: 'reasonable-growth',
     validate: (current, previous) => {
       if (!previous) return { isValid: true };
-      
+
       const viewGrowth = current.viewCount - previous.viewCount;
       const likeGrowth = current.likeCount - previous.likeCount;
       const commentGrowth = current.commentCount - previous.commentCount;
-      
+
       // Flag if views decreased (should not happen normally)
       if (viewGrowth < 0) {
         return {
@@ -87,7 +97,7 @@ export const DEFAULT_VALIDATION_RULES: MetricsValidationRule[] = [
           error: `View count decreased from ${previous.viewCount} to ${current.viewCount}`,
         };
       }
-      
+
       // Flag if engagement decreased significantly while views increased
       if (viewGrowth > 100 && (likeGrowth < 0 || commentGrowth < 0)) {
         return {
@@ -95,26 +105,30 @@ export const DEFAULT_VALIDATION_RULES: MetricsValidationRule[] = [
           error: `Suspicious pattern: views increased by ${viewGrowth} but engagement decreased`,
         };
       }
-      
+
       return { isValid: true };
     },
   },
   {
     name: 'engagement-ratio',
-    validate: (current) => {
+    validate: current => {
       if (current.viewCount === 0) return { isValid: true };
-      
+
       const likeRatio = current.likeCount / current.viewCount;
       const commentRatio = current.commentCount / current.viewCount;
-      
+
       // Flag if engagement ratios are suspiciously low (potential bot views)
-      if (current.viewCount > 1000 && likeRatio < 0.001 && commentRatio < 0.0001) {
+      if (
+        current.viewCount > 1000 &&
+        likeRatio < 0.001 &&
+        commentRatio < 0.0001
+      ) {
         return {
           isValid: false,
           error: `Suspiciously low engagement ratio: ${likeRatio.toFixed(4)} likes/view, ${commentRatio.toFixed(6)} comments/view`,
         };
       }
-      
+
       return { isValid: true };
     },
   },
@@ -161,7 +175,9 @@ export class MetricsCollector {
     }
 
     this.isRunning = true;
-    console.log(`Starting metrics collector with ${this.config.collectionInterval}ms interval`);
+    console.log(
+      `Starting metrics collector with ${this.config.collectionInterval}ms interval`
+    );
 
     // Run initial collection
     await this.collectMetrics();
@@ -184,7 +200,7 @@ export class MetricsCollector {
     }
 
     this.isRunning = false;
-    
+
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = undefined;
@@ -194,7 +210,12 @@ export class MetricsCollector {
   }
 
   // Add a new metrics collection job
-  async addJob(job: Omit<MetricsCollectionJob, 'id' | 'status' | 'scheduledAt' | 'retryCount'>): Promise<string> {
+  async addJob(
+    job: Omit<
+      MetricsCollectionJob,
+      'id' | 'status' | 'scheduledAt' | 'retryCount'
+    >
+  ): Promise<string> {
     const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const fullJob: MetricsCollectionJob = {
       ...job,
@@ -206,13 +227,17 @@ export class MetricsCollector {
     };
 
     const jobKey = this.getJobKey(jobId);
-    await this.cache.set(jobKey, fullJob, { ttl: this.config.cacheSettings.jobQueueTTL });
+    await this.cache.set(jobKey, fullJob, {
+      ttl: this.config.cacheSettings.jobQueueTTL,
+    });
 
     // Add to pending jobs queue
     const queueKey = this.getQueueKey('pending');
     await this.addToQueue(queueKey, jobId);
 
-    console.log(`Added metrics collection job: ${jobId} for ${job.platform}:${job.postId}`);
+    console.log(
+      `Added metrics collection job: ${jobId} for ${job.platform}:${job.postId}`
+    );
     return jobId;
   }
 
@@ -223,7 +248,7 @@ export class MetricsCollector {
     try {
       // Get pending jobs
       const pendingJobs = await this.getPendingJobs();
-      
+
       if (pendingJobs.length === 0) {
         console.log('No pending metrics collection jobs');
         return;
@@ -233,11 +258,9 @@ export class MetricsCollector {
 
       // Process jobs in batches
       const batches = this.chunkArray(pendingJobs, this.config.batchSize);
-      
+
       for (const batch of batches) {
-        await Promise.allSettled(
-          batch.map(job => this.processJob(job))
-        );
+        await Promise.allSettled(batch.map(job => this.processJob(job)));
       }
 
       console.log('Metrics collection cycle completed');
@@ -255,10 +278,15 @@ export class MetricsCollector {
       await this.updateJobStatus(job.id, 'processing');
 
       // Get valid token for the user
-      const token = await this.tokenManager.getValidToken(job.promoterId, job.platform);
-      
+      const token = await this.tokenManager.getValidToken(
+        job.promoterId,
+        job.platform
+      );
+
       if (!token) {
-        throw new Error(`No valid token found for user ${job.promoterId} on ${job.platform}`);
+        throw new Error(
+          `No valid token found for user ${job.promoterId} on ${job.platform}`
+        );
       }
 
       // Collect metrics from API
@@ -270,10 +298,18 @@ export class MetricsCollector {
       );
 
       // Get previous metrics for comparison
-      const previousMetrics = await this.getPreviousMetrics(job.promoterId, job.campaignId, job.postId);
+      const previousMetrics = await this.getPreviousMetrics(
+        job.promoterId,
+        job.campaignId,
+        job.postId
+      );
 
       // Process and validate metrics
-      const processedMetrics = await this.processMetrics(rawMetrics, job, previousMetrics);
+      const processedMetrics = await this.processMetrics(
+        rawMetrics,
+        job,
+        previousMetrics
+      );
 
       // Store processed metrics
       await this.storeMetrics(processedMetrics);
@@ -284,7 +320,10 @@ export class MetricsCollector {
       console.log(`Successfully processed job ${job.id}`);
     } catch (error) {
       console.error(`Error processing job ${job.id}:`, error);
-      await this.handleJobError(job, error instanceof Error ? error.message : 'Unknown error');
+      await this.handleJobError(
+        job,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   }
 
@@ -335,29 +374,47 @@ export class MetricsCollector {
   // Store processed metrics in cache and prepare for database storage
   private async storeMetrics(metrics: ProcessedMetrics): Promise<void> {
     // Store current metrics
-    const currentKey = this.getMetricsKey(metrics.promoterId, metrics.campaignId, metrics.postId, 'current');
-    await this.cache.set(currentKey, metrics, { ttl: this.config.cacheSettings.metricsHistoryTTL });
+    const currentKey = this.getMetricsKey(
+      metrics.promoterId,
+      metrics.campaignId,
+      metrics.postId,
+      'current'
+    );
+    await this.cache.set(currentKey, metrics, {
+      ttl: this.config.cacheSettings.metricsHistoryTTL,
+    });
 
     // Store in history with timestamp
     const historyKey = this.getMetricsKey(
-      metrics.promoterId, 
-      metrics.campaignId, 
-      metrics.postId, 
+      metrics.promoterId,
+      metrics.campaignId,
+      metrics.postId,
       `history_${Date.now()}`
     );
-    await this.cache.set(historyKey, metrics, { ttl: this.config.cacheSettings.metricsHistoryTTL });
+    await this.cache.set(historyKey, metrics, {
+      ttl: this.config.cacheSettings.metricsHistoryTTL,
+    });
 
     // Store aggregated metrics for quick access
-    const aggregatedKey = this.getAggregatedMetricsKey(metrics.promoterId, metrics.campaignId);
-    const existingAggregated = await this.cache.get<Record<string, ProcessedMetrics>>(aggregatedKey) || {};
+    const aggregatedKey = this.getAggregatedMetricsKey(
+      metrics.promoterId,
+      metrics.campaignId
+    );
+    const existingAggregated =
+      (await this.cache.get<Record<string, ProcessedMetrics>>(aggregatedKey)) ||
+      {};
     existingAggregated[metrics.postId] = metrics;
-    await this.cache.set(aggregatedKey, existingAggregated, { ttl: this.config.cacheSettings.metricsHistoryTTL });
+    await this.cache.set(aggregatedKey, existingAggregated, {
+      ttl: this.config.cacheSettings.metricsHistoryTTL,
+    });
 
     // Add to processing queue for database storage (to be handled by another service)
     const dbQueueKey = this.getQueueKey('database_storage');
     await this.addToQueue(dbQueueKey, JSON.stringify(metrics));
 
-    console.log(`Stored metrics for ${metrics.platform}:${metrics.postId} - Views: ${metrics.viewCount}, Valid: ${metrics.isValid}`);
+    console.log(
+      `Stored metrics for ${metrics.platform}:${metrics.postId} - Views: ${metrics.viewCount}, Valid: ${metrics.isValid}`
+    );
   }
 
   // Get previous metrics for comparison
@@ -366,13 +423,21 @@ export class MetricsCollector {
     campaignId: string,
     postId: string
   ): Promise<SocialMediaMetrics | undefined> {
-    const currentKey = this.getMetricsKey(promoterId, campaignId, postId, 'current');
+    const currentKey = this.getMetricsKey(
+      promoterId,
+      campaignId,
+      postId,
+      'current'
+    );
     const previous = await this.cache.get<ProcessedMetrics>(currentKey);
     return previous || undefined;
   }
 
   // Handle job processing errors
-  private async handleJobError(job: MetricsCollectionJob, error: string): Promise<void> {
+  private async handleJobError(
+    job: MetricsCollectionJob,
+    error: string
+  ): Promise<void> {
     const updatedJob = {
       ...job,
       retryCount: job.retryCount + 1,
@@ -382,11 +447,15 @@ export class MetricsCollector {
     if (updatedJob.retryCount >= updatedJob.maxRetries) {
       // Max retries reached, mark as failed
       await this.updateJobStatus(job.id, 'failed');
-      console.error(`Job ${job.id} failed after ${updatedJob.retryCount} retries: ${error}`);
+      console.error(
+        `Job ${job.id} failed after ${updatedJob.retryCount} retries: ${error}`
+      );
     } else {
       // Schedule retry
       await this.scheduleRetry(updatedJob);
-      console.warn(`Job ${job.id} failed, scheduling retry ${updatedJob.retryCount}/${updatedJob.maxRetries}: ${error}`);
+      console.warn(
+        `Job ${job.id} failed, scheduling retry ${updatedJob.retryCount}/${updatedJob.maxRetries}: ${error}`
+      );
     }
   }
 
@@ -394,7 +463,9 @@ export class MetricsCollector {
   private async scheduleRetry(job: MetricsCollectionJob): Promise<void> {
     // Update job with retry count and error
     const jobKey = this.getJobKey(job.id);
-    await this.cache.set(jobKey, job, { ttl: this.config.cacheSettings.jobQueueTTL });
+    await this.cache.set(jobKey, job, {
+      ttl: this.config.cacheSettings.jobQueueTTL,
+    });
 
     // Add back to pending queue after delay
     setTimeout(async () => {
@@ -407,7 +478,7 @@ export class MetricsCollector {
   private async getPendingJobs(): Promise<MetricsCollectionJob[]> {
     const queueKey = this.getQueueKey('pending');
     const jobIds = await this.getFromQueue(queueKey, this.config.batchSize);
-    
+
     const jobs: MetricsCollectionJob[] = [];
     for (const jobId of jobIds) {
       const jobKey = this.getJobKey(jobId);
@@ -428,13 +499,15 @@ export class MetricsCollector {
   ): Promise<void> {
     const jobKey = this.getJobKey(jobId);
     const job = await this.cache.get<MetricsCollectionJob>(jobKey);
-    
+
     if (job) {
       job.status = status;
       if (processedAt) {
         job.processedAt = processedAt;
       }
-      await this.cache.set(jobKey, job, { ttl: this.config.cacheSettings.jobQueueTTL });
+      await this.cache.set(jobKey, job, {
+        ttl: this.config.cacheSettings.jobQueueTTL,
+      });
     }
   }
 
@@ -447,12 +520,24 @@ export class MetricsCollector {
     return this.cache.getKeyManager().custom('metrics-queue', queueType);
   }
 
-  private getMetricsKey(promoterId: string, campaignId: string, postId: string, suffix: string): string {
-    return this.cache.getKeyManager().custom('metrics', promoterId, campaignId, postId, suffix);
+  private getMetricsKey(
+    promoterId: string,
+    campaignId: string,
+    postId: string,
+    suffix: string
+  ): string {
+    return this.cache
+      .getKeyManager()
+      .custom('metrics', promoterId, campaignId, postId, suffix);
   }
 
-  private getAggregatedMetricsKey(promoterId: string, campaignId: string): string {
-    return this.cache.getKeyManager().custom('metrics-aggregated', promoterId, campaignId);
+  private getAggregatedMetricsKey(
+    promoterId: string,
+    campaignId: string
+  ): string {
+    return this.cache
+      .getKeyManager()
+      .custom('metrics-aggregated', promoterId, campaignId);
   }
 
   // Queue operations (simplified Redis list operations)
@@ -465,7 +550,10 @@ export class MetricsCollector {
     }
   }
 
-  private async getFromQueue(queueKey: string, count: number): Promise<string[]> {
+  private async getFromQueue(
+    queueKey: string,
+    count: number
+  ): Promise<string[]> {
     try {
       // Use Redis RPOP to get items from the end of the list
       const items: string[] = [];
@@ -506,9 +594,13 @@ export class MetricsCollector {
     failed: number;
   }> {
     try {
-      const pendingCount = await this.cache['client'].llen(this.getQueueKey('pending'));
-      const dbQueueCount = await this.cache['client'].llen(this.getQueueKey('database_storage'));
-      
+      const pendingCount = await this.cache['client'].llen(
+        this.getQueueKey('pending')
+      );
+      const dbQueueCount = await this.cache['client'].llen(
+        this.getQueueKey('database_storage')
+      );
+
       return {
         pending: pendingCount || 0,
         processing: 0, // Would need to track this separately
@@ -528,9 +620,14 @@ export class MetricsCollector {
     limit: number = 10
   ): Promise<ProcessedMetrics[]> {
     try {
-      const pattern = this.getMetricsKey(promoterId, campaignId, postId, 'history_*');
+      const pattern = this.getMetricsKey(
+        promoterId,
+        campaignId,
+        postId,
+        'history_*'
+      );
       const keys = await this.cache.keys(pattern);
-      
+
       // Sort keys by timestamp (newest first)
       const sortedKeys = keys
         .map(key => ({
@@ -556,9 +653,15 @@ export class MetricsCollector {
     }
   }
 
-  async getCurrentMetrics(promoterId: string, campaignId: string): Promise<Record<string, ProcessedMetrics>> {
+  async getCurrentMetrics(
+    promoterId: string,
+    campaignId: string
+  ): Promise<Record<string, ProcessedMetrics>> {
     const aggregatedKey = this.getAggregatedMetricsKey(promoterId, campaignId);
-    return await this.cache.get<Record<string, ProcessedMetrics>>(aggregatedKey) || {};
+    return (
+      (await this.cache.get<Record<string, ProcessedMetrics>>(aggregatedKey)) ||
+      {}
+    );
   }
 
   // Health check

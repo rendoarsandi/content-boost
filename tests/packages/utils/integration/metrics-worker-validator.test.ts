@@ -19,15 +19,17 @@ describe('MetricsValidator', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
+          shares: 5,
         },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const results = await validator.validateMetrics(validMetrics);
-      
-      const errorResults = results.filter(r => !r.passed && r.severity === 'error');
+
+      const errorResults = results.filter(
+        r => !r.passed && r.severity === 'error'
+      );
       expect(errorResults).toHaveLength(0);
     });
 
@@ -41,20 +43,26 @@ describe('MetricsValidator', () => {
           views: -100,
           likes: -10,
           comments: 5,
-          shares: 2
+          shares: 2,
         },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const results = await validator.validateMetrics(invalidMetrics);
-      
-      const errorResults = results.filter(r => !r.passed && r.severity === 'error');
+
+      const errorResults = results.filter(
+        r => !r.passed && r.severity === 'error'
+      );
       expect(errorResults.length).toBeGreaterThan(0);
-      
-      const viewsError = errorResults.find(r => r.rule === 'non_negative_views');
-      const likesError = errorResults.find(r => r.rule === 'non_negative_likes');
-      
+
+      const viewsError = errorResults.find(
+        r => r.rule === 'non_negative_views'
+      );
+      const likesError = errorResults.find(
+        r => r.rule === 'non_negative_likes'
+      );
+
       expect(viewsError).toBeDefined();
       expect(likesError).toBeDefined();
     });
@@ -69,15 +77,17 @@ describe('MetricsValidator', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
+          shares: 5,
         },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const results = await validator.validateMetrics(invalidMetrics);
-      
-      const platformError = results.find(r => r.rule === 'valid_platform' && !r.passed);
+
+      const platformError = results.find(
+        r => r.rule === 'valid_platform' && !r.passed
+      );
       expect(platformError).toBeDefined();
       expect(platformError?.severity).toBe('error');
     });
@@ -92,18 +102,22 @@ describe('MetricsValidator', () => {
           views: 100,
           likes: 150, // More likes than views - suspicious
           comments: 10,
-          shares: 5
+          shares: 5,
         },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const results = await validator.validateMetrics(suspiciousMetrics);
-      
-      const warningResults = results.filter(r => !r.passed && r.severity === 'warning');
+
+      const warningResults = results.filter(
+        r => !r.passed && r.severity === 'warning'
+      );
       expect(warningResults.length).toBeGreaterThan(0);
-      
-      const likesWarning = warningResults.find(r => r.rule === 'likes_not_exceed_views');
+
+      const likesWarning = warningResults.find(
+        r => r.rule === 'likes_not_exceed_views'
+      );
       expect(likesWarning).toBeDefined();
     });
 
@@ -117,13 +131,15 @@ describe('MetricsValidator', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const results = await validator.validateMetrics(incompleteMetrics);
-      
-      const postIdError = results.find(r => r.rule === 'valid_post_id' && !r.passed);
+
+      const postIdError = results.find(
+        r => r.rule === 'valid_post_id' && !r.passed
+      );
       expect(postIdError).toBeDefined();
     });
   });
@@ -139,10 +155,10 @@ describe('MetricsValidator', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
+          shares: 5,
         },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const isValid = await validator.isValid(validMetrics);
@@ -159,8 +175,8 @@ describe('MetricsValidator', () => {
           views: -100,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const isValid = await validator.isValid(invalidMetrics);
@@ -179,24 +195,36 @@ describe('MetricsValidator', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const results = await validator.validateMetrics(validMetrics);
       const score = validator.calculateQualityScore(results);
-      
+
       expect(score).toBe(100);
     });
 
     it('should penalize errors more than warnings', async () => {
       const results = [
-        { rule: 'test_error', field: 'test', passed: false, value: null, severity: 'error' as const },
-        { rule: 'test_warning', field: 'test', passed: false, value: null, severity: 'warning' as const }
+        {
+          rule: 'test_error',
+          field: 'test',
+          passed: false,
+          value: null,
+          severity: 'error' as const,
+        },
+        {
+          rule: 'test_warning',
+          field: 'test',
+          passed: false,
+          value: null,
+          severity: 'warning' as const,
+        },
       ];
 
       const score = validator.calculateQualityScore(results);
-      
+
       expect(score).toBe(75); // 100 - 20 (error) - 5 (warning)
     });
 
@@ -206,11 +234,11 @@ describe('MetricsValidator', () => {
         field: 'test',
         passed: false,
         value: null,
-        severity: 'error' as const
+        severity: 'error' as const,
       });
 
       const score = validator.calculateQualityScore(results);
-      
+
       expect(score).toBe(0);
     });
   });
@@ -222,17 +250,20 @@ describe('MetricsValidator', () => {
           views: 5000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const historicalData = [
         { metrics: { views: 1000, likes: 100, comments: 10, shares: 5 } },
         { metrics: { views: 900, likes: 90, comments: 9, shares: 4 } },
-        { metrics: { views: 1100, likes: 110, comments: 11, shares: 6 } }
+        { metrics: { views: 1100, likes: 110, comments: 11, shares: 6 } },
       ];
 
-      const isAnomaly = validator.detectAnomalies(currentMetrics, historicalData);
+      const isAnomaly = validator.detectAnomalies(
+        currentMetrics,
+        historicalData
+      );
       expect(isAnomaly).toBe(true);
     });
 
@@ -242,17 +273,20 @@ describe('MetricsValidator', () => {
           views: 1200,
           likes: 120,
           comments: 12,
-          shares: 6
-        }
+          shares: 6,
+        },
       };
 
       const historicalData = [
         { metrics: { views: 1000, likes: 100, comments: 10, shares: 5 } },
         { metrics: { views: 900, likes: 90, comments: 9, shares: 4 } },
-        { metrics: { views: 1100, likes: 110, comments: 11, shares: 6 } }
+        { metrics: { views: 1100, likes: 110, comments: 11, shares: 6 } },
       ];
 
-      const isAnomaly = validator.detectAnomalies(currentMetrics, historicalData);
+      const isAnomaly = validator.detectAnomalies(
+        currentMetrics,
+        historicalData
+      );
       expect(isAnomaly).toBe(false);
     });
 
@@ -262,8 +296,8 @@ describe('MetricsValidator', () => {
           views: 5000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const isAnomaly = validator.detectAnomalies(currentMetrics, []);
@@ -278,7 +312,7 @@ describe('MetricsValidator', () => {
         field: 'customField',
         validator: (value: any) => value === 'expected',
         errorMessage: 'Custom field must be "expected"',
-        severity: 'error'
+        severity: 'error',
       };
 
       validator.addCustomRule(customRule);
@@ -293,13 +327,13 @@ describe('MetricsValidator', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const results = await validator.validateMetrics(metrics);
       const customResult = results.find(r => r.rule === 'custom_test');
-      
+
       expect(customResult).toBeDefined();
       expect(customResult?.passed).toBe(false);
     });
@@ -316,13 +350,13 @@ describe('MetricsValidator', () => {
           views: -100, // This should normally fail validation
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const results = await validator.validateMetrics(metrics);
       const viewsResult = results.find(r => r.rule === 'non_negative_views');
-      
+
       expect(viewsResult).toBeUndefined();
     });
   });

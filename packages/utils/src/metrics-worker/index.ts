@@ -1,6 +1,9 @@
 import { RedisCache } from '@repo/cache';
 import { SocialMediaAPIManager } from '../social-media-api';
-import { BackgroundServiceConfig, MetricsBackgroundService } from './background-service';
+import {
+  BackgroundServiceConfig,
+  MetricsBackgroundService,
+} from './background-service';
 import { MetricsCollectionConfig, MetricsCollectionWorker } from './worker';
 import { DataPipelineConfig, MetricsDataPipeline } from './data-pipeline';
 
@@ -35,7 +38,7 @@ export type {
   WorkerStatus,
   SchedulerStatus,
   CronJobConfig,
-  CronJobResult
+  CronJobResult,
 } from './types';
 
 // Constants
@@ -47,7 +50,7 @@ export {
   JOB_PRIORITIES,
   WORKER_STATES,
   PIPELINE_STAGES,
-  ERROR_TYPES
+  ERROR_TYPES,
 } from './constants';
 
 // Utility function to create a configured background service

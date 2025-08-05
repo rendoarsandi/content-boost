@@ -1,9 +1,9 @@
 /**
  * Daily Payout Integration Example
- * 
+ *
  * This example demonstrates how to integrate the daily payout calculation engine
  * with a real database and external services.
- * 
+ *
  * Requirements implemented:
  * - 6.1: Implementasi cron job untuk menghitung payout harian (00:00 WIB)
  * - 6.2: Setup legitimate views calculation dengan bot detection integration
@@ -11,7 +11,10 @@
  * - 6.3: Implementasi payout validation dengan business rules
  */
 
-import { createDailyPayoutCron, PayoutCronDependencies } from '../daily-payout-cron';
+import {
+  createDailyPayoutCron,
+  PayoutCronDependencies,
+} from '../daily-payout-cron';
 import { createPayoutEngine } from '../payout-engine';
 
 // Example database models (would be replaced with actual database integration)
@@ -91,20 +94,22 @@ class DatabaseService {
   /**
    * Get all active promotions for payout calculation
    */
-  async getActivePromotions(): Promise<Array<{
-    promoterId: string;
-    campaignId: string;
-    applicationId?: string;
-    ratePerView: number;
-  }>> {
+  async getActivePromotions(): Promise<
+    Array<{
+      promoterId: string;
+      campaignId: string;
+      applicationId?: string;
+      ratePerView: number;
+    }>
+  > {
     // In a real implementation, this would query the database
     // SELECT p.promoter_id, p.campaign_id, p.application_id, c.rate_per_view
     // FROM promotions p
     // JOIN campaigns c ON p.campaign_id = c.id
     // WHERE p.status = 'active' AND c.status = 'active'
-    
+
     console.log('📊 Fetching active promotions from database...');
-    
+
     // Mock data for demonstration
     return [
       {
@@ -134,41 +139,81 @@ class DatabaseService {
     promoterId: string,
     campaignId: string,
     period: { start: Date; end: Date; promoterId: string; campaignId: string }
-  ): Promise<Array<{
-    viewCount: number;
-    isLegitimate: boolean;
-    timestamp: Date;
-  }>> {
+  ): Promise<
+    Array<{
+      viewCount: number;
+      isLegitimate: boolean;
+      timestamp: Date;
+    }>
+  > {
     // In a real implementation, this would query the database
     // SELECT view_count, is_legitimate, timestamp
     // FROM view_records
     // WHERE promoter_id = ? AND campaign_id = ?
     //   AND timestamp >= ? AND timestamp <= ?
     // ORDER BY timestamp
-    
-    console.log(`📈 Fetching view records for ${promoterId}/${campaignId} from ${period.start.toISOString()} to ${period.end.toISOString()}`);
-    
+
+    console.log(
+      `📈 Fetching view records for ${promoterId}/${campaignId} from ${period.start.toISOString()} to ${period.end.toISOString()}`
+    );
+
     // Mock data based on promoter ID
     if (promoterId === 'promoter-001') {
       return [
-        { viewCount: 150, isLegitimate: true, timestamp: new Date(period.start.getTime() + 2 * 60 * 60 * 1000) },
-        { viewCount: 200, isLegitimate: true, timestamp: new Date(period.start.getTime() + 6 * 60 * 60 * 1000) },
-        { viewCount: 50, isLegitimate: false, timestamp: new Date(period.start.getTime() + 10 * 60 * 60 * 1000) }, // Bot views
-        { viewCount: 100, isLegitimate: true, timestamp: new Date(period.start.getTime() + 14 * 60 * 60 * 1000) },
+        {
+          viewCount: 150,
+          isLegitimate: true,
+          timestamp: new Date(period.start.getTime() + 2 * 60 * 60 * 1000),
+        },
+        {
+          viewCount: 200,
+          isLegitimate: true,
+          timestamp: new Date(period.start.getTime() + 6 * 60 * 60 * 1000),
+        },
+        {
+          viewCount: 50,
+          isLegitimate: false,
+          timestamp: new Date(period.start.getTime() + 10 * 60 * 60 * 1000),
+        }, // Bot views
+        {
+          viewCount: 100,
+          isLegitimate: true,
+          timestamp: new Date(period.start.getTime() + 14 * 60 * 60 * 1000),
+        },
       ];
     } else if (promoterId === 'promoter-002') {
       return [
-        { viewCount: 300, isLegitimate: true, timestamp: new Date(period.start.getTime() + 3 * 60 * 60 * 1000) },
-        { viewCount: 100, isLegitimate: false, timestamp: new Date(period.start.getTime() + 8 * 60 * 60 * 1000) }, // Bot views
-        { viewCount: 250, isLegitimate: true, timestamp: new Date(period.start.getTime() + 12 * 60 * 60 * 1000) },
+        {
+          viewCount: 300,
+          isLegitimate: true,
+          timestamp: new Date(period.start.getTime() + 3 * 60 * 60 * 1000),
+        },
+        {
+          viewCount: 100,
+          isLegitimate: false,
+          timestamp: new Date(period.start.getTime() + 8 * 60 * 60 * 1000),
+        }, // Bot views
+        {
+          viewCount: 250,
+          isLegitimate: true,
+          timestamp: new Date(period.start.getTime() + 12 * 60 * 60 * 1000),
+        },
       ];
     } else if (promoterId === 'promoter-003') {
       return [
-        { viewCount: 400, isLegitimate: true, timestamp: new Date(period.start.getTime() + 4 * 60 * 60 * 1000) },
-        { viewCount: 200, isLegitimate: true, timestamp: new Date(period.start.getTime() + 16 * 60 * 60 * 1000) },
+        {
+          viewCount: 400,
+          isLegitimate: true,
+          timestamp: new Date(period.start.getTime() + 4 * 60 * 60 * 1000),
+        },
+        {
+          viewCount: 200,
+          isLegitimate: true,
+          timestamp: new Date(period.start.getTime() + 16 * 60 * 60 * 1000),
+        },
       ];
     }
-    
+
     return [];
   }
 
@@ -177,11 +222,11 @@ class DatabaseService {
    */
   async savePayoutBatch(batch: any): Promise<void> {
     console.log(`💾 Saving payout batch ${batch.id} to database...`);
-    
+
     // In a real implementation, this would insert into the database
     // INSERT INTO payout_batches (id, date, total_jobs, completed_jobs, failed_jobs, total_amount, status, started_at, completed_at, report_data)
     // VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    
+
     const dbBatch: DatabasePayoutBatch = {
       id: batch.id,
       date: batch.date,
@@ -194,47 +239,55 @@ class DatabaseService {
       completedAt: batch.completedAt,
       reportData: JSON.stringify(batch),
     };
-    
-    console.log(`✅ Payout batch saved: ${batch.completedJobs}/${batch.totalJobs} jobs completed, total amount: Rp${batch.totalAmount.toLocaleString('id-ID')}`);
+
+    console.log(
+      `✅ Payout batch saved: ${batch.completedJobs}/${batch.totalJobs} jobs completed, total amount: Rp${batch.totalAmount.toLocaleString('id-ID')}`
+    );
   }
 
   /**
    * Save individual payout records
    */
-  async savePayouts(payouts: Array<{
-    promoterId: string;
-    campaignId: string;
-    applicationId?: string;
-    periodStart: Date;
-    periodEnd: Date;
-    totalViews: number;
-    legitimateViews: number;
-    botViews: number;
-    ratePerView: number;
-    grossAmount: number;
-    platformFee: number;
-    netAmount: number;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-    processedAt?: Date;
-    failureReason?: string;
-  }>): Promise<void> {
+  async savePayouts(
+    payouts: Array<{
+      promoterId: string;
+      campaignId: string;
+      applicationId?: string;
+      periodStart: Date;
+      periodEnd: Date;
+      totalViews: number;
+      legitimateViews: number;
+      botViews: number;
+      ratePerView: number;
+      grossAmount: number;
+      platformFee: number;
+      netAmount: number;
+      status: 'pending' | 'processing' | 'completed' | 'failed';
+      processedAt?: Date;
+      failureReason?: string;
+    }>
+  ): Promise<void> {
     console.log(`💰 Saving ${payouts.length} individual payout records...`);
-    
+
     // In a real implementation, this would batch insert into the database
     // INSERT INTO payouts (promoter_id, campaign_id, application_id, period_start, period_end, ...)
     // VALUES (?, ?, ?, ?, ?, ...), (?, ?, ?, ?, ?, ...), ...
-    
+
     for (const payout of payouts) {
       const dbPayout: DatabasePayout = {
         id: `payout-${payout.promoterId}-${payout.campaignId}-${Date.now()}`,
         ...payout,
         createdAt: new Date(),
       };
-      
+
       if (payout.status === 'completed') {
-        console.log(`  ✅ ${payout.promoterId}: Rp${payout.netAmount.toLocaleString('id-ID')} (${payout.legitimateViews} legitimate views)`);
+        console.log(
+          `  ✅ ${payout.promoterId}: Rp${payout.netAmount.toLocaleString('id-ID')} (${payout.legitimateViews} legitimate views)`
+        );
       } else {
-        console.log(`  ❌ ${payout.promoterId}: Failed - ${payout.failureReason}`);
+        console.log(
+          `  ❌ ${payout.promoterId}: Failed - ${payout.failureReason}`
+        );
       }
     }
   }
@@ -242,14 +295,19 @@ class DatabaseService {
   /**
    * Update platform revenue
    */
-  async updatePlatformRevenue(period: { start: Date; end: Date }, totalFees: number): Promise<void> {
-    console.log(`🏦 Updating platform revenue: Rp${totalFees.toLocaleString('id-ID')} for period ${period.start.toISOString()} to ${period.end.toISOString()}`);
-    
+  async updatePlatformRevenue(
+    period: { start: Date; end: Date },
+    totalFees: number
+  ): Promise<void> {
+    console.log(
+      `🏦 Updating platform revenue: Rp${totalFees.toLocaleString('id-ID')} for period ${period.start.toISOString()} to ${period.end.toISOString()}`
+    );
+
     // In a real implementation, this would update or insert platform revenue
     // INSERT INTO platform_revenue (period_start, period_end, total_fees, created_at)
     // VALUES (?, ?, ?, ?)
     // ON DUPLICATE KEY UPDATE total_fees = total_fees + VALUES(total_fees)
-    
+
     const dbRevenue: DatabasePlatformRevenue = {
       id: `revenue-${period.start.toISOString().split('T')[0]}`,
       periodStart: period.start,
@@ -257,24 +315,28 @@ class DatabaseService {
       totalFees,
       createdAt: new Date(),
     };
-    
+
     console.log(`✅ Platform revenue updated successfully`);
   }
 
   /**
    * Send payout notifications
    */
-  async sendPayoutNotifications(notifications: Array<{
-    promoterId: string;
-    amount: number;
-    status: 'completed' | 'failed';
-    error?: string;
-  }>): Promise<void> {
+  async sendPayoutNotifications(
+    notifications: Array<{
+      promoterId: string;
+      amount: number;
+      status: 'completed' | 'failed';
+      error?: string;
+    }>
+  ): Promise<void> {
     console.log(`📧 Sending ${notifications.length} payout notifications...`);
-    
+
     for (const notification of notifications) {
       if (notification.status === 'completed') {
-        console.log(`  📨 Notification sent to ${notification.promoterId}: Payout of Rp${notification.amount.toLocaleString('id-ID')} completed`);
+        console.log(
+          `  📨 Notification sent to ${notification.promoterId}: Payout of Rp${notification.amount.toLocaleString('id-ID')} completed`
+        );
         // In a real implementation, this would send email/SMS/push notification
         // await emailService.send({
         //   to: await getUserEmail(notification.promoterId),
@@ -283,7 +345,9 @@ class DatabaseService {
         //   data: { amount: notification.amount }
         // });
       } else {
-        console.log(`  📨 Notification sent to ${notification.promoterId}: Payout failed - ${notification.error}`);
+        console.log(
+          `  📨 Notification sent to ${notification.promoterId}: Payout failed - ${notification.error}`
+        );
         // await emailService.send({
         //   to: await getUserEmail(notification.promoterId),
         //   subject: 'Daily Payout Failed',
@@ -308,13 +372,13 @@ export async function demonstrateDailyPayoutSystem(): Promise<void> {
   // Create dependencies object
   const dependencies: PayoutCronDependencies = {
     getActivePromotions: () => dbService.getActivePromotions(),
-    getViewRecords: (promoterId, campaignId, period) => 
+    getViewRecords: (promoterId, campaignId, period) =>
       dbService.getViewRecords(promoterId, campaignId, period),
-    savePayoutBatch: (batch) => dbService.savePayoutBatch(batch),
-    savePayouts: (payouts) => dbService.savePayouts(payouts),
-    updatePlatformRevenue: (period, totalFees) => 
+    savePayoutBatch: batch => dbService.savePayoutBatch(batch),
+    savePayouts: payouts => dbService.savePayouts(payouts),
+    updatePlatformRevenue: (period, totalFees) =>
       dbService.updatePlatformRevenue(period, totalFees),
-    sendPayoutNotifications: (notifications) => 
+    sendPayoutNotifications: notifications =>
       dbService.sendPayoutNotifications(notifications),
   };
 
@@ -333,12 +397,20 @@ export async function demonstrateDailyPayoutSystem(): Promise<void> {
   const status = dailyPayoutCron.getStatus();
   console.log(`  Timezone: ${status.config.timezone}`);
   console.log(`  Platform Fee: ${status.config.platformFeePercentage}%`);
-  console.log(`  Minimum Payout: Rp${status.config.minPayoutAmount.toLocaleString('id-ID')}`);
-  console.log(`  Notifications: ${status.config.enableNotifications ? 'Enabled' : 'Disabled'}`);
+  console.log(
+    `  Minimum Payout: Rp${status.config.minPayoutAmount.toLocaleString('id-ID')}`
+  );
+  console.log(
+    `  Notifications: ${status.config.enableNotifications ? 'Enabled' : 'Disabled'}`
+  );
   console.log(`  Scheduled Jobs: ${status.scheduler.totalJobs}`);
-  console.log(`  Next Payout Time: ${status.payoutEngine.nextPayoutTime.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`);
+  console.log(
+    `  Next Payout Time: ${status.payoutEngine.nextPayoutTime.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`
+  );
 
-  console.log('\n⏰ Executing Manual Payout (simulating daily 00:00 WIB execution)...');
+  console.log(
+    '\n⏰ Executing Manual Payout (simulating daily 00:00 WIB execution)...'
+  );
   console.log('-'.repeat(50));
 
   try {
@@ -353,21 +425,39 @@ export async function demonstrateDailyPayoutSystem(): Promise<void> {
     console.log(`  Total Jobs: ${batch.totalJobs}`);
     console.log(`  Completed: ${batch.completedJobs}`);
     console.log(`  Failed: ${batch.failedJobs}`);
-    console.log(`  Success Rate: ${batch.totalJobs > 0 ? (batch.completedJobs / batch.totalJobs * 100).toFixed(1) : '0.0'}%`);
-    console.log(`  Total Payout Amount: Rp${batch.totalAmount.toLocaleString('id-ID')}`);
-    console.log(`  Processing Time: ${batch.completedAt && batch.startedAt ? Math.round((batch.completedAt.getTime() - batch.startedAt.getTime()) / 1000) : 0}s`);
+    console.log(
+      `  Success Rate: ${batch.totalJobs > 0 ? ((batch.completedJobs / batch.totalJobs) * 100).toFixed(1) : '0.0'}%`
+    );
+    console.log(
+      `  Total Payout Amount: Rp${batch.totalAmount.toLocaleString('id-ID')}`
+    );
+    console.log(
+      `  Processing Time: ${batch.completedAt && batch.startedAt ? Math.round((batch.completedAt.getTime() - batch.startedAt.getTime()) / 1000) : 0}s`
+    );
 
     console.log('\n💼 Individual Job Results:');
     batch.jobs.forEach((job, index) => {
       console.log(`  Job ${index + 1}: ${job.promoterId}/${job.campaignId}`);
       console.log(`    Status: ${job.status.toUpperCase()}`);
       if (job.calculation) {
-        console.log(`    Total Views: ${job.calculation.totalViews.toLocaleString('id-ID')}`);
-        console.log(`    Legitimate Views: ${job.calculation.legitimateViews.toLocaleString('id-ID')} (${job.calculation.totalViews > 0 ? (job.calculation.legitimateViews / job.calculation.totalViews * 100).toFixed(1) : '0.0'}%)`);
-        console.log(`    Bot Views: ${job.calculation.botViews.toLocaleString('id-ID')}`);
-        console.log(`    Gross Amount: Rp${job.calculation.grossAmount.toLocaleString('id-ID')}`);
-        console.log(`    Platform Fee: Rp${job.calculation.platformFee.toLocaleString('id-ID')}`);
-        console.log(`    Net Payout: Rp${job.calculation.netAmount.toLocaleString('id-ID')}`);
+        console.log(
+          `    Total Views: ${job.calculation.totalViews.toLocaleString('id-ID')}`
+        );
+        console.log(
+          `    Legitimate Views: ${job.calculation.legitimateViews.toLocaleString('id-ID')} (${job.calculation.totalViews > 0 ? ((job.calculation.legitimateViews / job.calculation.totalViews) * 100).toFixed(1) : '0.0'}%)`
+        );
+        console.log(
+          `    Bot Views: ${job.calculation.botViews.toLocaleString('id-ID')}`
+        );
+        console.log(
+          `    Gross Amount: Rp${job.calculation.grossAmount.toLocaleString('id-ID')}`
+        );
+        console.log(
+          `    Platform Fee: Rp${job.calculation.platformFee.toLocaleString('id-ID')}`
+        );
+        console.log(
+          `    Net Payout: Rp${job.calculation.netAmount.toLocaleString('id-ID')}`
+        );
       } else if (job.error) {
         console.log(`    Error: ${job.error}`);
       }
@@ -380,7 +470,7 @@ export async function demonstrateDailyPayoutSystem(): Promise<void> {
       if (job.calculation) {
         const payoutEngine = createPayoutEngine();
         const validation = payoutEngine.validatePayoutRules(job.calculation);
-        
+
         console.log(`  Job ${index + 1} Validation:`);
         console.log(`    Valid: ${validation.isValid ? '✅' : '❌'}`);
         if (validation.errors.length > 0) {
@@ -398,9 +488,11 @@ export async function demonstrateDailyPayoutSystem(): Promise<void> {
     const payoutEngine = createPayoutEngine();
     const report = payoutEngine.generatePayoutReport(batch);
     console.log(report);
-
   } catch (error) {
-    console.error('\n❌ Payout execution failed:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      '\n❌ Payout execution failed:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   }
 
   console.log('\n🏁 Daily Payout System Demonstration Complete');
@@ -410,7 +502,9 @@ export async function demonstrateDailyPayoutSystem(): Promise<void> {
 /**
  * Example of starting the cron system for production
  */
-export function startProductionPayoutSystem(dependencies: PayoutCronDependencies): void {
+export function startProductionPayoutSystem(
+  dependencies: PayoutCronDependencies
+): void {
   console.log('🚀 Starting Production Daily Payout System...');
 
   // Create daily payout cron with production configuration

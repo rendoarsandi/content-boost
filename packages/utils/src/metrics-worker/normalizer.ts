@@ -21,7 +21,7 @@ export class MetricsNormalizer {
       try {
         const currentValue = this.getFieldValue(normalizedMetrics, rule.field);
         const normalizedValue = rule.normalizer(currentValue);
-        
+
         // Only apply if the value actually changed
         if (!this.isEqual(currentValue, normalizedValue)) {
           this.setFieldValue(normalizedMetrics, rule.field, normalizedValue);
@@ -35,14 +35,16 @@ export class MetricsNormalizer {
 
     return {
       normalizedMetrics,
-      appliedRules
+      appliedRules,
     };
   }
 
-  async normalizeMetricsBatch(metricsList: any[]): Promise<Array<{
-    normalizedMetrics: any;
-    appliedRules: string[];
-  }>> {
+  async normalizeMetricsBatch(metricsList: any[]): Promise<
+    Array<{
+      normalizedMetrics: any;
+      appliedRules: string[];
+    }>
+  > {
     return Promise.all(
       metricsList.map(metrics => this.normalizeMetrics(metrics))
     );
@@ -109,13 +111,16 @@ export class MetricsNormalizer {
       const rule = this.rules.find(r => r.name === ruleName);
       if (rule) {
         const originalValue = this.getFieldValue(original, rule.field);
-        const normalizedValue = this.getFieldValue(result.normalizedMetrics, rule.field);
-        
+        const normalizedValue = this.getFieldValue(
+          result.normalizedMetrics,
+          rule.field
+        );
+
         changes.push({
           rule: ruleName,
           field: rule.field,
           originalValue,
-          normalizedValue
+          normalizedValue,
         });
       }
     }
@@ -123,24 +128,27 @@ export class MetricsNormalizer {
     return {
       original,
       normalized: result.normalizedMetrics,
-      changes
+      changes,
     };
   }
 
   // Built-in normalization functions that can be used in custom rules
   static normalizers = {
     trimString: (value: any): string => String(value).trim(),
-    
+
     toLowerCase: (value: any): string => String(value).toLowerCase(),
-    
+
     toUpperCase: (value: any): string => String(value).toUpperCase(),
-    
+
     ensureInteger: (value: any): number => Math.floor(Number(value) || 0),
-    
+
     ensurePositive: (value: any): number => Math.max(0, Number(value) || 0),
-    
-    capValue: (max: number) => (value: any): number => Math.min(Number(value) || 0, max),
-    
+
+    capValue:
+      (max: number) =>
+      (value: any): number =>
+        Math.min(Number(value) || 0, max),
+
     ensureDate: (value: any): Date => {
       if (value instanceof Date) return value;
       if (typeof value === 'string' || typeof value === 'number') {
@@ -149,16 +157,20 @@ export class MetricsNormalizer {
       }
       return new Date();
     },
-    
-    roundToDecimals: (decimals: number) => (value: any): number => {
-      const num = Number(value) || 0;
-      return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
-    },
-    
+
+    roundToDecimals:
+      (decimals: number) =>
+      (value: any): number => {
+        const num = Number(value) || 0;
+        return (
+          Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals)
+        );
+      },
+
     removeSpecialChars: (value: any): string => {
       return String(value).replace(/[^\w\s-]/g, '');
     },
-    
+
     normalizeUrl: (value: any): string => {
       const url = String(value).trim();
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -166,12 +178,12 @@ export class MetricsNormalizer {
       }
       return url;
     },
-    
+
     ensureArray: (value: any): any[] => {
       if (Array.isArray(value)) return value;
       if (value === null || value === undefined) return [];
       return [value];
-    }
+    },
   };
 
   private getFieldValue(obj: any, fieldPath: string): any {
@@ -183,14 +195,14 @@ export class MetricsNormalizer {
   private setFieldValue(obj: any, fieldPath: string, value: any): void {
     const keys = fieldPath.split('.');
     const lastKey = keys.pop()!;
-    
+
     const target = keys.reduce((current, key) => {
       if (current[key] === undefined || current[key] === null) {
         current[key] = {};
       }
       return current[key];
     }, obj);
-    
+
     target[lastKey] = value;
   }
 
@@ -198,7 +210,7 @@ export class MetricsNormalizer {
     if (obj === null || typeof obj !== 'object') return obj;
     if (obj instanceof Date) return new Date(obj);
     if (Array.isArray(obj)) return obj.map(item => this.deepClone(item));
-    
+
     const cloned: any = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -210,14 +222,26 @@ export class MetricsNormalizer {
 
   private isEqual(a: any, b: any): boolean {
     if (a === b) return true;
-    if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime();
+    if (a instanceof Date && b instanceof Date)
+      return a.getTime() === b.getTime();
     if (Array.isArray(a) && Array.isArray(b)) {
-      return a.length === b.length && a.every((val, index) => this.isEqual(val, b[index]));
+      return (
+        a.length === b.length &&
+        a.every((val, index) => this.isEqual(val, b[index]))
+      );
     }
-    if (typeof a === 'object' && typeof b === 'object' && a !== null && b !== null) {
+    if (
+      typeof a === 'object' &&
+      typeof b === 'object' &&
+      a !== null &&
+      b !== null
+    ) {
       const keysA = Object.keys(a);
       const keysB = Object.keys(b);
-      return keysA.length === keysB.length && keysA.every(key => this.isEqual(a[key], b[key]));
+      return (
+        keysA.length === keysB.length &&
+        keysA.every(key => this.isEqual(a[key], b[key]))
+      );
     }
     return false;
   }

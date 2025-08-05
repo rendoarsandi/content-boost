@@ -3,21 +3,31 @@ import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
 // import { campaignApplications, campaigns, campaignMaterials } from '@repo/database';
 // import { eq, and } from 'drizzle-orm';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button } from '@repo/ui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+} from '@repo/ui';
 import Link from 'next/link';
 import { ContentEditor } from '../../../../../components/content-editor';
 import { ApplicationService } from '@repo/utils/application-service';
 
-async function getApplicationContent(applicationId: string, promoterId: string) {
+async function getApplicationContent(
+  applicationId: string,
+  promoterId: string
+) {
   // Get promotion with campaign info using Prisma
-  const promotion = await db.promotion.findFirst({
+  const promotion = await db.campaignApplication.findFirst({
     where: {
       id: applicationId,
-      promoterId: promoterId
+      promoterId: promoterId,
     },
     include: {
-      campaign: true
-    }
+      campaign: true,
+    },
   });
 
   if (!promotion) {
@@ -37,7 +47,11 @@ async function getApplicationContent(applicationId: string, promoterId: string) 
   };
 }
 
-export default async function ContentEditPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ContentEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await getSession();
 
   if (!session?.user || (session.user as any).role !== 'promoter') {
@@ -50,8 +64,13 @@ export default async function ContentEditPage({ params }: { params: Promise<{ id
   if (!contentData) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Application Not Found</h1>
-        <p className="text-gray-600 mb-6">The application you're looking for doesn't exist or you don't have access to it.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Application Not Found
+        </h1>
+        <p className="text-gray-600 mb-6">
+          The application you're looking for doesn't exist or you don't have
+          access to it.
+        </p>
         <Link href="/promoter/applications">
           <Button>Back to Applications</Button>
         </Link>
@@ -65,33 +84,46 @@ export default async function ContentEditPage({ params }: { params: Promise<{ id
     return (
       <div className="space-y-8">
         <div>
-          <Link href="/promoter/applications" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+          <Link
+            href="/promoter/applications"
+            className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block"
+          >
             ← Back to Applications
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Content Access Restricted</h1>
-          <p className="text-gray-600 mt-2">Campaign: {campaign.name}</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Content Access Restricted
+          </h1>
+          <p className="text-gray-600 mt-2">Campaign: {campaign.title}</p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Application Not Approved</CardTitle>
             <CardDescription>
-              Your application status: <span className="font-semibold capitalize">approved</span>
+              Your application status:{' '}
+              <span className="font-semibold capitalize">approved</span>
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <div className="text-6xl mb-4">⏳</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Content Access Pending</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Content Access Pending
+              </h3>
               <p className="text-gray-600 mb-6">
-                You can only edit content and access materials after your application is approved by the creator.
+                You can only edit content and access materials after your
+                application is approved by the creator.
               </p>
               <div className="space-y-2">
                 <p className="text-sm text-gray-500">
-                  Applied on: {new Date(application.createdAt).toLocaleDateString()}
+                  Applied on:{' '}
+                  {new Date(application.appliedAt).toLocaleDateString()}
                 </p>
                 <p className="text-sm text-gray-500">
-                  Last updated: {new Date(application.updatedAt).toLocaleDateString()}
+                  Last reviewed:{' '}
+                  {application.reviewedAt 
+                    ? new Date(application.reviewedAt).toLocaleDateString()
+                    : 'Not reviewed'}
                 </p>
               </div>
             </div>
@@ -104,11 +136,14 @@ export default async function ContentEditPage({ params }: { params: Promise<{ id
   return (
     <div className="space-y-8">
       <div>
-        <Link href="/promoter/applications" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+        <Link
+          href="/promoter/applications"
+          className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block"
+        >
           ← Back to Applications
         </Link>
         <h1 className="text-3xl font-bold text-gray-900">Edit Content</h1>
-        <p className="text-gray-600 mt-2">Campaign: {campaign.name}</p>
+        <p className="text-gray-600 mt-2">Campaign: {campaign.title}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -122,9 +157,13 @@ export default async function ContentEditPage({ params }: { params: Promise<{ id
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ContentEditor 
+              <ContentEditor
                 applicationId={application.id}
-                initialContent={{ contentText: '', mediaUrl: application.contentUrl || '', hashtags: '' }}
+                initialContent={{
+                  contentText: '',
+                  mediaUrl: application.submittedContent || '',
+                  hashtags: '',
+                }}
               />
             </CardContent>
           </Card>
@@ -145,16 +184,20 @@ export default async function ContentEditPage({ params }: { params: Promise<{ id
                 <p className="text-gray-500 text-sm">No materials available</p>
               ) : (
                 <div className="space-y-3">
-                  {materials.map((material) => (
+                  {materials.map(material => (
                     <div key={material.id} className="border rounded-lg p-3">
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-sm">{material.title}</h4>
+                        <h4 className="font-medium text-sm">
+                          {material.title}
+                        </h4>
                         <span className="text-xs bg-gray-100 px-2 py-1 rounded">
                           {material.type}
                         </span>
                       </div>
                       {material.description && (
-                        <p className="text-xs text-gray-600 mb-2">{material.description}</p>
+                        <p className="text-xs text-gray-600 mb-2">
+                          {material.description}
+                        </p>
                       )}
                       <a
                         href={material.url}
@@ -192,12 +235,14 @@ export default async function ContentEditPage({ params }: { params: Promise<{ id
               <div>
                 <p className="text-sm text-gray-600">Tracking Link</p>
                 <div className="bg-gray-50 p-2 rounded text-xs font-mono break-all">
-                  {ApplicationService.generateEnhancedTrackingLink(application.campaignId, application.promoterId)}
+                  {ApplicationService.generateEnhancedTrackingLink(
+                    application.campaignId,
+                    application.promoterId
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
-
         </div>
       </div>
     </div>

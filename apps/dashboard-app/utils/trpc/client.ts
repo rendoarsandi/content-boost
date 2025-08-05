@@ -10,32 +10,32 @@ const getBaseUrl = () => {
 };
 
 const getWsUrl = () => {
-    if (typeof window === 'undefined') {
-        // Di server, kita tidak bisa membuat koneksi ws
-        return null;
-    }
-    // Di browser, gunakan URL WebSocket
-    return 'ws://localhost:4000';
-}
+  if (typeof window === 'undefined') {
+    // Di server, kita tidak bisa membuat koneksi ws
+    return null;
+  }
+  // Di browser, gunakan URL WebSocket
+  return 'ws://localhost:4000';
+};
 
 export const trpc = createTRPCReact<AppRouter>();
 
 export const trpcClient = trpc.createClient({
-    links: [
-        // Gunakan wsLink untuk subscriptions
-        (ctx) => {
-            const wsUrl = getWsUrl();
-            if (!wsUrl) {
-                // Jika tidak ada URL WebSocket (misalnya saat SSR), gunakan httpBatchLink
-                return httpBatchLink({
-                    url: `${getBaseUrl()}/api/trpc`,
-                })(ctx);
-            }
-            return wsLink<AppRouter>({
-                client: createWSClient({
-                    url: wsUrl,
-                }),
-            })(ctx);
-        }
-    ],
+  links: [
+    // Gunakan wsLink untuk subscriptions
+    ctx => {
+      const wsUrl = getWsUrl();
+      if (!wsUrl) {
+        // Jika tidak ada URL WebSocket (misalnya saat SSR), gunakan httpBatchLink
+        return httpBatchLink({
+          url: `${getBaseUrl()}/api/trpc`,
+        })(ctx);
+      }
+      return wsLink<AppRouter>({
+        client: createWSClient({
+          url: wsUrl,
+        }),
+      })(ctx);
+    },
+  ],
 });

@@ -21,21 +21,25 @@ describe('MetricsCronScheduler', () => {
       del: jest.fn(),
       keys: jest.fn(),
       ttl: jest.fn(),
-      ping: jest.fn()
+      ping: jest.fn(),
     } as any;
 
     mockWorker = {
       collectMetricsNow: jest.fn(),
       getWorkerStatus: jest.fn(),
-      getCollectionStats: jest.fn()
+      getCollectionStats: jest.fn(),
     } as any;
 
     mockScheduler = {
       getDueJobs: jest.fn(),
-      getStatus: jest.fn()
+      getStatus: jest.fn(),
     } as any;
 
-    cronScheduler = new MetricsCronScheduler(mockCache, mockWorker, mockScheduler);
+    cronScheduler = new MetricsCronScheduler(
+      mockCache,
+      mockWorker,
+      mockScheduler
+    );
   });
 
   afterEach(() => {
@@ -46,7 +50,7 @@ describe('MetricsCronScheduler', () => {
   describe('initialization', () => {
     it('should initialize with default cron jobs', () => {
       const jobs = cronScheduler.getCronJobs();
-      
+
       expect(jobs).toHaveLength(3);
       expect(jobs.find(job => job.name === 'metrics_collection')).toBeDefined();
       expect(jobs.find(job => job.name === 'cache_cleanup')).toBeDefined();
@@ -55,7 +59,7 @@ describe('MetricsCronScheduler', () => {
 
     it('should have correct default schedules', () => {
       const jobs = cronScheduler.getCronJobs();
-      
+
       const metricsJob = jobs.find(job => job.name === 'metrics_collection');
       const cacheJob = jobs.find(job => job.name === 'cache_cleanup');
       const healthJob = jobs.find(job => job.name === 'health_check');
@@ -78,24 +82,26 @@ describe('MetricsCronScheduler', () => {
 
     it('should start successfully', async () => {
       await cronScheduler.start();
-      
+
       expect(mockCache.keys).toHaveBeenCalledWith('cron_config:*');
     });
 
     it('should not start if already running', async () => {
       await cronScheduler.start();
-      
+
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
       await cronScheduler.start();
-      
-      expect(consoleSpy).toHaveBeenCalledWith('Cron scheduler is already running');
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Cron scheduler is already running'
+      );
       consoleSpy.mockRestore();
     });
 
     it('should stop successfully', async () => {
       await cronScheduler.start();
       await cronScheduler.stop();
-      
+
       // Should save configurations on stop
       expect(mockCache.set).toHaveBeenCalled();
     });
@@ -103,7 +109,7 @@ describe('MetricsCronScheduler', () => {
     it('should not stop if not running', async () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
       await cronScheduler.stop();
-      
+
       expect(consoleSpy).toHaveBeenCalledWith('Cron scheduler is not running');
       consoleSpy.mockRestore();
     });
@@ -115,11 +121,11 @@ describe('MetricsCronScheduler', () => {
         name: 'custom_job',
         schedule: '*/10 * * * *',
         enabled: true,
-        description: 'Custom test job'
+        description: 'Custom test job',
       };
 
       await cronScheduler.addCronJob(customJob);
-      
+
       const job = cronScheduler.getCronJob('custom_job');
       expect(job).toBeDefined();
       expect(job?.name).toBe('custom_job');
@@ -131,12 +137,12 @@ describe('MetricsCronScheduler', () => {
       const customJob = {
         name: 'custom_job',
         schedule: '*/10 * * * *',
-        enabled: true
+        enabled: true,
       };
 
       await cronScheduler.addCronJob(customJob);
       const removed = await cronScheduler.removeCronJob('custom_job');
-      
+
       expect(removed).toBe(true);
       expect(cronScheduler.getCronJob('custom_job')).toBeUndefined();
     });
@@ -150,12 +156,12 @@ describe('MetricsCronScheduler', () => {
       const customJob = {
         name: 'custom_job',
         schedule: '*/10 * * * *',
-        enabled: false
+        enabled: false,
       };
 
       await cronScheduler.addCronJob(customJob);
       const enabled = await cronScheduler.enableCronJob('custom_job');
-      
+
       expect(enabled).toBe(true);
       expect(cronScheduler.getCronJob('custom_job')?.enabled).toBe(true);
     });
@@ -164,12 +170,12 @@ describe('MetricsCronScheduler', () => {
       const customJob = {
         name: 'custom_job',
         schedule: '*/10 * * * *',
-        enabled: true
+        enabled: true,
       };
 
       await cronScheduler.addCronJob(customJob);
       const disabled = await cronScheduler.disableCronJob('custom_job');
-      
+
       expect(disabled).toBe(true);
       expect(cronScheduler.getCronJob('custom_job')?.enabled).toBe(false);
     });
@@ -198,8 +204,8 @@ describe('MetricsCronScheduler', () => {
           priority: 'medium' as const,
           retryCount: 0,
           maxRetries: 3,
-          nextCollectionTime: new Date()
-        }
+          nextCollectionTime: new Date(),
+        },
       ];
 
       mockScheduler.getDueJobs.mockResolvedValue(mockJobs);
@@ -208,17 +214,17 @@ describe('MetricsCronScheduler', () => {
         success: true,
         collectedAt: new Date(),
         processingTime: 1000,
-        rateLimited: false
+        rateLimited: false,
       });
 
       await cronScheduler.start();
-      
+
       // Fast-forward time to trigger job execution
       jest.advanceTimersByTime(60000); // 1 minute
-      
+
       // Allow promises to resolve
       await new Promise(resolve => setImmediate(resolve));
-      
+
       expect(mockScheduler.getDueJobs).toHaveBeenCalled();
       expect(mockWorker.collectMetricsNow).toHaveBeenCalledWith(
         'user1',
@@ -241,8 +247,8 @@ describe('MetricsCronScheduler', () => {
           priority: 'medium' as const,
           retryCount: 0,
           maxRetries: 3,
-          nextCollectionTime: new Date()
-        }
+          nextCollectionTime: new Date(),
+        },
       ];
 
       mockScheduler.getDueJobs.mockResolvedValue(mockJobs);
@@ -251,13 +257,13 @@ describe('MetricsCronScheduler', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
       await cronScheduler.start();
-      
+
       // Fast-forward time to trigger job execution
       jest.advanceTimersByTime(60000); // 1 minute
-      
+
       // Allow promises to resolve
       await new Promise(resolve => setImmediate(resolve));
-      
+
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -268,24 +274,24 @@ describe('MetricsCronScheduler', () => {
         processedJobs: 10,
         failedJobs: 1,
         currentLoad: 2,
-        maxLoad: 5
+        maxLoad: 5,
       });
 
       mockScheduler.getStatus.mockResolvedValue({
         isRunning: true,
         queueSize: 5,
         processingRate: 10,
-        averageWaitTime: 1000
+        averageWaitTime: 1000,
       });
 
       await cronScheduler.start();
-      
+
       // Fast-forward time to trigger health check (every 5 minutes)
       jest.advanceTimersByTime(5 * 60000);
-      
+
       // Allow promises to resolve
       await new Promise(resolve => setImmediate(resolve));
-      
+
       expect(mockWorker.getWorkerStatus).toHaveBeenCalled();
       expect(mockScheduler.getStatus).toHaveBeenCalled();
     });
@@ -296,13 +302,13 @@ describe('MetricsCronScheduler', () => {
       mockCache.ttl.mockResolvedValue(-1); // Expired keys
 
       await cronScheduler.start();
-      
+
       // Fast-forward time to trigger cache cleanup (every hour)
       jest.advanceTimersByTime(60 * 60000);
-      
+
       // Allow promises to resolve
       await new Promise(resolve => setImmediate(resolve));
-      
+
       expect(mockCache.keys).toHaveBeenCalled();
       expect(mockCache.del).toHaveBeenCalledTimes(mockKeys.length);
     });
@@ -316,14 +322,14 @@ describe('MetricsCronScheduler', () => {
           success: true,
           startTime: new Date(),
           endTime: new Date(),
-          duration: 1000
-        }
+          duration: 1000,
+        },
       ];
 
       mockCache.get.mockResolvedValue(mockHistory);
 
       const history = await cronScheduler.getJobHistory('test_job', 5);
-      
+
       expect(history).toEqual(mockHistory);
       expect(mockCache.get).toHaveBeenCalledWith('cron_history:test_job');
     });
@@ -332,7 +338,7 @@ describe('MetricsCronScheduler', () => {
       mockCache.get.mockResolvedValue(null);
 
       const history = await cronScheduler.getJobHistory('non_existent_job');
-      
+
       expect(history).toEqual([]);
     });
 
@@ -341,7 +347,7 @@ describe('MetricsCronScheduler', () => {
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const history = await cronScheduler.getJobHistory('test_job');
-      
+
       expect(history).toEqual([]);
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -352,9 +358,9 @@ describe('MetricsCronScheduler', () => {
     it('should parse standard cron expressions correctly', () => {
       // This tests the private parseCronExpression method indirectly
       // by checking if jobs are scheduled with correct intervals
-      
+
       const jobs = cronScheduler.getCronJobs();
-      
+
       // All default jobs should be enabled and have valid schedules
       jobs.forEach(job => {
         expect(job.enabled).toBe(true);
@@ -367,7 +373,7 @@ describe('MetricsCronScheduler', () => {
     it('should load configurations on start', async () => {
       const mockConfigs = [
         'cron_config:custom_job1',
-        'cron_config:custom_job2'
+        'cron_config:custom_job2',
       ];
 
       const mockConfig = {
@@ -375,24 +381,24 @@ describe('MetricsCronScheduler', () => {
         schedule: '*/10 * * * *',
         enabled: true,
         runCount: 5,
-        errorCount: 1
+        errorCount: 1,
       };
 
       mockCache.keys.mockResolvedValue(mockConfigs);
       mockCache.get.mockResolvedValue(mockConfig);
 
       await cronScheduler.start();
-      
+
       expect(mockCache.keys).toHaveBeenCalledWith('cron_config:*');
       expect(mockCache.get).toHaveBeenCalledTimes(mockConfigs.length);
     });
 
     it('should save configurations on stop', async () => {
       mockCache.keys.mockResolvedValue([]);
-      
+
       await cronScheduler.start();
       await cronScheduler.stop();
-      
+
       // Should save all job configurations
       const jobs = cronScheduler.getCronJobs();
       expect(mockCache.set).toHaveBeenCalledTimes(jobs.length);

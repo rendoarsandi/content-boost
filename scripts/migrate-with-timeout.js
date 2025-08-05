@@ -18,7 +18,7 @@ function showWarning() {
 function showTimeout() {
   console.log('\n❌ TIMEOUT: Migration exceeded maximum timeout (2 minutes)');
   console.log('   Terminating migration to prevent hanging...\n');
-  
+
   if (migrateProcess) {
     migrateProcess.kill('SIGTERM');
     setTimeout(() => {
@@ -32,20 +32,21 @@ function showTimeout() {
 
 function startMigration() {
   console.log('🗄️  Starting database migration with timeout monitoring...\n');
-  
+
   // Get migration command from arguments or use default
   const migrateArgs = process.argv.slice(2);
-  const migrateCommand = migrateArgs.length > 0 ? migrateArgs : ['run', 'db:migrate'];
-  
+  const migrateCommand =
+    migrateArgs.length > 0 ? migrateArgs : ['run', 'db:migrate'];
+
   // Start the migration process
   migrateProcess = spawn('npm', migrateCommand, {
     stdio: 'inherit',
     shell: true,
-    cwd: process.cwd()
+    cwd: process.cwd(),
   });
 
   // Handle process events
-  migrateProcess.on('error', (error) => {
+  migrateProcess.on('error', error => {
     console.error('❌ Failed to start migration process:', error.message);
     process.exit(1);
   });
@@ -53,15 +54,19 @@ function startMigration() {
   migrateProcess.on('exit', (code, signal) => {
     const elapsed = Date.now() - startTime;
     const elapsedSeconds = Math.round(elapsed / 1000);
-    
+
     if (signal === 'SIGTERM' || signal === 'SIGKILL') {
       console.log('\n🛑 Migration process terminated due to timeout');
       process.exit(1);
     } else if (code !== 0) {
-      console.log(`\n❌ Migration failed with code ${code} (took ${elapsedSeconds} seconds)`);
+      console.log(
+        `\n❌ Migration failed with code ${code} (took ${elapsedSeconds} seconds)`
+      );
       process.exit(code);
     } else {
-      console.log(`\n✅ Migration completed successfully (took ${elapsedSeconds} seconds)`);
+      console.log(
+        `\n✅ Migration completed successfully (took ${elapsedSeconds} seconds)`
+      );
       process.exit(0);
     }
   });
@@ -69,13 +74,13 @@ function startMigration() {
   // Start timeout monitoring
   const timeoutInterval = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    
+
     // Show warning at 30 seconds
     if (elapsed >= WARNING_TIMEOUT && !warningShown) {
       showWarning();
       warningShown = true;
     }
-    
+
     // Force terminate at 2 minutes
     if (elapsed >= MIGRATE_TIMEOUT) {
       clearInterval(timeoutInterval);
@@ -85,9 +90,11 @@ function startMigration() {
 
   // Handle Ctrl+C gracefully
   process.on('SIGINT', () => {
-    console.log('\n🛑 Received interrupt signal, stopping migration process...');
+    console.log(
+      '\n🛑 Received interrupt signal, stopping migration process...'
+    );
     clearInterval(timeoutInterval);
-    
+
     if (migrateProcess) {
       migrateProcess.kill('SIGTERM');
       setTimeout(() => {

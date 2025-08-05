@@ -24,7 +24,7 @@ describe('MigrationRunner', () => {
     // Mock the database connection methods
     const mockDb = {
       getClient: jest.fn().mockResolvedValue(mockClient),
-      transaction: jest.fn().mockImplementation(async (callback) => {
+      transaction: jest.fn().mockImplementation(async callback => {
         return callback(mockClient);
       }),
     };
@@ -95,8 +95,18 @@ describe('MigrationRunner', () => {
     it('should skip when no pending migrations', async () => {
       // Mock all migrations as executed
       const mockExecutedMigrations = [
-        { id: '001', name: 'create_initial_tables', timestamp: 20240101000000, executed_at: new Date() },
-        { id: '002', name: 'create_indexes_and_partitions', timestamp: 20240101000001, executed_at: new Date() },
+        {
+          id: '001',
+          name: 'create_initial_tables',
+          timestamp: 20240101000000,
+          executed_at: new Date(),
+        },
+        {
+          id: '002',
+          name: 'create_indexes_and_partitions',
+          timestamp: 20240101000001,
+          executed_at: new Date(),
+        },
       ];
 
       mockClient.query

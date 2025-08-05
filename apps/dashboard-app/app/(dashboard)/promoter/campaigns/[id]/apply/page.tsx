@@ -3,24 +3,35 @@ import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
 // import { campaigns, campaignMaterials, users, campaignApplications } from '@repo/database';
 // import { eq, and } from 'drizzle-orm';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge, Button } from '@repo/ui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Badge,
+  Button,
+} from '@repo/ui';
 import Link from 'next/link';
 import { CampaignApplicationForm } from '../../../../../components/campaign-application-form';
 
-async function getCampaignForApplication(campaignId: string, promoterId: string) {
+async function getCampaignForApplication(
+  campaignId: string,
+  promoterId: string
+) {
   // Get campaign with creator info
   const campaign = await db.campaign.findUnique({
     where: {
-      id: campaignId
+      id: campaignId,
     },
     include: {
       creator: {
         select: {
           id: true,
-          name: true
-        }
-      }
-    }
+          name: true,
+        },
+      },
+    },
   });
 
   if (!campaign) {
@@ -28,22 +39,24 @@ async function getCampaignForApplication(campaignId: string, promoterId: string)
   }
 
   // Check if promoter has already applied (check existing promotions)
-  const existingPromotion = await db.promotion.findFirst({
+  const existingPromotion = await db.campaignApplication.findFirst({
     where: {
       campaignId: campaignId,
-      promoterId: promoterId
-    }
+      promoterId: promoterId,
+    },
   });
 
   return {
     campaign,
     creator: campaign.creator,
     hasApplied: !!existingPromotion,
-    application: existingPromotion ? {
-      id: existingPromotion.id,
-      status: 'approved', // Since promotion exists, it's approved
-      appliedAt: existingPromotion.createdAt,
-    } : null,
+    application: existingPromotion
+      ? {
+          id: existingPromotion.id,
+          status: 'APPROVED', // Since promotion exists, it's approved
+          appliedAt: existingPromotion.appliedAt,
+        }
+      : null,
   };
 }
 
@@ -62,7 +75,11 @@ function getStatusColor(status: string) {
   }
 }
 
-export default async function CampaignApplicationPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CampaignApplicationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await getSession();
 
   if (!session?.user || (session.user as any).role !== 'promoter') {
@@ -70,13 +87,21 @@ export default async function CampaignApplicationPage({ params }: { params: Prom
   }
 
   const { id } = await params;
-  const campaignData = await getCampaignForApplication(id, (session.user as any).id);
+  const campaignData = await getCampaignForApplication(
+    id,
+    (session.user as any).id
+  );
 
   if (!campaignData) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Campaign Not Found</h1>
-        <p className="text-gray-600 mb-6">The campaign you're trying to apply to doesn't exist or has been removed.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Campaign Not Found
+        </h1>
+        <p className="text-gray-600 mb-6">
+          The campaign you're trying to apply to doesn't exist or has been
+          removed.
+        </p>
         <Link href="/promoter/campaigns">
           <Button>Browse Other Campaigns</Button>
         </Link>
@@ -92,11 +117,16 @@ export default async function CampaignApplicationPage({ params }: { params: Prom
     return (
       <div className="space-y-8">
         <div>
-          <Link href="/promoter/campaigns" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+          <Link
+            href="/promoter/campaigns"
+            className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block"
+          >
             ← Back to Campaigns
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Campaign Not Available</h1>
-          <p className="text-gray-600 mt-2">{campaign.name}</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Campaign Not Available
+          </h1>
+          <p className="text-gray-600 mt-2">{campaign.title}</p>
         </div>
 
         <Card>
@@ -106,17 +136,18 @@ export default async function CampaignApplicationPage({ params }: { params: Prom
                 <CardTitle>Campaign Status: {'active'}</CardTitle>
                 <CardDescription>by {creator.name}</CardDescription>
               </div>
-              <Badge className={getStatusColor('active')}>
-                {'active'}
-              </Badge>
+              <Badge className={getStatusColor('active')}>{'active'}</Badge>
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <div className="text-6xl mb-4">⏸️</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Campaign Not Active</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Campaign Not Active
+              </h3>
               <p className="text-gray-600 mb-6">
-                This campaign is currently {'active'} and not accepting new applications.
+                This campaign is currently {'active'} and not accepting new
+                applications.
               </p>
               <Link href="/promoter/campaigns">
                 <Button>Browse Active Campaigns</Button>
@@ -132,33 +163,44 @@ export default async function CampaignApplicationPage({ params }: { params: Prom
     return (
       <div className="space-y-8">
         <div>
-          <Link href="/promoter/campaigns" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+          <Link
+            href="/promoter/campaigns"
+            className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block"
+          >
             ← Back to Campaigns
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Application Already Submitted</h1>
-          <p className="text-gray-600 mt-2">{campaign.name}</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Application Already Submitted
+          </h1>
+          <p className="text-gray-600 mt-2">{campaign.title}</p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Your Application Status</CardTitle>
             <CardDescription>
-              Application submitted on {new Date(application!.appliedAt).toLocaleDateString()}
+              Application submitted on{' '}
+              {new Date(application!.appliedAt).toLocaleDateString()}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <div className="text-6xl mb-4">✅</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Application Submitted</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Application Submitted
+              </h3>
               <p className="text-gray-600 mb-6">
-                You have already applied to this campaign. Your application is currently <strong>{application!.status}</strong>.
+                You have already applied to this campaign. Your application is
+                currently <strong>{application!.status}</strong>.
               </p>
               <div className="space-y-3">
                 <Link href={`/promoter/campaigns/${campaign.id}`}>
                   <Button className="w-full">View Campaign Details</Button>
                 </Link>
                 <Link href="/promoter/applications">
-                  <Button variant="outline" className="w-full">View All Applications</Button>
+                  <Button variant="outline" className="w-full">
+                    View All Applications
+                  </Button>
                 </Link>
               </div>
             </div>
@@ -173,11 +215,16 @@ export default async function CampaignApplicationPage({ params }: { params: Prom
   return (
     <div className="space-y-8">
       <div>
-        <Link href="/promoter/campaigns" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+        <Link
+          href="/promoter/campaigns"
+          className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block"
+        >
           ← Back to Campaigns
         </Link>
         <h1 className="text-3xl font-bold text-gray-900">Apply to Campaign</h1>
-        <p className="text-gray-600 mt-2">{campaign.name} by {creator.name}</p>
+        <p className="text-gray-600 mt-2">
+          {campaign.title} by {creator.name}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -187,13 +234,14 @@ export default async function CampaignApplicationPage({ params }: { params: Prom
             <CardHeader>
               <CardTitle>Submit Your Application</CardTitle>
               <CardDescription>
-                Apply to join this campaign and start earning from your promotions
+                Apply to join this campaign and start earning from your
+                promotions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CampaignApplicationForm 
-                campaignId={campaign.id} 
-                campaignTitle={campaign.name}
+              <CampaignApplicationForm
+                campaignId={campaign.id}
+                campaignTitle={campaign.title}
                 campaignDescription="Campaign description not available"
               />
             </CardContent>
@@ -230,9 +278,7 @@ export default async function CampaignApplicationPage({ params }: { params: Prom
 
               <div>
                 <p className="text-sm text-gray-600">Status</p>
-                <Badge className={getStatusColor('active')}>
-                  {'active'}
-                </Badge>
+                <Badge className={getStatusColor('active')}>{'active'}</Badge>
               </div>
             </CardContent>
           </Card>
@@ -247,7 +293,6 @@ export default async function CampaignApplicationPage({ params }: { params: Prom
               </p>
             </CardContent>
           </Card>
-
 
           <Card>
             <CardHeader>

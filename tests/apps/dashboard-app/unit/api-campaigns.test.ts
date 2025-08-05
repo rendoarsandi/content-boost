@@ -9,7 +9,7 @@ describe('Campaign API Implementation', () => {
     const budget = 10000;
     const ratePerView = 100;
     const maxViews = Math.floor(budget / ratePerView);
-    
+
     expect(maxViews).toBe(100);
     expect(maxViews).toBeGreaterThan(0);
   });
@@ -19,7 +19,7 @@ describe('Campaign API Implementation', () => {
     const lowBudget = 50;
     const highRate = 100;
     const maxViews = Math.floor(lowBudget / highRate);
-    
+
     expect(maxViews).toBe(0);
   });
 });

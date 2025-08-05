@@ -1,8 +1,8 @@
 export * from './types';
 
 // Export OAuth handlers
-export { 
-  handleTikTokAuth, 
+export {
+  handleTikTokAuth,
   handleInstagramAuth,
   handleLinkTikTok,
   handleLinkInstagram,
@@ -10,11 +10,11 @@ export {
   handleUnlinkInstagram,
   handleGetSocialAccounts,
   handleRefreshTikTokToken,
-  handleRefreshInstagramToken
+  handleRefreshInstagramToken,
 } from './handlers/oauth';
 
 // Export client
-export { 
+export {
   authClient,
   useSession,
   signIn,
@@ -26,7 +26,7 @@ export {
   hasAnyRole,
   getSocialAccounts,
   disconnectSocialAccount,
-  refreshSocialToken
+  refreshSocialToken,
 } from './client';
 
 // Export middleware
@@ -34,5 +34,5 @@ export {
   authMiddleware,
   rateLimitMiddleware,
   csrfMiddleware,
-  createAuthMiddleware
+  createAuthMiddleware,
 } from './middleware';

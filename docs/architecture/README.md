@@ -7,22 +7,26 @@ Creator Promotion Platform menggunakan arsitektur monorepo dengan beberapa aplik
 ### Applications
 
 #### Landing Page (www.domain.com)
+
 - Marketing website
 - Public information
 - User registration entry point
 
 #### Auth App (auth.domain.com)
+
 - Authentication flows
 - OAuth integration (TikTok, Instagram)
 - Session management
 
 #### Dashboard App (dashboard.domain.com)
+
 - Creator dashboard
 - Promoter dashboard
 - Campaign management
 - Analytics and reporting
 
 #### Admin App (admin.domain.com)
+
 - Platform administration
 - User management
 - Financial oversight
@@ -31,35 +35,41 @@ Creator Promotion Platform menggunakan arsitektur monorepo dengan beberapa aplik
 ### Shared Packages
 
 #### @repo/database
+
 - PostgreSQL schemas
 - Database migrations
 - Data access layer
 - Repository patterns
 
 #### @repo/auth
+
 - BetterAuth configuration
 - OAuth providers
 - Session management
 - Authentication utilities
 
 #### @repo/cache
+
 - Redis configuration
 - Caching strategies
 - Session storage
 - Rate limiting
 
 #### @repo/utils
+
 - Bot detection algorithms
 - Validation schemas
 - Utility functions
 - Business logic
 
 #### @repo/ui
+
 - ShadcnUI components
 - Design system
 - Reusable UI elements
 
 #### @repo/config
+
 - Shared configuration
 - Environment variables
 - Constants

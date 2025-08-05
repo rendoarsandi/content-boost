@@ -1,4 +1,9 @@
-import { RedisCache, CacheKeyManager, createCache, createRedisConfig } from './index';
+import {
+  RedisCache,
+  CacheKeyManager,
+  createCache,
+  createRedisConfig,
+} from './index';
 
 // Example usage of the cache package
 export async function cacheUsageExample() {
@@ -62,7 +67,10 @@ export async function cacheUsageExample() {
     };
 
     await cache.setBotAnalysis(promoterId, campaignId, botAnalysis);
-    const retrievedBotAnalysis = await cache.getBotAnalysis(promoterId, campaignId);
+    const retrievedBotAnalysis = await cache.getBotAnalysis(
+      promoterId,
+      campaignId
+    );
     console.log('Bot analysis:', retrievedBotAnalysis);
 
     // Rate limiting example
@@ -121,7 +129,7 @@ export async function cacheUsageExample() {
     // Custom key operations using key manager
     const keyManager = cache.getKeyManager();
     const customKey = keyManager.custom('analytics', 'daily', '2024-01-15');
-    
+
     await cache.set(customKey, { totalViews: 10000, uniqueUsers: 500 });
     const analyticsData = await cache.get(customKey);
     console.log('Analytics data:', analyticsData);
@@ -141,7 +149,6 @@ export async function cacheUsageExample() {
     // Clean up
     await cache.del(customKey);
     await cache.deleteSession(sessionId);
-
   } catch (error) {
     console.error('Cache operation error:', error);
   } finally {
@@ -161,22 +168,22 @@ export async function cacheWithRetryExample() {
   while (retries < maxRetries) {
     try {
       await cache.connect();
-      
+
       // Perform cache operations
       await cache.set('test-key', { test: 'data' });
       const result = await cache.get('test-key');
       console.log('Cache operation successful:', result);
-      
+
       break; // Success, exit retry loop
     } catch (error) {
       retries++;
       console.error(`Cache operation failed (attempt ${retries}):`, error);
-      
+
       if (retries >= maxRetries) {
         console.error('Max retries reached, giving up');
         throw error;
       }
-      
+
       // Wait before retrying (exponential backoff)
       const delay = Math.pow(2, retries) * 1000;
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -189,14 +196,17 @@ export async function cacheWithRetryExample() {
 // Example of cache warming strategy
 export async function cacheWarmingExample() {
   const cache = createCache();
-  
+
   try {
     await cache.connect();
-    
+
     // Warm up frequently accessed data
     const frequentlyAccessedData = [
       { key: 'config:platform-fee', value: { percentage: 5 } },
-      { key: 'config:bot-thresholds', value: { viewLikeRatio: 10, spikePercentage: 500 } },
+      {
+        key: 'config:bot-thresholds',
+        value: { viewLikeRatio: 10, spikePercentage: 500 },
+      },
       { key: 'config:rate-limits', value: { tiktok: 100, instagram: 200 } },
     ];
 
@@ -213,7 +223,6 @@ export async function cacheWarmingExample() {
     const configKeys = Object.keys(warmupData);
     const warmupResults = await cache.mget(configKeys);
     console.log('Warm-up verification:', warmupResults);
-
   } catch (error) {
     console.error('Cache warming error:', error);
   } finally {
@@ -224,7 +233,7 @@ export async function cacheWarmingExample() {
 // Run examples if this file is executed directly
 if (require.main === module) {
   console.log('Running cache usage examples...');
-  
+
   cacheUsageExample()
     .then(() => console.log('Basic usage example completed'))
     .catch(console.error);

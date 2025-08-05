@@ -1,15 +1,16 @@
-import { 
-  PaymentHistoryManager, 
+import {
+  PaymentHistoryManager,
   createPaymentHistoryManager,
   PaymentHistoryEntry,
   PaymentSummary,
   formatPaymentAmount,
   calculatePaymentDuration,
-  getPaymentStatusColor
+  getPaymentStatusColor,
 } from '../src/payment-history';
 
 // Helper function to generate test UUIDs
-const generateTestUUID = (suffix: string) => `550e8400-e29b-41d4-a716-${suffix.padStart(12, '0')}`;
+const generateTestUUID = (suffix: string) =>
+  `550e8400-e29b-41d4-a716-${suffix.padStart(12, '0')}`;
 
 describe('PaymentHistoryManager', () => {
   let historyManager: PaymentHistoryManager;
@@ -62,7 +63,9 @@ describe('PaymentHistoryManager', () => {
       };
 
       // Act & Assert
-      await expect(historyManager.createPaymentHistory(invalidEntry)).rejects.toThrow();
+      await expect(
+        historyManager.createPaymentHistory(invalidEntry)
+      ).rejects.toThrow();
     });
 
     it('should create audit log when creating history entry', async () => {
@@ -122,7 +125,9 @@ describe('PaymentHistoryManager', () => {
       expect(updatedEntry.transactionId).toBe('TXN123');
       expect(updatedEntry.processedAt).toBeInstanceOf(Date);
       expect(updatedEntry.completedAt).toBeInstanceOf(Date);
-      expect(updatedEntry.updatedAt.getTime()).toBeGreaterThan(entry.updatedAt.getTime());
+      expect(updatedEntry.updatedAt.getTime()).toBeGreaterThan(
+        entry.updatedAt.getTime()
+      );
     });
 
     it('should create audit log when updating status', async () => {
@@ -185,7 +190,9 @@ describe('PaymentHistoryManager', () => {
 
       // Assert
       expect(updatedEntry.retryCount).toBe(1);
-      expect(updatedEntry.updatedAt.getTime()).toBeGreaterThan(entry.updatedAt.getTime());
+      expect(updatedEntry.updatedAt.getTime()).toBeGreaterThan(
+        entry.updatedAt.getTime()
+      );
 
       // Check audit log
       const auditLogs = await historyManager.getAuditLogs(entry.id);
@@ -230,7 +237,7 @@ describe('PaymentHistoryManager', () => {
     it('should get payment history by payout ID', async () => {
       // Arrange
       const payoutId = 'payout-multiple';
-      
+
       await historyManager.createPaymentHistory({
         payoutId,
         promoterId: 'promoter-1',
@@ -262,7 +269,9 @@ describe('PaymentHistoryManager', () => {
       expect(entries).toHaveLength(2);
       expect(entries.every(e => e.payoutId === payoutId)).toBe(true);
       // Should be sorted by creation date (newest first)
-      expect(entries[0].createdAt.getTime()).toBeGreaterThanOrEqual(entries[1].createdAt.getTime());
+      expect(entries[0].createdAt.getTime()).toBeGreaterThanOrEqual(
+        entries[1].createdAt.getTime()
+      );
     });
   });
 
@@ -270,7 +279,7 @@ describe('PaymentHistoryManager', () => {
     it('should get payment history by promoter ID', async () => {
       // Arrange
       const promoterId = 'promoter-history';
-      
+
       await historyManager.createPaymentHistory({
         payoutId: 'payout-1',
         promoterId,
@@ -296,7 +305,8 @@ describe('PaymentHistoryManager', () => {
       });
 
       // Act
-      const entries = await historyManager.getPaymentHistoryByPromoter(promoterId);
+      const entries =
+        await historyManager.getPaymentHistoryByPromoter(promoterId);
 
       // Assert
       expect(entries).toHaveLength(2);
@@ -306,7 +316,7 @@ describe('PaymentHistoryManager', () => {
     it('should filter payment history by status', async () => {
       // Arrange
       const promoterId = 'promoter-filter';
-      
+
       await historyManager.createPaymentHistory({
         payoutId: 'payout-completed',
         promoterId,
@@ -332,9 +342,12 @@ describe('PaymentHistoryManager', () => {
       });
 
       // Act
-      const completedEntries = await historyManager.getPaymentHistoryByPromoter(promoterId, {
-        status: 'completed',
-      });
+      const completedEntries = await historyManager.getPaymentHistoryByPromoter(
+        promoterId,
+        {
+          status: 'completed',
+        }
+      );
 
       // Assert
       expect(completedEntries).toHaveLength(1);
@@ -346,7 +359,7 @@ describe('PaymentHistoryManager', () => {
       const promoterId = 'promoter-date-filter';
       const oldDate = new Date('2024-01-01');
       const newDate = new Date();
-      
+
       await historyManager.createPaymentHistory({
         payoutId: 'payout-recent',
         promoterId,
@@ -360,11 +373,14 @@ describe('PaymentHistoryManager', () => {
       });
 
       // Act
-      const entries = await historyManager.getPaymentHistoryByPromoter(promoterId, {
-        startDate: oldDate,
-        endDate: newDate,
-        limit: 1,
-      });
+      const entries = await historyManager.getPaymentHistoryByPromoter(
+        promoterId,
+        {
+          startDate: oldDate,
+          endDate: newDate,
+          limit: 1,
+        }
+      );
 
       // Assert
       expect(entries).toHaveLength(1);
@@ -377,7 +393,7 @@ describe('PaymentHistoryManager', () => {
       // Arrange
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
-      
+
       // Create test data
       await historyManager.createPaymentHistory({
         payoutId: 'payout-summary-1',
@@ -416,7 +432,10 @@ describe('PaymentHistoryManager', () => {
       });
 
       // Act
-      const summary = await historyManager.generatePaymentSummary(startDate, endDate);
+      const summary = await historyManager.generatePaymentSummary(
+        startDate,
+        endDate
+      );
 
       // Assert
       expect(summary.totalPayments).toBe(3);
@@ -438,7 +457,7 @@ describe('PaymentHistoryManager', () => {
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
       const targetPromoterId = 'promoter-filter-summary';
-      
+
       await historyManager.createPaymentHistory({
         payoutId: 'payout-filter-1',
         promoterId: targetPromoterId,
@@ -464,9 +483,13 @@ describe('PaymentHistoryManager', () => {
       });
 
       // Act
-      const summary = await historyManager.generatePaymentSummary(startDate, endDate, {
-        promoterId: targetPromoterId,
-      });
+      const summary = await historyManager.generatePaymentSummary(
+        startDate,
+        endDate,
+        {
+          promoterId: targetPromoterId,
+        }
+      );
 
       // Assert
       expect(summary.totalPayments).toBe(1);
@@ -502,7 +525,8 @@ describe('PaymentHistoryManager', () => {
       });
 
       // Act
-      const eligiblePayments = await historyManager.getFailedPaymentsForRetry(3);
+      const eligiblePayments =
+        await historyManager.getFailedPaymentsForRetry(3);
 
       // Assert
       expect(eligiblePayments).toHaveLength(1);
@@ -516,7 +540,7 @@ describe('PaymentHistoryManager', () => {
       // Arrange
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
-      
+
       await historyManager.createPaymentHistory({
         payoutId: 'payout-csv',
         promoterId: 'promoter-csv',
@@ -573,7 +597,7 @@ describe('PaymentHistoryManager', () => {
     it('should clear old payment history entries', async () => {
       // Arrange
       const oldDate = new Date('2020-01-01');
-      
+
       // Create an old entry (mock by manipulating the created date)
       const entry = await historyManager.createPaymentHistory({
         payoutId: 'payout-old',
@@ -595,7 +619,9 @@ describe('PaymentHistoryManager', () => {
       }
 
       // Act
-      const deletedCount = await historyManager.clearOldEntries(new Date('2021-01-01'));
+      const deletedCount = await historyManager.clearOldEntries(
+        new Date('2021-01-01')
+      );
 
       // Assert
       expect(deletedCount).toBe(1);
@@ -637,7 +663,7 @@ describe('Helper Functions', () => {
       // Arrange
       const createdAt = new Date('2024-01-01T10:00:00Z');
       const completedAt = new Date('2024-01-01T10:05:00Z');
-      
+
       const entry: PaymentHistoryEntry = {
         id: 'test-duration',
         payoutId: 'payout-duration',

@@ -18,7 +18,9 @@ const mockCache = {
   incrementRateLimit: jest.fn(),
   ttl: jest.fn(),
   getKeyManager: jest.fn(() => ({
-    rateLimit: jest.fn((platform: string, userId: string) => `rate:${platform}:${userId}`),
+    rateLimit: jest.fn(
+      (platform: string, userId: string) => `rate:${platform}:${userId}`
+    ),
   })),
 } as unknown as RedisCache;
 
@@ -80,14 +82,16 @@ describe('Social Media API Integration', () => {
       it('should successfully fetch TikTok video metrics', async () => {
         const mockResponse = {
           data: {
-            videos: [{
-              id: 'video123',
-              view_count: 1000,
-              like_count: 100,
-              comment_count: 50,
-              share_count: 25,
-              download_count: 10,
-            }],
+            videos: [
+              {
+                id: 'video123',
+                view_count: 1000,
+                like_count: 100,
+                comment_count: 50,
+                share_count: 25,
+                download_count: 10,
+              },
+            ],
           },
         };
 
@@ -98,7 +102,11 @@ describe('Social Media API Integration', () => {
           json: jest.fn().mockResolvedValue(mockResponse),
         });
 
-        const result = await tiktokAPI.getMetrics('access_token', 'video123', 'user123');
+        const result = await tiktokAPI.getMetrics(
+          'access_token',
+          'video123',
+          'user123'
+        );
 
         expect(result).toEqual({
           videoId: 'video123',
@@ -116,7 +124,7 @@ describe('Social Media API Integration', () => {
           expect.objectContaining({
             method: 'POST',
             headers: {
-              'Authorization': 'Bearer access_token',
+              Authorization: 'Bearer access_token',
               'Content-Type': 'application/json',
             },
             body: expect.stringContaining('video123'),
@@ -149,7 +157,7 @@ describe('Social Media API Integration', () => {
           'https://open-api.tiktok.com/v2/user/info/',
           {
             headers: {
-              'Authorization': 'Bearer valid_token',
+              Authorization: 'Bearer valid_token',
             },
           }
         );
@@ -246,7 +254,11 @@ describe('Social Media API Integration', () => {
           json: jest.fn().mockResolvedValue(mockResponse),
         });
 
-        const result = await instagramAPI.getMetrics('access_token', 'media123', 'user123');
+        const result = await instagramAPI.getMetrics(
+          'access_token',
+          'media123',
+          'user123'
+        );
 
         expect(result).toEqual({
           mediaId: 'media123',
@@ -272,7 +284,7 @@ describe('Social Media API Integration', () => {
           ok: false,
           status: 400,
           json: jest.fn().mockResolvedValue({
-            error: { code: 'INVALID_MEDIA', message: 'Media not found' }
+            error: { code: 'INVALID_MEDIA', message: 'Media not found' },
           }),
         });
 
@@ -290,7 +302,7 @@ describe('Social Media API Integration', () => {
 
         expect(result).toBe(true);
         expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('https://graph.instagram.com/me'),
+          expect.stringContaining('https://graph.instagram.com/me')
         );
       });
     });
@@ -313,7 +325,9 @@ describe('Social Media API Integration', () => {
         });
 
         expect(mockFetch).toHaveBeenCalledWith(
-          expect.stringContaining('https://graph.instagram.com/refresh_access_token'),
+          expect.stringContaining(
+            'https://graph.instagram.com/refresh_access_token'
+          ),
           { method: 'GET' }
         );
       });
@@ -335,19 +349,26 @@ describe('Social Media API Integration', () => {
           ok: true,
           json: jest.fn().mockResolvedValue({
             data: {
-              videos: [{
-                id: 'video123',
-                view_count: 1000,
-                like_count: 100,
-                comment_count: 50,
-                share_count: 25,
-                download_count: 10,
-              }],
+              videos: [
+                {
+                  id: 'video123',
+                  view_count: 1000,
+                  like_count: 100,
+                  comment_count: 50,
+                  share_count: 25,
+                  download_count: 10,
+                },
+              ],
             },
           }),
         });
 
-        const result = await manager.getMetrics('tiktok', 'token', 'video123', 'user123');
+        const result = await manager.getMetrics(
+          'tiktok',
+          'token',
+          'video123',
+          'user123'
+        );
 
         expect(result.viewCount).toBe(1000);
         expect(result.likeCount).toBe(100);
@@ -368,7 +389,12 @@ describe('Social Media API Integration', () => {
           }),
         });
 
-        const result = await manager.getMetrics('instagram', 'token', 'media123', 'user123');
+        const result = await manager.getMetrics(
+          'instagram',
+          'token',
+          'media123',
+          'user123'
+        );
 
         expect(result.viewCount).toBe(1500);
         expect(result.likeCount).toBe(120);
@@ -443,21 +469,26 @@ describe('Social Media API Integration', () => {
         ok: true,
         json: jest.fn().mockResolvedValue({
           data: {
-            videos: [{
-              id: 'video123',
-              view_count: 1000,
-              like_count: 100,
-              comment_count: 50,
-              share_count: 25,
-              download_count: 10,
-            }],
+            videos: [
+              {
+                id: 'video123',
+                view_count: 1000,
+                like_count: 100,
+                comment_count: 50,
+                share_count: 25,
+                download_count: 10,
+              },
+            ],
           },
         }),
       });
 
       await tiktokAPI.getMetrics('token', 'video123', 'user123');
 
-      expect(mockCache.incrementRateLimit).toHaveBeenCalledWith('tiktok', 'user123');
+      expect(mockCache.incrementRateLimit).toHaveBeenCalledWith(
+        'tiktok',
+        'user123'
+      );
     });
 
     it('should respect rate limits and throw appropriate error', async () => {
@@ -477,29 +508,43 @@ describe('Social Media API Integration', () => {
 
     beforeEach(() => {
       tiktokAPI = new TikTokAPI(mockCache);
-      jest.spyOn(tiktokAPI as any, 'sleep').mockImplementation(() => Promise.resolve());
+      jest
+        .spyOn(tiktokAPI as any, 'sleep')
+        .mockImplementation(() => Promise.resolve());
     });
 
     it('should retry on retryable errors with exponential backoff', async () => {
       mockCache.getRateLimit = jest.fn().mockResolvedValue(0);
       mockCache.incrementRateLimit = jest.fn().mockResolvedValue(1);
-      
+
       // All attempts fail
       mockFetch
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest.fn().mockResolvedValue({ error: { code: 'SERVER_ERROR', message: 'Server error' } }),
+          json: jest
+            .fn()
+            .mockResolvedValue({
+              error: { code: 'SERVER_ERROR', message: 'Server error' },
+            }),
         })
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest.fn().mockResolvedValue({ error: { code: 'SERVER_ERROR', message: 'Server error' } }),
+          json: jest
+            .fn()
+            .mockResolvedValue({
+              error: { code: 'SERVER_ERROR', message: 'Server error' },
+            }),
         })
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest.fn().mockResolvedValue({ error: { code: 'SERVER_ERROR', message: 'Server error' } }),
+          json: jest
+            .fn()
+            .mockResolvedValue({
+              error: { code: 'SERVER_ERROR', message: 'Server error' },
+            }),
         });
 
       await expect(
@@ -514,11 +559,15 @@ describe('Social Media API Integration', () => {
     it('should not retry on non-retryable errors', async () => {
       mockCache.getRateLimit = jest.fn().mockResolvedValue(0);
       mockCache.incrementRateLimit = jest.fn().mockResolvedValue(1);
-      
+
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 400,
-        json: jest.fn().mockResolvedValue({ error: { code: 'BAD_REQUEST', message: 'Bad request' } }),
+        json: jest
+          .fn()
+          .mockResolvedValue({
+            error: { code: 'BAD_REQUEST', message: 'Bad request' },
+          }),
       });
 
       await expect(
@@ -533,31 +582,41 @@ describe('Social Media API Integration', () => {
     it('should eventually succeed after retries', async () => {
       mockCache.getRateLimit = jest.fn().mockResolvedValue(0);
       mockCache.incrementRateLimit = jest.fn().mockResolvedValue(1);
-      
+
       // First two attempts fail, third succeeds
       mockFetch
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest.fn().mockResolvedValue({ error: { code: 'SERVER_ERROR', message: 'Server error' } }),
+          json: jest
+            .fn()
+            .mockResolvedValue({
+              error: { code: 'SERVER_ERROR', message: 'Server error' },
+            }),
         })
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest.fn().mockResolvedValue({ error: { code: 'SERVER_ERROR', message: 'Server error' } }),
+          json: jest
+            .fn()
+            .mockResolvedValue({
+              error: { code: 'SERVER_ERROR', message: 'Server error' },
+            }),
         })
         .mockResolvedValueOnce({
           ok: true,
           json: jest.fn().mockResolvedValue({
             data: {
-              videos: [{
-                id: 'video123',
-                view_count: 1000,
-                like_count: 100,
-                comment_count: 50,
-                share_count: 25,
-                download_count: 10,
-              }],
+              videos: [
+                {
+                  id: 'video123',
+                  view_count: 1000,
+                  like_count: 100,
+                  comment_count: 50,
+                  share_count: 25,
+                  download_count: 10,
+                },
+              ],
             },
           }),
         });

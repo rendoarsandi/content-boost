@@ -1,4 +1,9 @@
-import { BotDetectionService, BotAnalysis, ViewRecord, BotDetectionConfig } from './bot-detection';
+import {
+  BotDetectionService,
+  BotAnalysis,
+  ViewRecord,
+  BotDetectionConfig,
+} from './bot-detection';
 import { RealTimeBotAnalyzer } from './real-time-bot-analyzer';
 import { BotAnalysisWorker } from './bot-analysis-worker';
 import * as fs from 'fs';
@@ -66,19 +71,19 @@ export class EnhancedBotAnalyzer {
         enabled: true,
         logPath: 'logs/bot-detection/',
         auditTrail: true,
-        detailedAnalysis: true
+        detailedAnalysis: true,
       },
       actions: {
         autoExecute: true,
         requireConfirmation: false,
-        notifyAdmins: true
+        notifyAdmins: true,
       },
       thresholds: {
         highConfidenceBan: 90,
         mediumConfidenceWarning: 50,
-        lowConfidenceMonitor: 20
+        lowConfidenceMonitor: 20,
       },
-      ...config
+      ...config,
     };
 
     this.botDetectionService = new BotDetectionService(this.config.detection);
@@ -98,7 +103,7 @@ export class EnhancedBotAnalyzer {
     viewRecords: ViewRecord[]
   ): Promise<{ analysis: BotAnalysis; actionResult: ActionResult }> {
     const startTime = Date.now();
-    
+
     try {
       // Perform bot detection analysis
       const analysis = await this.botDetectionService.analyzeViews(
@@ -108,7 +113,10 @@ export class EnhancedBotAnalyzer {
       );
 
       // Enhanced confidence scoring with additional patterns
-      const enhancedAnalysis = this.enhanceConfidenceScoring(analysis, viewRecords);
+      const enhancedAnalysis = this.enhanceConfidenceScoring(
+        analysis,
+        viewRecords
+      );
 
       // Determine and execute actions based on confidence
       const actionResult = await this.executeConfidenceBasedActions(
@@ -123,14 +131,13 @@ export class EnhancedBotAnalyzer {
         campaignId,
         analysis: enhancedAnalysis,
         actionResult,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       };
 
       await this.logAnalysis(analysisLog);
       this.storeAnalysisHistory(promoterId, campaignId, analysisLog);
 
       return { analysis: enhancedAnalysis, actionResult };
-
     } catch (error) {
       await this.logError(promoterId, campaignId, error as Error);
       throw error;
@@ -159,7 +166,9 @@ export class EnhancedBotAnalyzer {
     const velocityScore = this.analyzeEngagementVelocity(viewRecords);
     if (velocityScore > 0) {
       additionalScore += velocityScore;
-      additionalReasons.push(`Abnormal engagement velocity (+${velocityScore})`);
+      additionalReasons.push(
+        `Abnormal engagement velocity (+${velocityScore})`
+      );
     }
 
     // Pattern 3: Platform-specific suspicious patterns
@@ -171,9 +180,10 @@ export class EnhancedBotAnalyzer {
 
     // Update bot score and reason
     const enhancedBotScore = Math.min(analysis.botScore + additionalScore, 100);
-    const enhancedReason = additionalReasons.length > 0 
-      ? `${analysis.reason}; ${additionalReasons.join('; ')}`
-      : analysis.reason;
+    const enhancedReason =
+      additionalReasons.length > 0
+        ? `${analysis.reason}; ${additionalReasons.join('; ')}`
+        : analysis.reason;
 
     // Re-determine action based on enhanced score
     const enhancedAction = this.determineEnhancedAction(enhancedBotScore);
@@ -183,7 +193,7 @@ export class EnhancedBotAnalyzer {
       botScore: enhancedBotScore,
       reason: enhancedReason,
       action: enhancedAction,
-      confidence: enhancedBotScore
+      confidence: enhancedBotScore,
     };
   }
 
@@ -193,22 +203,28 @@ export class EnhancedBotAnalyzer {
   private analyzeTimingPatterns(viewRecords: ViewRecord[]): number {
     if (viewRecords.length < 3) return 0;
 
-    const sortedRecords = [...viewRecords].sort((a, b) => 
-      a.timestamp.getTime() - b.timestamp.getTime()
+    const sortedRecords = [...viewRecords].sort(
+      (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
     );
 
     const intervals: number[] = [];
     for (let i = 1; i < sortedRecords.length; i++) {
-      const interval = sortedRecords[i].timestamp.getTime() - sortedRecords[i-1].timestamp.getTime();
+      const interval =
+        sortedRecords[i].timestamp.getTime() -
+        sortedRecords[i - 1].timestamp.getTime();
       intervals.push(interval);
     }
 
     // Check for suspiciously regular intervals (within 5% variance)
     if (intervals.length >= 3) {
-      const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
-      const variance = intervals.reduce((sum, interval) => 
-        sum + Math.pow(interval - avgInterval, 2), 0
-      ) / intervals.length;
+      const avgInterval =
+        intervals.reduce((sum, interval) => sum + interval, 0) /
+        intervals.length;
+      const variance =
+        intervals.reduce(
+          (sum, interval) => sum + Math.pow(interval - avgInterval, 2),
+          0
+        ) / intervals.length;
       const stdDev = Math.sqrt(variance);
       const coefficientOfVariation = stdDev / avgInterval;
 
@@ -228,15 +244,16 @@ export class EnhancedBotAnalyzer {
     if (viewRecords.length < 2) return 0;
 
     let score = 0;
-    const sortedRecords = [...viewRecords].sort((a, b) => 
-      a.timestamp.getTime() - b.timestamp.getTime()
+    const sortedRecords = [...viewRecords].sort(
+      (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
     );
 
     for (let i = 1; i < sortedRecords.length; i++) {
       const prev = sortedRecords[i - 1];
       const curr = sortedRecords[i];
-      
-      const timeDiff = (curr.timestamp.getTime() - prev.timestamp.getTime()) / 1000; // seconds
+
+      const timeDiff =
+        (curr.timestamp.getTime() - prev.timestamp.getTime()) / 1000; // seconds
       const viewDiff = curr.viewCount - prev.viewCount;
       const likeDiff = curr.likeCount - prev.likeCount;
       const commentDiff = curr.commentCount - prev.commentCount;
@@ -268,13 +285,19 @@ export class EnhancedBotAnalyzer {
     let score = 0;
 
     const tiktokRecords = viewRecords.filter(r => r.platform === 'tiktok');
-    const instagramRecords = viewRecords.filter(r => r.platform === 'instagram');
+    const instagramRecords = viewRecords.filter(
+      r => r.platform === 'instagram'
+    );
 
     // TikTok specific patterns
     if (tiktokRecords.length > 0) {
-      const avgTikTokViews = tiktokRecords.reduce((sum, r) => sum + r.viewCount, 0) / tiktokRecords.length;
-      const avgTikTokLikes = tiktokRecords.reduce((sum, r) => sum + r.likeCount, 0) / tiktokRecords.length;
-      
+      const avgTikTokViews =
+        tiktokRecords.reduce((sum, r) => sum + r.viewCount, 0) /
+        tiktokRecords.length;
+      const avgTikTokLikes =
+        tiktokRecords.reduce((sum, r) => sum + r.likeCount, 0) /
+        tiktokRecords.length;
+
       // TikTok typically has higher engagement rates
       if (avgTikTokViews > 1000 && avgTikTokLikes / avgTikTokViews < 0.02) {
         score += 8; // Low engagement for TikTok
@@ -283,11 +306,18 @@ export class EnhancedBotAnalyzer {
 
     // Instagram specific patterns
     if (instagramRecords.length > 0) {
-      const avgInstagramViews = instagramRecords.reduce((sum, r) => sum + r.viewCount, 0) / instagramRecords.length;
-      const avgInstagramComments = instagramRecords.reduce((sum, r) => sum + r.commentCount, 0) / instagramRecords.length;
-      
+      const avgInstagramViews =
+        instagramRecords.reduce((sum, r) => sum + r.viewCount, 0) /
+        instagramRecords.length;
+      const avgInstagramComments =
+        instagramRecords.reduce((sum, r) => sum + r.commentCount, 0) /
+        instagramRecords.length;
+
       // Instagram typically has more comments relative to views
-      if (avgInstagramViews > 500 && avgInstagramComments / avgInstagramViews < 0.005) {
+      if (
+        avgInstagramViews > 500 &&
+        avgInstagramComments / avgInstagramViews < 0.005
+      ) {
         score += 7; // Low comment rate for Instagram
       }
     }
@@ -299,7 +329,9 @@ export class EnhancedBotAnalyzer {
    * Determine action based on enhanced confidence scoring
    * Requirements: 5.4, 5.5, 5.6 - Confidence-based actions
    */
-  private determineEnhancedAction(botScore: number): 'none' | 'monitor' | 'warning' | 'ban' {
+  private determineEnhancedAction(
+    botScore: number
+  ): 'none' | 'monitor' | 'warning' | 'ban' {
     if (botScore >= this.config.thresholds.highConfidenceBan) {
       return 'ban';
     } else if (botScore >= this.config.thresholds.mediumConfidenceWarning) {
@@ -329,8 +361,8 @@ export class EnhancedBotAnalyzer {
       details: {
         viewsAnalyzed: viewRecords.length,
         suspiciousPatterns: this.extractSuspiciousPatterns(analysis),
-        metrics: analysis.metrics
-      }
+        metrics: analysis.metrics,
+      },
     };
 
     if (analysis.action === 'none') {
@@ -338,7 +370,10 @@ export class EnhancedBotAnalyzer {
     }
 
     try {
-      if (this.config.actions.autoExecute && !this.config.actions.requireConfirmation) {
+      if (
+        this.config.actions.autoExecute &&
+        !this.config.actions.requireConfirmation
+      ) {
         switch (analysis.action) {
           case 'ban':
             // Requirement 5.4: >90% confidence - auto ban and cancel payout
@@ -365,9 +400,12 @@ export class EnhancedBotAnalyzer {
       }
 
       return actionResult;
-
     } catch (error) {
-      await this.logError(analysis.promoterId, analysis.campaignId, error as Error);
+      await this.logError(
+        analysis.promoterId,
+        analysis.campaignId,
+        error as Error
+      );
       return actionResult;
     }
   }
@@ -427,23 +465,34 @@ export class EnhancedBotAnalyzer {
     const patterns: string[] = [];
 
     if (analysis.metrics.viewLikeRatio > 10) {
-      patterns.push(`High view:like ratio (${analysis.metrics.viewLikeRatio.toFixed(1)}:1)`);
+      patterns.push(
+        `High view:like ratio (${analysis.metrics.viewLikeRatio.toFixed(1)}:1)`
+      );
     }
 
     if (analysis.metrics.viewCommentRatio > 100) {
-      patterns.push(`High view:comment ratio (${analysis.metrics.viewCommentRatio.toFixed(1)}:1)`);
+      patterns.push(
+        `High view:comment ratio (${analysis.metrics.viewCommentRatio.toFixed(1)}:1)`
+      );
     }
 
     if (analysis.metrics.spikeDetected) {
-      patterns.push(`View spike detected (${analysis.metrics.spikePercentage?.toFixed(1)}%)`);
+      patterns.push(
+        `View spike detected (${analysis.metrics.spikePercentage?.toFixed(1)}%)`
+      );
     }
 
-    if ((analysis.metrics.totalViews ?? 0) > 0 && (analysis.metrics.totalLikes ?? 0) === 0) {
+    if (
+      (analysis.metrics.totalViews ?? 0) > 0 &&
+      (analysis.metrics.totalLikes ?? 0) === 0
+    ) {
       patterns.push('Zero engagement despite views');
     }
 
     if (analysis.metrics.avgViewsPerMinute > 1000) {
-      patterns.push(`Extremely high view rate (${analysis.metrics.avgViewsPerMinute.toFixed(0)}/min)`);
+      patterns.push(
+        `Extremely high view rate (${analysis.metrics.avgViewsPerMinute.toFixed(0)}/min)`
+      );
     }
 
     return patterns;
@@ -466,27 +515,30 @@ export class EnhancedBotAnalyzer {
       reason: analysisLog.analysis.reason,
       metrics: analysisLog.analysis.metrics,
       actionExecuted: analysisLog.actionResult.executed,
-      processingTime: analysisLog.processingTime
+      processingTime: analysisLog.processingTime,
     };
 
     // Write to daily log file
     const logFileName = `bot-analysis-${new Date().toISOString().split('T')[0]}.log`;
     const logFilePath = path.join(this.config.logging.logPath, logFileName);
-    
+
     const logLine = JSON.stringify(logEntry) + '\n';
     await this.appendToFile(logFilePath, logLine);
 
     // Write detailed analysis if enabled
     if (this.config.logging.detailedAnalysis) {
       const detailedFileName = `detailed-analysis-${new Date().toISOString().split('T')[0]}.log`;
-      const detailedFilePath = path.join(this.config.logging.logPath, detailedFileName);
-      
+      const detailedFilePath = path.join(
+        this.config.logging.logPath,
+        detailedFileName
+      );
+
       const detailedEntry = {
         ...logEntry,
         fullAnalysis: analysisLog.analysis,
-        actionResult: analysisLog.actionResult
+        actionResult: analysisLog.actionResult,
       };
-      
+
       const detailedLine = JSON.stringify(detailedEntry, null, 2) + '\n---\n';
       await this.appendToFile(detailedFilePath, detailedLine);
     }
@@ -508,12 +560,15 @@ export class EnhancedBotAnalyzer {
       campaignId: analysis.campaignId,
       botScore: analysis.botScore,
       reason: analysis.reason,
-      message
+      message,
     };
 
     const actionFileName = `actions-${new Date().toISOString().split('T')[0]}.log`;
-    const actionFilePath = path.join(this.config.logging.logPath, actionFileName);
-    
+    const actionFilePath = path.join(
+      this.config.logging.logPath,
+      actionFileName
+    );
+
     const actionLine = JSON.stringify(actionLog) + '\n';
     await this.appendToFile(actionFilePath, actionLine);
   }
@@ -521,19 +576,23 @@ export class EnhancedBotAnalyzer {
   /**
    * Log errors
    */
-  private async logError(promoterId: string, campaignId: string, error: Error): Promise<void> {
+  private async logError(
+    promoterId: string,
+    campaignId: string,
+    error: Error
+  ): Promise<void> {
     const timestamp = new Date().toISOString();
     const errorLog = {
       timestamp,
       promoterId,
       campaignId,
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     };
 
     const errorFileName = `errors-${new Date().toISOString().split('T')[0]}.log`;
     const errorFilePath = path.join(this.config.logging.logPath, errorFileName);
-    
+
     const errorLine = JSON.stringify(errorLog) + '\n';
     await this.appendToFile(errorFilePath, errorLine);
   }
@@ -541,30 +600,39 @@ export class EnhancedBotAnalyzer {
   /**
    * Notify admins of bot detection actions
    */
-  private async notifyAdmins(analysis: BotAnalysis, actionResult: ActionResult): Promise<void> {
+  private async notifyAdmins(
+    analysis: BotAnalysis,
+    actionResult: ActionResult
+  ): Promise<void> {
     // TODO: Implement admin notification system
     // This would integrate with:
     // 1. Email notifications
     // 2. Admin dashboard alerts
     // 3. Slack/Discord webhooks
     // 4. SMS for critical actions
-    
-    console.log(`ADMIN NOTIFICATION: ${actionResult.action.toUpperCase()} action for promoter ${analysis.promoterId}`);
+
+    console.log(
+      `ADMIN NOTIFICATION: ${actionResult.action.toUpperCase()} action for promoter ${analysis.promoterId}`
+    );
   }
 
   /**
    * Store analysis history for pattern tracking
    */
-  private storeAnalysisHistory(promoterId: string, campaignId: string, analysisLog: AnalysisLog): void {
+  private storeAnalysisHistory(
+    promoterId: string,
+    campaignId: string,
+    analysisLog: AnalysisLog
+  ): void {
     const key = `${promoterId}:${campaignId}`;
-    
+
     if (!this.analysisHistory.has(key)) {
       this.analysisHistory.set(key, []);
     }
-    
+
     const history = this.analysisHistory.get(key)!;
     history.push(analysisLog);
-    
+
     // Keep only last 100 analyses per promoter/campaign
     if (history.length > 100) {
       history.splice(0, history.length - 100);
@@ -613,24 +681,29 @@ export class EnhancedBotAnalyzer {
     recentActivity: number;
   } {
     const allHistory = Array.from(this.analysisHistory.values()).flat();
-    const recentHistory = allHistory.filter(log => 
-      Date.now() - log.timestamp.getTime() < 24 * 60 * 60 * 1000 // Last 24 hours
+    const recentHistory = allHistory.filter(
+      log => Date.now() - log.timestamp.getTime() < 24 * 60 * 60 * 1000 // Last 24 hours
     );
 
-    const actionsSummary = allHistory.reduce((acc, log) => {
-      acc[log.actionResult.action] = (acc[log.actionResult.action] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    const actionsSummary = allHistory.reduce(
+      (acc, log) => {
+        acc[log.actionResult.action] = (acc[log.actionResult.action] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number }
+    );
 
-    const averageConfidence = allHistory.length > 0
-      ? allHistory.reduce((sum, log) => sum + log.analysis.botScore, 0) / allHistory.length
-      : 0;
+    const averageConfidence =
+      allHistory.length > 0
+        ? allHistory.reduce((sum, log) => sum + log.analysis.botScore, 0) /
+          allHistory.length
+        : 0;
 
     return {
       totalAnalyses: allHistory.length,
       actionsSummary,
       averageConfidence,
-      recentActivity: recentHistory.length
+      recentActivity: recentHistory.length,
     };
   }
 
@@ -640,13 +713,13 @@ export class EnhancedBotAnalyzer {
   async start(): Promise<void> {
     this.realTimeAnalyzer.start();
     await this.worker.start();
-    
+
     const startLog = {
       timestamp: new Date().toISOString(),
       event: 'ENHANCED_BOT_ANALYZER_STARTED',
-      config: this.config
+      config: this.config,
     };
-    
+
     const startLogPath = path.join(this.config.logging.logPath, 'system.log');
     await this.appendToFile(startLogPath, JSON.stringify(startLog) + '\n');
   }
@@ -657,13 +730,13 @@ export class EnhancedBotAnalyzer {
   async stop(): Promise<void> {
     this.realTimeAnalyzer.stop();
     await this.worker.stop();
-    
+
     const stopLog = {
       timestamp: new Date().toISOString(),
       event: 'ENHANCED_BOT_ANALYZER_STOPPED',
-      statistics: this.getStatistics()
+      statistics: this.getStatistics(),
     };
-    
+
     const stopLogPath = path.join(this.config.logging.logPath, 'system.log');
     await this.appendToFile(stopLogPath, JSON.stringify(stopLog) + '\n');
   }
@@ -692,14 +765,14 @@ export function getGlobalEnhancedBotAnalyzer(): EnhancedBotAnalyzer {
       actions: {
         autoExecute: true,
         requireConfirmation: false,
-        notifyAdmins: true
+        notifyAdmins: true,
       },
       logging: {
         enabled: true,
         logPath: 'logs/bot-detection/',
         auditTrail: true,
-        detailedAnalysis: true
-      }
+        detailedAnalysis: true,
+      },
     });
   }
   return globalEnhancedAnalyzer;

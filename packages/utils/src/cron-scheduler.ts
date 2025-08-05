@@ -27,21 +27,25 @@ export class CronParser {
     if (intervalMatch) {
       const value = parseInt(intervalMatch[1]);
       const unit = intervalMatch[2];
-      
+
       switch (unit) {
-        case 's': return value * 1000;
-        case 'm': return value * 60 * 1000;
-        case 'h': return value * 60 * 60 * 1000;
-        default: return null;
+        case 's':
+          return value * 1000;
+        case 'm':
+          return value * 60 * 1000;
+        case 'h':
+          return value * 60 * 60 * 1000;
+        default:
+          return null;
       }
     }
-    
+
     // Handle millisecond intervals
     const msMatch = schedule.match(/^(\d+)ms$/);
     if (msMatch) {
       return parseInt(msMatch[1]);
     }
-    
+
     return null;
   }
 
@@ -51,7 +55,7 @@ export class CronParser {
       const baseTime = lastRun || new Date();
       return new Date(baseTime.getTime() + interval);
     }
-    
+
     // For more complex cron expressions, we'd need a full cron parser
     // For now, default to 1 minute interval
     const baseTime = lastRun || new Date();
@@ -86,12 +90,15 @@ export class CronScheduler {
     };
 
     this.jobs.set(job.id, fullJob);
-    
+
     if (this.isRunning && job.enabled) {
       this.scheduleJob(fullJob);
     }
 
-    this.log('info', `Added cron job: ${job.name} (${job.id}) with schedule: ${job.schedule}`);
+    this.log(
+      'info',
+      `Added cron job: ${job.name} (${job.id}) with schedule: ${job.schedule}`
+    );
   }
 
   // Remove a cron job
@@ -139,7 +146,10 @@ export class CronScheduler {
       }
     }
 
-    this.log('info', `${enabled ? 'Enabled' : 'Disabled'} cron job: ${job.name} (${jobId})`);
+    this.log(
+      'info',
+      `${enabled ? 'Enabled' : 'Disabled'} cron job: ${job.name} (${jobId})`
+    );
     return true;
   }
 
@@ -178,7 +188,10 @@ export class CronScheduler {
     this.timers.clear();
 
     // Wait for running jobs to complete (optional)
-    this.log('info', `Waiting for ${this.runningJobs.size} running jobs to complete`);
+    this.log(
+      'info',
+      `Waiting for ${this.runningJobs.size} running jobs to complete`
+    );
   }
 
   // Schedule a specific job
@@ -191,7 +204,8 @@ export class CronScheduler {
 
     // Calculate delay until next run
     const now = new Date();
-    const nextRun = job.nextRun || CronParser.getNextRunTime(job.schedule, job.lastRun);
+    const nextRun =
+      job.nextRun || CronParser.getNextRunTime(job.schedule, job.lastRun);
     const delay = Math.max(0, nextRun.getTime() - now.getTime());
 
     // Schedule the job
@@ -213,7 +227,10 @@ export class CronScheduler {
 
     // Check concurrent job limit
     if (this.runningJobs.size >= this.config.maxConcurrentJobs!) {
-      this.log('warn', `Skipping job ${job.name} - concurrent job limit reached`);
+      this.log(
+        'warn',
+        `Skipping job ${job.name} - concurrent job limit reached`
+      );
       this.scheduleJob(job); // Reschedule for next run
       return;
     }
@@ -230,12 +247,15 @@ export class CronScheduler {
     } catch (error) {
       job.errorCount++;
       job.lastError = error instanceof Error ? error.message : 'Unknown error';
-      
+
       this.log('error', `Job failed: ${job.name} - ${job.lastError}`);
 
       // Optional: implement retry logic here
       if (job.errorCount <= 3) {
-        this.log('info', `Scheduling retry for job: ${job.name} in ${this.config.errorRetryDelay}ms`);
+        this.log(
+          'info',
+          `Scheduling retry for job: ${job.name} in ${this.config.errorRetryDelay}ms`
+        );
         setTimeout(() => {
           if (this.isRunning && job.enabled) {
             this.executeJob(job);
@@ -244,7 +264,7 @@ export class CronScheduler {
       }
     } finally {
       this.runningJobs.delete(job.id);
-      
+
       // Schedule next run
       if (this.isRunning && job.enabled) {
         this.scheduleJob(job);
@@ -271,7 +291,7 @@ export class CronScheduler {
     totalErrors: number;
   } {
     const jobs = Array.from(this.jobs.values());
-    
+
     return {
       totalJobs: jobs.length,
       enabledJobs: jobs.filter(job => job.enabled).length,
@@ -287,7 +307,10 @@ export class CronScheduler {
   }
 
   // Logging utility
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string
+  ): void {
     const levels = ['debug', 'info', 'warn', 'error'];
     const configLevel = levels.indexOf(this.config.logLevel || 'info');
     const messageLevel = levels.indexOf(level);

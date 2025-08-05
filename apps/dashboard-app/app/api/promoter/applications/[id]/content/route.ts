@@ -15,10 +15,12 @@ export async function GET(
 ) {
   try {
     const session = await getSession();
-    
+
     if (!session?.user || (session.user as any).role !== 'promoter') {
       return NextResponse.json(
-        { error: 'Unauthorized - Only promoters can access application content' },
+        {
+          error: 'Unauthorized - Only promoters can access application content',
+        },
         { status: 401 }
       );
     }
@@ -27,14 +29,14 @@ export async function GET(
     const promoterId = (session.user as any).id;
 
     // Get application with campaign info
-    const application = await db.promotion.findFirst({
+    const application = await db.campaignApplication.findFirst({
       where: {
         id: applicationId,
-        promoterId: promoterId
+        promoterId: promoterId,
       },
       include: {
-        campaign: true
-      }
+        campaign: true,
+      },
     });
 
     if (!application) {
@@ -48,7 +50,7 @@ export async function GET(
 
     // TODO: The Promotion model doesn't have status field - need to add application workflow
     // For now, assume all found promotions are approved (can access materials)
-    // if (application.status !== 'approved') {
+    // if (application.status !== 'APPROVED') {
     //   return NextResponse.json(
     //     { error: 'Application must be approved to access materials' },
     //     { status: 403 }
@@ -58,15 +60,15 @@ export async function GET(
     // Get campaign materials
     const materials = await db.campaignMaterial.findMany({
       where: {
-        campaignId: campaign.id
-      }
+        campaignId: campaign.id,
+      },
     });
 
     return NextResponse.json({
       application,
       campaign: {
         id: campaign.id,
-        name: campaign.name, // Using 'name' instead of 'title' based on Prisma schema
+        name: campaign.title, // Using 'name' instead of 'title' based on Prisma schema
         budget: campaign.budget,
         // TODO: Add description and requirements fields to Campaign model
         // description: campaign.description,
@@ -90,10 +92,12 @@ export async function PUT(
 ) {
   try {
     const session = await getSession();
-    
+
     if (!session?.user || (session.user as any).role !== 'promoter') {
       return NextResponse.json(
-        { error: 'Unauthorized - Only promoters can update application content' },
+        {
+          error: 'Unauthorized - Only promoters can update application content',
+        },
         { status: 401 }
       );
     }
@@ -102,11 +106,11 @@ export async function PUT(
     const promoterId = (session.user as any).id;
 
     // Verify application ownership
-    const application = await db.promotion.findFirst({
+    const application = await db.campaignApplication.findFirst({
       where: {
         id: applicationId,
-        promoterId: promoterId
-      }
+        promoterId: promoterId,
+      },
     });
 
     if (!application) {
@@ -118,7 +122,7 @@ export async function PUT(
 
     // TODO: The Promotion model doesn't have status field - need to add application workflow
     // For now, assume all found promotions can be edited
-    // if (application.status !== 'approved') {
+    // if (application.status !== 'APPROVED') {
     //   return NextResponse.json(
     //     { error: 'Only approved applications can be edited' },
     //     { status: 403 }
@@ -131,28 +135,28 @@ export async function PUT(
     // Update application content
     // TODO: The Promotion model doesn't have submittedContent and metadata fields
     // For now, update contentUrl with submittedContent (temporary workaround)
-    const updatedApplication = await db.promotion.update({
+    const updatedApplication = await db.campaignApplication.update({
       where: {
-        id: applicationId
+        id: applicationId,
       },
       data: {
-        contentUrl: validatedData.submittedContent,
+        submittedContent: validatedData.submittedContent,
         // TODO: Add submittedContent and metadata fields to Promotion model
         // submittedContent: validatedData.submittedContent,
         // metadata: validatedData.metadata,
-      }
+      },
     });
 
     return NextResponse.json({
       application: updatedApplication,
-      message: 'Content updated successfully'
+      message: 'Content updated successfully',
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation error',
-          details: error.issues
+          details: error.issues,
         },
         { status: 400 }
       );

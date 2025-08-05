@@ -34,7 +34,8 @@ export function DashboardNav({ user }: DashboardNavProps) {
     { href: '/promoter/analytics', label: 'Analytics', icon: '📈' },
   ];
 
-  const navItems = (user as any).role === 'creator' ? creatorNavItems : promoterNavItems;
+  const navItems =
+    (user as any).role === 'creator' ? creatorNavItems : promoterNavItems;
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -44,9 +45,9 @@ export function DashboardNav({ user }: DashboardNavProps) {
             <Link href="/" className="text-xl font-bold text-blue-600">
               Creator Platform
             </Link>
-            
+
             <div className="hidden md:flex space-x-4">
-              {navItems.map((item) => (
+              {navItems.map(item => (
                 <Link
                   key={item.href}
                   href={item.href}

@@ -24,7 +24,13 @@ export interface PaymentHistoryEntry {
 export interface PaymentAuditLog {
   id: string;
   paymentHistoryId: string;
-  action: 'created' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'retried';
+  action:
+    | 'created'
+    | 'processing'
+    | 'completed'
+    | 'failed'
+    | 'cancelled'
+    | 'retried';
   previousStatus?: string;
   newStatus: string;
   details?: Record<string, any>;
@@ -81,7 +87,14 @@ export const PaymentHistoryEntrySchema = z.object({
 export const PaymentAuditLogSchema = z.object({
   id: z.string().uuid(),
   paymentHistoryId: z.string().uuid(),
-  action: z.enum(['created', 'processing', 'completed', 'failed', 'cancelled', 'retried']),
+  action: z.enum([
+    'created',
+    'processing',
+    'completed',
+    'failed',
+    'cancelled',
+    'retried',
+  ]),
   previousStatus: z.string().optional(),
   newStatus: z.string(),
   details: z.record(z.string(), z.any()).optional(),
@@ -100,7 +113,9 @@ export class PaymentHistoryManager {
   /**
    * Create a new payment history entry
    */
-  async createPaymentHistory(entry: Omit<PaymentHistoryEntry, 'id' | 'createdAt' | 'updatedAt'>): Promise<PaymentHistoryEntry> {
+  async createPaymentHistory(
+    entry: Omit<PaymentHistoryEntry, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<PaymentHistoryEntry> {
     const historyEntry: PaymentHistoryEntry = {
       ...entry,
       id: `hist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -126,7 +141,10 @@ export class PaymentHistoryManager {
       source: 'system',
     });
 
-    this.log('info', `Created payment history entry: ${historyEntry.id} for payout ${entry.payoutId}`);
+    this.log(
+      'info',
+      `Created payment history entry: ${historyEntry.id} for payout ${entry.payoutId}`
+    );
 
     return historyEntry;
   }
@@ -189,7 +207,10 @@ export class PaymentHistoryManager {
       source: 'gateway',
     });
 
-    this.log('info', `Updated payment status: ${historyId} from ${previousStatus} to ${status}`);
+    this.log(
+      'info',
+      `Updated payment status: ${historyId} from ${previousStatus} to ${status}`
+    );
 
     return entry;
   }
@@ -197,7 +218,10 @@ export class PaymentHistoryManager {
   /**
    * Increment retry count
    */
-  async incrementRetryCount(historyId: string, retryDetails?: Record<string, any>): Promise<PaymentHistoryEntry> {
+  async incrementRetryCount(
+    historyId: string,
+    retryDetails?: Record<string, any>
+  ): Promise<PaymentHistoryEntry> {
     const entry = this.historyEntries.get(historyId);
     if (!entry) {
       throw new Error(`Payment history entry not found: ${historyId}`);
@@ -218,7 +242,10 @@ export class PaymentHistoryManager {
       source: 'system',
     });
 
-    this.log('info', `Incremented retry count for payment: ${historyId} (attempt ${entry.retryCount})`);
+    this.log(
+      'info',
+      `Incremented retry count for payment: ${historyId} (attempt ${entry.retryCount})`
+    );
 
     return entry;
   }
@@ -226,14 +253,18 @@ export class PaymentHistoryManager {
   /**
    * Get payment history by ID
    */
-  async getPaymentHistory(historyId: string): Promise<PaymentHistoryEntry | null> {
+  async getPaymentHistory(
+    historyId: string
+  ): Promise<PaymentHistoryEntry | null> {
     return this.historyEntries.get(historyId) || null;
   }
 
   /**
    * Get payment history by payout ID
    */
-  async getPaymentHistoryByPayout(payoutId: string): Promise<PaymentHistoryEntry[]> {
+  async getPaymentHistoryByPayout(
+    payoutId: string
+  ): Promise<PaymentHistoryEntry[]> {
     return Array.from(this.historyEntries.values())
       .filter(entry => entry.payoutId === payoutId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -251,8 +282,9 @@ export class PaymentHistoryManager {
       limit?: number;
     }
   ): Promise<PaymentHistoryEntry[]> {
-    let entries = Array.from(this.historyEntries.values())
-      .filter(entry => entry.promoterId === promoterId);
+    let entries = Array.from(this.historyEntries.values()).filter(
+      entry => entry.promoterId === promoterId
+    );
 
     // Apply filters
     if (filters?.status) {
@@ -323,19 +355,21 @@ export class PaymentHistoryManager {
       status?: PaymentHistoryEntry['status'];
     }
   ): Promise<PaymentSummary> {
-    let entries = Array.from(this.historyEntries.values())
-      .filter(entry => 
-        entry.createdAt >= startDate && 
-        entry.createdAt <= endDate
-      );
+    let entries = Array.from(this.historyEntries.values()).filter(
+      entry => entry.createdAt >= startDate && entry.createdAt <= endDate
+    );
 
     // Apply filters
     if (filters?.promoterId) {
-      entries = entries.filter(entry => entry.promoterId === filters.promoterId);
+      entries = entries.filter(
+        entry => entry.promoterId === filters.promoterId
+      );
     }
 
     if (filters?.campaignId) {
-      entries = entries.filter(entry => entry.campaignId === filters.campaignId);
+      entries = entries.filter(
+        entry => entry.campaignId === filters.campaignId
+      );
     }
 
     if (filters?.status) {
@@ -356,14 +390,24 @@ export class PaymentHistoryManager {
     };
 
     const amountBreakdown = {
-      completed: entries.filter(e => e.status === 'completed').reduce((sum, e) => sum + e.amount, 0),
-      failed: entries.filter(e => e.status === 'failed').reduce((sum, e) => sum + e.amount, 0),
-      pending: entries.filter(e => e.status === 'pending' || e.status === 'processing').reduce((sum, e) => sum + e.amount, 0),
+      completed: entries
+        .filter(e => e.status === 'completed')
+        .reduce((sum, e) => sum + e.amount, 0),
+      failed: entries
+        .filter(e => e.status === 'failed')
+        .reduce((sum, e) => sum + e.amount, 0),
+      pending: entries
+        .filter(e => e.status === 'pending' || e.status === 'processing')
+        .reduce((sum, e) => sum + e.amount, 0),
     };
 
     const averageAmount = totalPayments > 0 ? totalAmount / totalPayments : 0;
-    const successRate = totalPayments > 0 ? (statusBreakdown.completed / totalPayments) * 100 : 0;
-    const retryRate = totalPayments > 0 ? (entries.filter(e => e.retryCount > 0).length / totalPayments) * 100 : 0;
+    const successRate =
+      totalPayments > 0 ? (statusBreakdown.completed / totalPayments) * 100 : 0;
+    const retryRate =
+      totalPayments > 0
+        ? (entries.filter(e => e.retryCount > 0).length / totalPayments) * 100
+        : 0;
 
     return {
       period: { start: startDate, end: endDate },
@@ -385,17 +429,17 @@ export class PaymentHistoryManager {
     maxRetries: number = 3,
     olderThan?: Date
   ): Promise<PaymentHistoryEntry[]> {
-    let entries = Array.from(this.historyEntries.values())
-      .filter(entry => 
-        entry.status === 'failed' && 
-        entry.retryCount < maxRetries
-      );
+    let entries = Array.from(this.historyEntries.values()).filter(
+      entry => entry.status === 'failed' && entry.retryCount < maxRetries
+    );
 
     if (olderThan) {
       entries = entries.filter(entry => entry.updatedAt < olderThan);
     }
 
-    return entries.sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime());
+    return entries.sort(
+      (a, b) => a.updatedAt.getTime() - b.updatedAt.getTime()
+    );
   }
 
   /**
@@ -410,19 +454,21 @@ export class PaymentHistoryManager {
       status?: PaymentHistoryEntry['status'];
     }
   ): Promise<string> {
-    let entries = Array.from(this.historyEntries.values())
-      .filter(entry => 
-        entry.createdAt >= startDate && 
-        entry.createdAt <= endDate
-      );
+    let entries = Array.from(this.historyEntries.values()).filter(
+      entry => entry.createdAt >= startDate && entry.createdAt <= endDate
+    );
 
     // Apply filters
     if (filters?.promoterId) {
-      entries = entries.filter(entry => entry.promoterId === filters.promoterId);
+      entries = entries.filter(
+        entry => entry.promoterId === filters.promoterId
+      );
     }
 
     if (filters?.campaignId) {
-      entries = entries.filter(entry => entry.campaignId === filters.campaignId);
+      entries = entries.filter(
+        entry => entry.campaignId === filters.campaignId
+      );
     }
 
     if (filters?.status) {
@@ -486,14 +532,17 @@ export class PaymentHistoryManager {
     averageRetryCount: number;
   } {
     const entries = Array.from(this.historyEntries.values());
-    const totalAuditLogs = Array.from(this.auditLogs.values())
-      .reduce((sum, logs) => sum + logs.length, 0);
+    const totalAuditLogs = Array.from(this.auditLogs.values()).reduce(
+      (sum, logs) => sum + logs.length,
+      0
+    );
 
     const statusDistribution: Record<string, number> = {};
     let totalRetries = 0;
 
     entries.forEach(entry => {
-      statusDistribution[entry.status] = (statusDistribution[entry.status] || 0) + 1;
+      statusDistribution[entry.status] =
+        (statusDistribution[entry.status] || 0) + 1;
       totalRetries += entry.retryCount;
     });
 
@@ -528,7 +577,11 @@ export class PaymentHistoryManager {
   /**
    * Logging utility
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    ...args: any[]
+  ): void {
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}] [${level.toUpperCase()}] [PaymentHistoryManager]`;
     switch (level) {
@@ -554,27 +607,36 @@ export const createPaymentHistoryManager = () => {
 };
 
 // Export helper functions
-export const formatPaymentAmount = (amount: number, currency: string = 'IDR'): string => {
+export const formatPaymentAmount = (
+  amount: number,
+  currency: string = 'IDR'
+): string => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount).replace(/^Rp\s+/, 'Rp');
+  })
+    .format(amount)
+    .replace(/^Rp\s+/, 'Rp');
 };
 
-export const calculatePaymentDuration = (entry: PaymentHistoryEntry): number | null => {
+export const calculatePaymentDuration = (
+  entry: PaymentHistoryEntry
+): number | null => {
   if (!entry.completedAt) return null;
   return entry.completedAt.getTime() - entry.createdAt.getTime();
 };
 
-export const getPaymentStatusColor = (status: PaymentHistoryEntry['status']): string => {
+export const getPaymentStatusColor = (
+  status: PaymentHistoryEntry['status']
+): string => {
   const colors = {
-    pending: '#FFA500',    // Orange
+    pending: '#FFA500', // Orange
     processing: '#0066CC', // Blue
-    completed: '#00AA00',  // Green
-    failed: '#CC0000',     // Red
-    cancelled: '#666666',  // Gray
+    completed: '#00AA00', // Green
+    failed: '#CC0000', // Red
+    cancelled: '#666666', // Gray
   };
   return colors[status] || '#000000';
 };

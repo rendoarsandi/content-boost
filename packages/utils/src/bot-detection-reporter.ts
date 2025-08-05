@@ -133,9 +133,9 @@ export class BotDetectionReporter {
         daily: true,
         weekly: true,
         monthly: true,
-        realTime: false
+        realTime: false,
       },
-      ...config
+      ...config,
     };
 
     this.ensureReportDirectories();
@@ -146,9 +146,9 @@ export class BotDetectionReporter {
    */
   addAnalysisData(analysisLog: AnalysisLog): void {
     this.analysisData.push(analysisLog);
-    
+
     // Keep only recent data in memory (last 30 days)
-    const cutoffTime = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const cutoffTime = Date.now() - 30 * 24 * 60 * 60 * 1000;
     this.analysisData = this.analysisData.filter(
       log => log.timestamp.getTime() > cutoffTime
     );
@@ -159,9 +159,9 @@ export class BotDetectionReporter {
    */
   addAlertData(alertEvent: AlertEvent): void {
     this.alertData.push(alertEvent);
-    
+
     // Keep only recent data in memory (last 30 days)
-    const cutoffTime = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const cutoffTime = Date.now() - 30 * 24 * 60 * 60 * 1000;
     this.alertData = this.alertData.filter(
       alert => alert.timestamp.getTime() > cutoffTime
     );
@@ -172,9 +172,9 @@ export class BotDetectionReporter {
    */
   addAuditData(auditEntry: AuditLogEntry): void {
     this.auditData.push(auditEntry);
-    
+
     // Keep only recent data in memory (last 30 days)
-    const cutoffTime = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const cutoffTime = Date.now() - 30 * 24 * 60 * 60 * 1000;
     this.auditData = this.auditData.filter(
       entry => entry.timestamp.getTime() > cutoffTime
     );
@@ -187,33 +187,37 @@ export class BotDetectionReporter {
   async generateDailySummary(date?: Date): Promise<DailySummary> {
     const targetDate = date || new Date();
     const dateStr = targetDate.toISOString().split('T')[0];
-    
+
     // Filter data for the target date
     const dayStart = new Date(targetDate);
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(targetDate);
     dayEnd.setHours(23, 59, 59, 999);
 
-    const dayAnalyses = this.analysisData.filter(log => 
-      log.timestamp >= dayStart && log.timestamp <= dayEnd
+    const dayAnalyses = this.analysisData.filter(
+      log => log.timestamp >= dayStart && log.timestamp <= dayEnd
     );
 
-    const dayAlerts = this.alertData.filter(alert => 
-      alert.timestamp >= dayStart && alert.timestamp <= dayEnd
+    const dayAlerts = this.alertData.filter(
+      alert => alert.timestamp >= dayStart && alert.timestamp <= dayEnd
     );
 
     // Calculate bot detections
     const botDetections = {
       banned: dayAnalyses.filter(log => log.analysis.action === 'ban').length,
-      warned: dayAnalyses.filter(log => log.analysis.action === 'warning').length,
-      monitored: dayAnalyses.filter(log => log.analysis.action === 'monitor').length,
-      clean: dayAnalyses.filter(log => log.analysis.action === 'none').length
+      warned: dayAnalyses.filter(log => log.analysis.action === 'warning')
+        .length,
+      monitored: dayAnalyses.filter(log => log.analysis.action === 'monitor')
+        .length,
+      clean: dayAnalyses.filter(log => log.analysis.action === 'none').length,
     };
 
     // Calculate average bot score
-    const averageBotScore = dayAnalyses.length > 0
-      ? dayAnalyses.reduce((sum, log) => sum + log.analysis.botScore, 0) / dayAnalyses.length
-      : 0;
+    const averageBotScore =
+      dayAnalyses.length > 0
+        ? dayAnalyses.reduce((sum, log) => sum + log.analysis.botScore, 0) /
+          dayAnalyses.length
+        : 0;
 
     // Get top suspicious promoters
     const suspiciousPromoters = dayAnalyses
@@ -224,7 +228,7 @@ export class BotDetectionReporter {
         promoterId: log.promoterId,
         campaignId: log.campaignId,
         botScore: log.analysis.botScore,
-        action: log.analysis.action
+        action: log.analysis.action,
       }));
 
     // Calculate alerts summary
@@ -232,36 +236,47 @@ export class BotDetectionReporter {
       critical: dayAlerts.filter(alert => alert.severity === 'CRITICAL').length,
       high: dayAlerts.filter(alert => alert.severity === 'HIGH').length,
       medium: dayAlerts.filter(alert => alert.severity === 'MEDIUM').length,
-      low: dayAlerts.filter(alert => alert.severity === 'LOW').length
+      low: dayAlerts.filter(alert => alert.severity === 'LOW').length,
     };
 
     // Platform breakdown (assuming platform info is available in analysis)
     const platformBreakdown = {
       tiktok: {
-        analyses: dayAnalyses.filter(log => 
-          log.analysis.metrics && (log.analysis.metrics as any).platform === 'tiktok'
+        analyses: dayAnalyses.filter(
+          log =>
+            log.analysis.metrics &&
+            (log.analysis.metrics as any).platform === 'tiktok'
         ).length,
-        botDetections: dayAnalyses.filter(log => 
-          (log.analysis.metrics as any)?.platform === 'tiktok' && log.analysis.action !== 'none'
-        ).length
+        botDetections: dayAnalyses.filter(
+          log =>
+            (log.analysis.metrics as any)?.platform === 'tiktok' &&
+            log.analysis.action !== 'none'
+        ).length,
       },
       instagram: {
-        analyses: dayAnalyses.filter(log => 
-          (log.analysis.metrics as any)?.platform === 'instagram'
+        analyses: dayAnalyses.filter(
+          log => (log.analysis.metrics as any)?.platform === 'instagram'
         ).length,
-        botDetections: dayAnalyses.filter(log => 
-          (log.analysis.metrics as any)?.platform === 'instagram' && log.analysis.action !== 'none'
-        ).length
-      }
+        botDetections: dayAnalyses.filter(
+          log =>
+            (log.analysis.metrics as any)?.platform === 'instagram' &&
+            log.analysis.action !== 'none'
+        ).length,
+      },
     };
 
     // Performance metrics
     const processingTimes = dayAnalyses.map(log => log.processingTime);
-    const averageProcessingTime = processingTimes.length > 0
-      ? processingTimes.reduce((sum, time) => sum + time, 0) / processingTimes.length
-      : 0;
+    const averageProcessingTime =
+      processingTimes.length > 0
+        ? processingTimes.reduce((sum, time) => sum + time, 0) /
+          processingTimes.length
+        : 0;
 
-    const totalProcessingTime = processingTimes.reduce((sum, time) => sum + time, 0);
+    const totalProcessingTime = processingTimes.reduce(
+      (sum, time) => sum + time,
+      0
+    );
 
     // Find peak analysis hour
     const hourCounts = new Array(24).fill(0);
@@ -282,8 +297,8 @@ export class BotDetectionReporter {
       performanceMetrics: {
         averageProcessingTime,
         totalProcessingTime,
-        peakAnalysisHour
-      }
+        peakAnalysisHour,
+      },
     };
 
     // Save the summary
@@ -303,22 +318,26 @@ export class BotDetectionReporter {
     endDate.setHours(23, 59, 59, 999);
 
     // Filter data for the week
-    const weekAnalyses = this.analysisData.filter(log => 
-      log.timestamp >= startDate && log.timestamp <= endDate
+    const weekAnalyses = this.analysisData.filter(
+      log => log.timestamp >= startDate && log.timestamp <= endDate
     );
 
-    const weekAlerts = this.alertData.filter(alert => 
-      alert.timestamp >= startDate && alert.timestamp <= endDate
+    const weekAlerts = this.alertData.filter(
+      alert => alert.timestamp >= startDate && alert.timestamp <= endDate
     );
 
     // Calculate trends
-    const botDetectionRate = weekAnalyses.length > 0
-      ? weekAnalyses.filter(log => log.analysis.action !== 'none').length / weekAnalyses.length
-      : 0;
+    const botDetectionRate =
+      weekAnalyses.length > 0
+        ? weekAnalyses.filter(log => log.analysis.action !== 'none').length /
+          weekAnalyses.length
+        : 0;
 
-    const averageBotScore = weekAnalyses.length > 0
-      ? weekAnalyses.reduce((sum, log) => sum + log.analysis.botScore, 0) / weekAnalyses.length
-      : 0;
+    const averageBotScore =
+      weekAnalyses.length > 0
+        ? weekAnalyses.reduce((sum, log) => sum + log.analysis.botScore, 0) /
+          weekAnalyses.length
+        : 0;
 
     // Find most active day
     const dayCounts = new Array(7).fill(0);
@@ -327,7 +346,15 @@ export class BotDetectionReporter {
       dayCounts[dayOfWeek]++;
     });
     const mostActiveDayIndex = dayCounts.indexOf(Math.max(...dayCounts));
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
     const mostActiveDay = dayNames[mostActiveDayIndex];
 
     // Find peak hours
@@ -343,12 +370,15 @@ export class BotDetectionReporter {
       .map(item => item.hour);
 
     // Top problematic campaigns
-    const campaignStats = new Map<string, {
-      botDetections: number;
-      totalAnalyses: number;
-      botScores: number[];
-      actions: { banned: number; warned: number; monitored: number };
-    }>();
+    const campaignStats = new Map<
+      string,
+      {
+        botDetections: number;
+        totalAnalyses: number;
+        botScores: number[];
+        actions: { banned: number; warned: number; monitored: number };
+      }
+    >();
 
     weekAnalyses.forEach(log => {
       const campaignId = log.campaignId;
@@ -357,7 +387,7 @@ export class BotDetectionReporter {
           botDetections: 0,
           totalAnalyses: 0,
           botScores: [],
-          actions: { banned: 0, warned: 0, monitored: 0 }
+          actions: { banned: 0, warned: 0, monitored: 0 },
         });
       }
 
@@ -385,8 +415,10 @@ export class BotDetectionReporter {
       .map(([campaignId, stats]) => ({
         campaignId,
         botDetections: stats.botDetections,
-        averageBotScore: stats.botScores.reduce((sum, score) => sum + score, 0) / stats.botScores.length,
-        actionsCount: stats.actions
+        averageBotScore:
+          stats.botScores.reduce((sum, score) => sum + score, 0) /
+          stats.botScores.length,
+        actionsCount: stats.actions,
       }))
       .sort((a, b) => b.botDetections - a.botDetections)
       .slice(0, 10);
@@ -395,8 +427,11 @@ export class BotDetectionReporter {
     const systemHealth = {
       uptime: 99.9, // Placeholder
       errorRate: 0.1, // Placeholder
-      averageResponseTime: averageBotScore > 0 ? 
-        weekAnalyses.reduce((sum, log) => sum + log.processingTime, 0) / weekAnalyses.length : 0
+      averageResponseTime:
+        averageBotScore > 0
+          ? weekAnalyses.reduce((sum, log) => sum + log.processingTime, 0) /
+            weekAnalyses.length
+          : 0,
     };
 
     // Generate recommendations
@@ -414,11 +449,11 @@ export class BotDetectionReporter {
         botDetectionRate,
         averageBotScore,
         mostActiveDay,
-        peakHours
+        peakHours,
       },
       topProblematicCampaigns,
       systemHealth,
-      recommendations
+      recommendations,
     };
 
     // Save the summary
@@ -431,7 +466,10 @@ export class BotDetectionReporter {
    * Generate monthly summary report
    * Requirement 10.3: Monthly summary files
    */
-  async generateMonthlySummary(month?: number, year?: number): Promise<MonthlySummary> {
+  async generateMonthlySummary(
+    month?: number,
+    year?: number
+  ): Promise<MonthlySummary> {
     const now = new Date();
     const targetMonth = month || now.getMonth();
     const targetYear = year || now.getFullYear();
@@ -440,30 +478,41 @@ export class BotDetectionReporter {
     const monthEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59, 999);
 
     // Filter data for the month
-    const monthAnalyses = this.analysisData.filter(log => 
-      log.timestamp >= monthStart && log.timestamp <= monthEnd
+    const monthAnalyses = this.analysisData.filter(
+      log => log.timestamp >= monthStart && log.timestamp <= monthEnd
     );
 
-    const monthAlerts = this.alertData.filter(alert => 
-      alert.timestamp >= monthStart && alert.timestamp <= monthEnd
+    const monthAlerts = this.alertData.filter(
+      alert => alert.timestamp >= monthStart && alert.timestamp <= monthEnd
     );
 
     // Overview metrics
-    const totalBotDetections = monthAnalyses.filter(log => log.analysis.action !== 'none').length;
+    const totalBotDetections = monthAnalyses.filter(
+      log => log.analysis.action !== 'none'
+    ).length;
     const detectionAccuracy = 95.5; // Placeholder - would need validation data
     const falsePositiveRate = 4.5; // Placeholder - would need validation data
 
     // Trends (placeholder calculations)
     const monthlyGrowth = 15.2; // Placeholder
-    const seasonalPatterns = ['Higher activity on weekends', 'Peak hours: 8-10 PM'];
-    const emergingThreats = ['Coordinated bot networks', 'AI-generated engagement'];
+    const seasonalPatterns = [
+      'Higher activity on weekends',
+      'Peak hours: 8-10 PM',
+    ];
+    const emergingThreats = [
+      'Coordinated bot networks',
+      'AI-generated engagement',
+    ];
 
     // Top problematic promoters
-    const promoterStats = new Map<string, {
-      violations: number;
-      botScores: number[];
-      lastAction: string;
-    }>();
+    const promoterStats = new Map<
+      string,
+      {
+        violations: number;
+        botScores: number[];
+        lastAction: string;
+      }
+    >();
 
     monthAnalyses.forEach(log => {
       const promoterId = log.promoterId;
@@ -471,13 +520,13 @@ export class BotDetectionReporter {
         promoterStats.set(promoterId, {
           violations: 0,
           botScores: [],
-          lastAction: 'none'
+          lastAction: 'none',
         });
       }
 
       const stats = promoterStats.get(promoterId)!;
       stats.botScores.push(log.analysis.botScore);
-      
+
       if (log.analysis.action !== 'none') {
         stats.violations++;
         stats.lastAction = log.analysis.action;
@@ -488,20 +537,32 @@ export class BotDetectionReporter {
       .map(([promoterId, stats]) => ({
         promoterId,
         totalViolations: stats.violations,
-        averageBotScore: stats.botScores.reduce((sum, score) => sum + score, 0) / stats.botScores.length,
-        status: stats.lastAction === 'ban' ? 'BANNED' : 
-                stats.lastAction === 'warning' ? 'WARNING' : 'ACTIVE'
+        averageBotScore:
+          stats.botScores.reduce((sum, score) => sum + score, 0) /
+          stats.botScores.length,
+        status:
+          stats.lastAction === 'ban'
+            ? 'BANNED'
+            : stats.lastAction === 'warning'
+              ? 'WARNING'
+              : 'ACTIVE',
       }))
       .sort((a, b) => b.totalViolations - a.totalViolations)
       .slice(0, 20);
 
     // Campaign risk analysis
-    const campaignRisks = Array.from(new Set(monthAnalyses.map(log => log.campaignId)))
+    const campaignRisks = Array.from(
+      new Set(monthAnalyses.map(log => log.campaignId))
+    )
       .map(campaignId => {
-        const campaignAnalyses = monthAnalyses.filter(log => log.campaignId === campaignId);
-        const botDetections = campaignAnalyses.filter(log => log.analysis.action !== 'none').length;
+        const campaignAnalyses = monthAnalyses.filter(
+          log => log.campaignId === campaignId
+        );
+        const botDetections = campaignAnalyses.filter(
+          log => log.analysis.action !== 'none'
+        ).length;
         const botDetectionRate = botDetections / campaignAnalyses.length;
-        
+
         let riskLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'LOW';
         if (botDetectionRate > 0.3) riskLevel = 'HIGH';
         else if (botDetectionRate > 0.1) riskLevel = 'MEDIUM';
@@ -509,7 +570,7 @@ export class BotDetectionReporter {
         return {
           campaignId,
           riskLevel,
-          botDetectionRate
+          botDetectionRate,
         };
       })
       .sort((a, b) => b.botDetectionRate - a.botDetectionRate)
@@ -517,15 +578,17 @@ export class BotDetectionReporter {
 
     // System performance
     const processingTimes = monthAnalyses.map(log => log.processingTime);
-    const averageProcessingTime = processingTimes.length > 0
-      ? processingTimes.reduce((sum, time) => sum + time, 0) / processingTimes.length
-      : 0;
+    const averageProcessingTime =
+      processingTimes.length > 0
+        ? processingTimes.reduce((sum, time) => sum + time, 0) /
+          processingTimes.length
+        : 0;
 
     // Business impact (placeholder calculations)
     const businessImpact = {
       fraudPrevented: totalBotDetections * 1000, // Placeholder: avg fraud value per detection
       legitimateViewsProtected: monthAnalyses.length * 500, // Placeholder
-      platformFeesSaved: totalBotDetections * 50 // Placeholder: avg fee saved per detection
+      platformFeesSaved: totalBotDetections * 50, // Placeholder: avg fee saved per detection
     };
 
     const summary: MonthlySummary = {
@@ -535,28 +598,33 @@ export class BotDetectionReporter {
         totalAnalyses: monthAnalyses.length,
         totalBotDetections,
         detectionAccuracy,
-        falsePositiveRate
+        falsePositiveRate,
       },
       trends: {
         monthlyGrowth,
         seasonalPatterns,
-        emergingThreats
+        emergingThreats,
       },
       topMetrics: {
         mostProblematicPromoters,
-        campaignRiskAnalysis: campaignRisks
+        campaignRiskAnalysis: campaignRisks,
       },
       systemPerformance: {
         averageProcessingTime,
         systemReliability: 99.8, // Placeholder
         scalabilityMetrics: {
-          peakThroughput: Math.max(...Array.from({ length: 24 }, (_, i) => 
-            monthAnalyses.filter(log => log.timestamp.getHours() === i).length
-          )),
-          averageThroughput: monthAnalyses.length / (24 * 30) // Per hour average
-        }
+          peakThroughput: Math.max(
+            ...Array.from(
+              { length: 24 },
+              (_, i) =>
+                monthAnalyses.filter(log => log.timestamp.getHours() === i)
+                  .length
+            )
+          ),
+          averageThroughput: monthAnalyses.length / (24 * 30), // Per hour average
+        },
       },
-      businessImpact
+      businessImpact,
     };
 
     // Save the summary
@@ -576,24 +644,36 @@ export class BotDetectionReporter {
     const recommendations: string[] = [];
 
     if (botDetectionRate > 0.2) {
-      recommendations.push('High bot detection rate detected. Consider reviewing campaign requirements and promoter vetting process.');
+      recommendations.push(
+        'High bot detection rate detected. Consider reviewing campaign requirements and promoter vetting process.'
+      );
     }
 
     if (alerts.filter(a => a.severity === 'CRITICAL').length > 5) {
-      recommendations.push('Multiple critical alerts this week. Implement stricter monitoring thresholds.');
+      recommendations.push(
+        'Multiple critical alerts this week. Implement stricter monitoring thresholds.'
+      );
     }
 
-    const avgBotScore = analyses.reduce((sum, log) => sum + log.analysis.botScore, 0) / analyses.length;
+    const avgBotScore =
+      analyses.reduce((sum, log) => sum + log.analysis.botScore, 0) /
+      analyses.length;
     if (avgBotScore > 30) {
-      recommendations.push('Average bot confidence score is elevated. Consider enhancing detection algorithms.');
+      recommendations.push(
+        'Average bot confidence score is elevated. Consider enhancing detection algorithms.'
+      );
     }
 
     if (analyses.length > 1000) {
-      recommendations.push('High analysis volume detected. Consider scaling infrastructure for better performance.');
+      recommendations.push(
+        'High analysis volume detected. Consider scaling infrastructure for better performance.'
+      );
     }
 
     if (recommendations.length === 0) {
-      recommendations.push('System performing within normal parameters. Continue monitoring.');
+      recommendations.push(
+        'System performing within normal parameters. Continue monitoring.'
+      );
     }
 
     return recommendations;
@@ -604,19 +684,29 @@ export class BotDetectionReporter {
    */
   private async saveDailySummary(summary: DailySummary): Promise<void> {
     const filename = `daily-summary-${summary.date}`;
-    
+
     for (const format of this.config.formats) {
-      const filePath = path.join(this.config.reportPath, 'daily', `${filename}.${format}`);
-      
+      const filePath = path.join(
+        this.config.reportPath,
+        'daily',
+        `${filename}.${format}`
+      );
+
       switch (format) {
         case 'json':
           await this.saveAsJSON(filePath, summary);
           break;
         case 'csv':
-          await this.saveAsCSV(filePath, this.convertDailySummaryToCSV(summary));
+          await this.saveAsCSV(
+            filePath,
+            this.convertDailySummaryToCSV(summary)
+          );
           break;
         case 'html':
-          await this.saveAsHTML(filePath, this.generateDailySummaryHTML(summary));
+          await this.saveAsHTML(
+            filePath,
+            this.generateDailySummaryHTML(summary)
+          );
           break;
       }
     }
@@ -627,16 +717,23 @@ export class BotDetectionReporter {
    */
   private async saveWeeklySummary(summary: WeeklySummary): Promise<void> {
     const filename = `weekly-summary-${summary.weekStart}-to-${summary.weekEnd}`;
-    
+
     for (const format of this.config.formats) {
-      const filePath = path.join(this.config.reportPath, 'weekly', `${filename}.${format}`);
-      
+      const filePath = path.join(
+        this.config.reportPath,
+        'weekly',
+        `${filename}.${format}`
+      );
+
       switch (format) {
         case 'json':
           await this.saveAsJSON(filePath, summary);
           break;
         case 'html':
-          await this.saveAsHTML(filePath, this.generateWeeklySummaryHTML(summary));
+          await this.saveAsHTML(
+            filePath,
+            this.generateWeeklySummaryHTML(summary)
+          );
           break;
       }
     }
@@ -647,16 +744,23 @@ export class BotDetectionReporter {
    */
   private async saveMonthlySummary(summary: MonthlySummary): Promise<void> {
     const filename = `monthly-summary-${summary.year}-${summary.month.toLowerCase()}`;
-    
+
     for (const format of this.config.formats) {
-      const filePath = path.join(this.config.reportPath, 'monthly', `${filename}.${format}`);
-      
+      const filePath = path.join(
+        this.config.reportPath,
+        'monthly',
+        `${filename}.${format}`
+      );
+
       switch (format) {
         case 'json':
           await this.saveAsJSON(filePath, summary);
           break;
         case 'html':
-          await this.saveAsHTML(filePath, this.generateMonthlySummaryHTML(summary));
+          await this.saveAsHTML(
+            filePath,
+            this.generateMonthlySummaryHTML(summary)
+          );
           break;
       }
     }
@@ -667,7 +771,11 @@ export class BotDetectionReporter {
    */
   private async saveAsJSON(filePath: string, data: any): Promise<void> {
     await this.ensureDirectoryExists(path.dirname(filePath));
-    await fs.promises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+    await fs.promises.writeFile(
+      filePath,
+      JSON.stringify(data, null, 2),
+      'utf8'
+    );
   }
 
   /**
@@ -681,7 +789,10 @@ export class BotDetectionReporter {
   /**
    * Save data as HTML
    */
-  private async saveAsHTML(filePath: string, htmlContent: string): Promise<void> {
+  private async saveAsHTML(
+    filePath: string,
+    htmlContent: string
+  ): Promise<void> {
     await this.ensureDirectoryExists(path.dirname(filePath));
     await fs.promises.writeFile(filePath, htmlContent, 'utf8');
   }
@@ -691,10 +802,23 @@ export class BotDetectionReporter {
    */
   private convertDailySummaryToCSV(summary: DailySummary): string {
     const headers = [
-      'Date', 'Total Analyses', 'Banned', 'Warned', 'Monitored', 'Clean',
-      'Average Bot Score', 'Critical Alerts', 'High Alerts', 'Medium Alerts', 'Low Alerts',
-      'TikTok Analyses', 'TikTok Bot Detections', 'Instagram Analyses', 'Instagram Bot Detections',
-      'Average Processing Time', 'Peak Analysis Hour'
+      'Date',
+      'Total Analyses',
+      'Banned',
+      'Warned',
+      'Monitored',
+      'Clean',
+      'Average Bot Score',
+      'Critical Alerts',
+      'High Alerts',
+      'Medium Alerts',
+      'Low Alerts',
+      'TikTok Analyses',
+      'TikTok Bot Detections',
+      'Instagram Analyses',
+      'Instagram Bot Detections',
+      'Average Processing Time',
+      'Peak Analysis Hour',
     ];
 
     const row = [
@@ -714,7 +838,7 @@ export class BotDetectionReporter {
       summary.platformBreakdown.instagram.analyses,
       summary.platformBreakdown.instagram.botDetections,
       summary.performanceMetrics.averageProcessingTime.toFixed(2),
-      summary.performanceMetrics.peakAnalysisHour
+      summary.performanceMetrics.peakAnalysisHour,
     ];
 
     return headers.join(',') + '\n' + row.join(',');
@@ -774,14 +898,18 @@ export class BotDetectionReporter {
             <th>Bot Score</th>
             <th>Action</th>
         </tr>
-        ${summary.topSuspiciousPromoters.map(promoter => `
+        ${summary.topSuspiciousPromoters
+          .map(
+            promoter => `
         <tr>
             <td>${promoter.promoterId}</td>
             <td>${promoter.campaignId}</td>
             <td>${promoter.botScore.toFixed(2)}%</td>
             <td>${promoter.action.toUpperCase()}</td>
         </tr>
-        `).join('')}
+        `
+          )
+          .join('')}
     </table>
 
     <h3>Alerts Summary</h3>
@@ -804,15 +932,29 @@ export class BotDetectionReporter {
             <td>TikTok</td>
             <td>${summary.platformBreakdown.tiktok.analyses}</td>
             <td>${summary.platformBreakdown.tiktok.botDetections}</td>
-            <td>${summary.platformBreakdown.tiktok.analyses > 0 ? 
-                (summary.platformBreakdown.tiktok.botDetections / summary.platformBreakdown.tiktok.analyses * 100).toFixed(2) : 0}%</td>
+            <td>${
+              summary.platformBreakdown.tiktok.analyses > 0
+                ? (
+                    (summary.platformBreakdown.tiktok.botDetections /
+                      summary.platformBreakdown.tiktok.analyses) *
+                    100
+                  ).toFixed(2)
+                : 0
+            }%</td>
         </tr>
         <tr>
             <td>Instagram</td>
             <td>${summary.platformBreakdown.instagram.analyses}</td>
             <td>${summary.platformBreakdown.instagram.botDetections}</td>
-            <td>${summary.platformBreakdown.instagram.analyses > 0 ? 
-                (summary.platformBreakdown.instagram.botDetections / summary.platformBreakdown.instagram.analyses * 100).toFixed(2) : 0}%</td>
+            <td>${
+              summary.platformBreakdown.instagram.analyses > 0
+                ? (
+                    (summary.platformBreakdown.instagram.botDetections /
+                      summary.platformBreakdown.instagram.analyses) *
+                    100
+                  ).toFixed(2)
+                : 0
+            }%</td>
         </tr>
     </table>
 
@@ -970,7 +1112,7 @@ export class BotDetectionReporter {
         this.config.reportPath,
         path.join(this.config.reportPath, 'daily'),
         path.join(this.config.reportPath, 'weekly'),
-        path.join(this.config.reportPath, 'monthly')
+        path.join(this.config.reportPath, 'monthly'),
       ];
 
       dirs.forEach(dir => {
@@ -991,17 +1133,17 @@ export class BotDetectionReporter {
     cutoffDate.setDate(cutoffDate.getDate() - this.config.retention);
 
     const directories = ['daily', 'weekly', 'monthly'];
-    
+
     for (const dir of directories) {
       const dirPath = path.join(this.config.reportPath, dir);
-      
+
       try {
         const files = await fs.promises.readdir(dirPath);
-        
+
         for (const file of files) {
           const filePath = path.join(dirPath, file);
           const stats = await fs.promises.stat(filePath);
-          
+
           if (stats.mtime < cutoffDate) {
             await fs.promises.unlink(filePath);
             console.log(`Cleaned up old report: ${file}`);

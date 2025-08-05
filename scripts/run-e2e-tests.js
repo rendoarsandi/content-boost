@@ -19,19 +19,19 @@ if (!fs.existsSync(reportsDir)) {
 // Run E2E tests for each app
 async function runE2ETests() {
   console.log('🧪 Running E2E tests with timeout monitoring...');
-  
+
   for (const app of APPS_WITH_E2E) {
     console.log(`\n📱 Running E2E tests for ${app}...`);
-    
+
     const appDir = path.join(__dirname, '../apps', app);
-    
+
     // Check if playwright.config.ts exists
     const configPath = path.join(appDir, 'playwright.config.ts');
     if (!fs.existsSync(configPath)) {
       console.log(`⚠️ No Playwright config found for ${app}, skipping...`);
       continue;
     }
-    
+
     // Run the tests with timeout
     try {
       await runCommandWithTimeout(
@@ -39,20 +39,25 @@ async function runE2ETests() {
         ['playwright', 'test', '--reporter=html,list'],
         {
           cwd: appDir,
-          env: { ...process.env, PLAYWRIGHT_HTML_REPORT: '../../reports/e2e' }
+          env: { ...process.env, PLAYWRIGHT_HTML_REPORT: '../../reports/e2e' },
         },
         MAX_TIMEOUT
       );
-      
+
       console.log(`✅ E2E tests for ${app} completed successfully!`);
     } catch (error) {
-      console.error(`❌ E2E tests for ${app} failed or timed out:`, error.message);
+      console.error(
+        `❌ E2E tests for ${app} failed or timed out:`,
+        error.message
+      );
       process.exit(1);
     }
   }
-  
+
   console.log('\n🎉 All E2E tests completed!');
-  console.log(`📊 Reports available at: ${path.relative(process.cwd(), reportsDir)}`);
+  console.log(
+    `📊 Reports available at: ${path.relative(process.cwd(), reportsDir)}`
+  );
 }
 
 // Run command with timeout
@@ -60,16 +65,18 @@ function runCommandWithTimeout(command, args, options, timeoutMs) {
   return new Promise((resolve, reject) => {
     const process = spawn(command, args, {
       ...options,
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
-    
+
     const timeout = setTimeout(() => {
-      console.log(`\n⏰ Test execution timed out after ${timeoutMs / 60000} minutes!`);
+      console.log(
+        `\n⏰ Test execution timed out after ${timeoutMs / 60000} minutes!`
+      );
       process.kill('SIGTERM');
       reject(new Error('Test execution timed out'));
     }, timeoutMs);
-    
-    process.on('close', (code) => {
+
+    process.on('close', code => {
       clearTimeout(timeout);
       if (code === 0) {
         resolve();
@@ -77,8 +84,8 @@ function runCommandWithTimeout(command, args, options, timeoutMs) {
         reject(new Error(`Process exited with code ${code}`));
       }
     });
-    
-    process.on('error', (err) => {
+
+    process.on('error', err => {
       clearTimeout(timeout);
       reject(err);
     });

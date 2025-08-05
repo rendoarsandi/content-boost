@@ -33,14 +33,16 @@ if (!fs.existsSync(appPath)) {
 
 function showWarning() {
   console.log(`\n⚠️  WARNING: ${appName} has been running for 30+ seconds`);
-  console.log('   This might indicate the server is stuck or taking too long to start.');
+  console.log(
+    '   This might indicate the server is stuck or taking too long to start.'
+  );
   console.log('   Press Ctrl+C to terminate if needed.\n');
 }
 
 function showMaxTimeout() {
   console.log(`\n❌ TIMEOUT: ${appName} exceeded maximum timeout (5 minutes)`);
   console.log('   Terminating process to prevent hanging...\n');
-  
+
   if (devProcess) {
     devProcess.kill('SIGTERM');
     setTimeout(() => {
@@ -54,16 +56,16 @@ function showMaxTimeout() {
 
 function startSingleApp() {
   console.log(`🚀 Starting ${appName} with timeout monitoring...\n`);
-  
+
   // Start the specific app
   devProcess = spawn('turbo', ['run', 'dev', '--filter', appName], {
     stdio: 'inherit',
     shell: true,
-    cwd: process.cwd()
+    cwd: process.cwd(),
   });
 
   // Handle process events
-  devProcess.on('error', (error) => {
+  devProcess.on('error', error => {
     console.error(`❌ Failed to start ${appName}:`, error.message);
     process.exit(1);
   });
@@ -82,13 +84,13 @@ function startSingleApp() {
   // Start timeout monitoring
   const timeoutInterval = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    
+
     // Show warning at 30 seconds
     if (elapsed >= DEV_TIMEOUT && !warningShown) {
       showWarning();
       warningShown = true;
     }
-    
+
     // Force terminate at 5 minutes
     if (elapsed >= MAX_TIMEOUT) {
       clearInterval(timeoutInterval);
@@ -100,7 +102,7 @@ function startSingleApp() {
   process.on('SIGINT', () => {
     console.log(`\n🛑 Received interrupt signal, stopping ${appName}...`);
     clearInterval(timeoutInterval);
-    
+
     if (devProcess) {
       devProcess.kill('SIGTERM');
       setTimeout(() => {

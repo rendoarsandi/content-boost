@@ -1,4 +1,9 @@
-import { RedisCache, CacheKeyManager, DEFAULT_TTL_POLICIES, DEFAULT_KEY_CONFIG } from '../src/redis';
+import {
+  RedisCache,
+  CacheKeyManager,
+  DEFAULT_TTL_POLICIES,
+  DEFAULT_KEY_CONFIG,
+} from '../src/redis';
 import { RedisConfig } from '../src/types';
 
 // Mock ioredis
@@ -229,7 +234,9 @@ describe('RedisCache', () => {
 
       const result = await cache.deleteSession('session-123');
       expect(result).toBe(1);
-      expect(mockClient.del).toHaveBeenCalledWith('creator-platform:session:session-123');
+      expect(mockClient.del).toHaveBeenCalledWith(
+        'creator-platform:session:session-123'
+      );
     });
   });
 
@@ -238,7 +245,10 @@ describe('RedisCache', () => {
       const trackingData = { views: 100, likes: 10 };
       mockClient.get.mockResolvedValue(JSON.stringify(trackingData));
 
-      const result = await cache.getViewTracking('promoter-123', 'campaign-456');
+      const result = await cache.getViewTracking(
+        'promoter-123',
+        'campaign-456'
+      );
       expect(result).toEqual(trackingData);
     });
 
@@ -295,7 +305,9 @@ describe('RedisCache', () => {
 
       const result = await cache.incrementRateLimit('tiktok', 'user-123');
       expect(result).toBe(1);
-      expect(mockClient.incr).toHaveBeenCalledWith('creator-platform:rate:tiktok:user-123');
+      expect(mockClient.incr).toHaveBeenCalledWith(
+        'creator-platform:rate:tiktok:user-123'
+      );
       expect(mockClient.expire).toHaveBeenCalledWith(
         'creator-platform:rate:tiktok:user-123',
         DEFAULT_TTL_POLICIES.rateLimit
@@ -338,22 +350,18 @@ describe('RedisCache', () => {
       mockClient.mget.mockResolvedValue(values);
 
       const result = await cache.mget(['key1', 'key2', 'key3']);
-      expect(result).toEqual([
-        { test1: 'data1' },
-        { test2: 'data2' },
-        null
-      ]);
+      expect(result).toEqual([{ test1: 'data1' }, { test2: 'data2' }, null]);
     });
 
     test('should set multiple values', async () => {
       const keyValuePairs = {
-        'key1': { test1: 'data1' },
-        'key2': { test2: 'data2' }
+        key1: { test1: 'data1' },
+        key2: { test2: 'data2' },
       };
       const mockPipeline = {
         setex: jest.fn().mockReturnThis(),
         set: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue([])
+        exec: jest.fn().mockResolvedValue([]),
       };
       mockClient.pipeline.mockReturnValue(mockPipeline);
 
@@ -387,7 +395,9 @@ describe('RedisCache', () => {
 
   describe('Statistics and Monitoring', () => {
     test('should get cache statistics', async () => {
-      mockClient.info.mockResolvedValue('used_memory:1048576\nother_info:value');
+      mockClient.info.mockResolvedValue(
+        'used_memory:1048576\nother_info:value'
+      );
 
       const stats = await cache.getStats();
       expect(stats.memory).toBe(1048576);
@@ -404,7 +414,7 @@ describe('RedisCache', () => {
   describe('Configuration', () => {
     test('should create cache with URL configuration', () => {
       const config: RedisConfig = {
-        url: 'redis://localhost:6379'
+        url: 'redis://localhost:6379',
       };
       const urlCache = new RedisCache(config);
       expect(urlCache).toBeInstanceOf(RedisCache);
@@ -417,9 +427,9 @@ describe('RedisCache', () => {
         cluster: {
           enableOfflineQueue: true,
           redisOptions: {
-            password: 'test-password'
-          }
-        }
+            password: 'test-password',
+          },
+        },
       };
       const clusterCache = new RedisCache(config);
       expect(clusterCache).toBeInstanceOf(RedisCache);
@@ -447,7 +457,9 @@ describe('RedisCache', () => {
     test('should handle set errors by throwing', async () => {
       mockClient.setex.mockRejectedValue(new Error('Redis error'));
 
-      await expect(cache.set('test-key', 'value')).rejects.toThrow('Redis error');
+      await expect(cache.set('test-key', 'value')).rejects.toThrow(
+        'Redis error'
+      );
     });
 
     test('should handle delete errors gracefully', async () => {

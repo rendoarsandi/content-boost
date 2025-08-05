@@ -1,7 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Textarea, Input, Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import {
+  Button,
+  Textarea,
+  Input,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@repo/ui';
 import { useRouter } from 'next/navigation';
 
 interface CampaignApplicationFormProps {
@@ -10,10 +18,10 @@ interface CampaignApplicationFormProps {
   campaignDescription: string;
 }
 
-export function CampaignApplicationForm({ 
-  campaignId, 
-  campaignTitle, 
-  campaignDescription 
+export function CampaignApplicationForm({
+  campaignId,
+  campaignTitle,
+  campaignDescription,
 }: CampaignApplicationFormProps) {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,7 +73,7 @@ export function CampaignApplicationForm({
               </label>
               <Textarea
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={e => setMessage(e.target.value)}
                 placeholder="Tell the creator why you're perfect for this campaign..."
                 rows={6}
                 required
@@ -80,10 +88,7 @@ export function CampaignApplicationForm({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting || !message.trim()}
-              >
+              <Button type="submit" disabled={isSubmitting || !message.trim()}>
                 {isSubmitting ? 'Submitting...' : 'Submit Application'}
               </Button>
             </div>

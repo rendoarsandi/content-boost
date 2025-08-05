@@ -8,16 +8,16 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [
     ['html', { outputFolder: '../../reports/e2e' }],
-    ['json', { outputFile: '../../reports/e2e/results.json' }]
+    ['json', { outputFile: '../../reports/e2e/results.json' }],
   ],
-  
+
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
   },
-  
+
   projects: [
     {
       name: 'chromium',
@@ -32,7 +32,7 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
   ],
-  
+
   // Run local dev server before starting the tests
   webServer: {
     command: 'node ../../scripts/single-app-dev.js dashboard-app',

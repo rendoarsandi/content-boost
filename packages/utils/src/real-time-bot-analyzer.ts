@@ -46,7 +46,7 @@ export class RealTimeBotAnalyzer {
       cacheTimeout: 5 * 60, // 5 minutes - matches Redis cache TTL
       enableAutoActions: true,
       logLevel: 'info',
-      ...config
+      ...config,
     };
   }
 
@@ -62,7 +62,7 @@ export class RealTimeBotAnalyzer {
 
     this.isRunning = true;
     this.log('info', 'Starting real-time bot analysis engine');
-    
+
     // Start the analysis loop
     this.runAnalysisLoop();
   }
@@ -82,17 +82,20 @@ export class RealTimeBotAnalyzer {
   addViewRecords(records: ViewRecord[]): void {
     for (const record of records) {
       const key = this.getAnalysisKey(record.promoterId, record.campaignId);
-      
+
       if (!this.analysisQueue.has(key)) {
         this.analysisQueue.set(key, []);
       }
-      
+
       const queue = this.analysisQueue.get(key)!;
       queue.push(record);
-      
+
       // Keep only recent records (last 15 minutes for analysis)
       const cutoffTime = new Date(Date.now() - 15 * 60 * 1000);
-      this.analysisQueue.set(key, queue.filter(r => r.timestamp >= cutoffTime));
+      this.analysisQueue.set(
+        key,
+        queue.filter(r => r.timestamp >= cutoffTime)
+      );
     }
 
     this.log('debug', `Added ${records.length} view records to analysis queue`);
@@ -102,10 +105,13 @@ export class RealTimeBotAnalyzer {
    * Perform immediate analysis for specific promoter/campaign
    * Returns cached result if available and fresh
    */
-  async analyzeImmediate(promoterId: string, campaignId: string): Promise<AnalysisResult> {
+  async analyzeImmediate(
+    promoterId: string,
+    campaignId: string
+  ): Promise<AnalysisResult> {
     const startTime = Date.now();
     const key = this.getAnalysisKey(promoterId, campaignId);
-    
+
     // Check cache first
     const cached = this.getCachedAnalysis(key);
     if (cached) {
@@ -114,17 +120,17 @@ export class RealTimeBotAnalyzer {
         analysis: cached.analysis,
         actionTaken: false,
         timestamp: cached.timestamp,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       };
     }
 
     // Get view records from queue
     const viewRecords = this.analysisQueue.get(key) || [];
-    
+
     // Perform analysis
     const analysis = await this.botDetectionService.analyzeViews(
-      promoterId, 
-      campaignId, 
+      promoterId,
+      campaignId,
       viewRecords
     );
 
@@ -134,7 +140,7 @@ export class RealTimeBotAnalyzer {
     // Take action if enabled
     let actionTaken = false;
     let actionType: 'ban' | 'warning' | 'monitor' | undefined;
-    
+
     if (this.config.enableAutoActions && analysis.action !== 'none') {
       actionTaken = await this.takeAction(analysis);
       actionType = analysis.action;
@@ -145,11 +151,14 @@ export class RealTimeBotAnalyzer {
       actionTaken,
       actionType,
       timestamp: new Date(),
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
     };
 
-    this.log('info', `Analysis completed for ${key}: ${analysis.action} (score: ${analysis.botScore})`);
-    
+    this.log(
+      'info',
+      `Analysis completed for ${key}: ${analysis.action} (score: ${analysis.botScore})`
+    );
+
     return result;
   }
 
@@ -162,14 +171,16 @@ export class RealTimeBotAnalyzer {
     isRunning: boolean;
     lastAnalysisCount: number;
   } {
-    const queueSize = Array.from(this.analysisQueue.values())
-      .reduce((total, queue) => total + queue.length, 0);
-    
+    const queueSize = Array.from(this.analysisQueue.values()).reduce(
+      (total, queue) => total + queue.length,
+      0
+    );
+
     return {
       queueSize,
       cacheSize: this.cache.size,
       isRunning: this.isRunning,
-      lastAnalysisCount: this.lastAnalysisTime.size
+      lastAnalysisCount: this.lastAnalysisTime.size,
     };
   }
 
@@ -190,12 +201,12 @@ export class RealTimeBotAnalyzer {
     while (this.isRunning) {
       try {
         await this.performScheduledAnalysis();
-        
+
         // Wait for next interval
         await this.sleep(this.config.analysisInterval);
       } catch (error) {
         this.log('error', `Error in analysis loop: ${error}`);
-        
+
         // Continue running even if there's an error
         await this.sleep(this.config.analysisInterval);
       }
@@ -207,23 +218,28 @@ export class RealTimeBotAnalyzer {
    */
   private async performScheduledAnalysis(): Promise<void> {
     const analysisPromises: Promise<void>[] = [];
-    
+
     const queueEntries = Array.from(this.analysisQueue.entries());
     for (const [key, viewRecords] of queueEntries) {
       if (viewRecords.length === 0) continue;
-      
+
       // Check if enough time has passed since last analysis
       const lastAnalysis = this.lastAnalysisTime.get(key);
-      if (lastAnalysis && Date.now() - lastAnalysis.getTime() < this.config.analysisInterval) {
+      if (
+        lastAnalysis &&
+        Date.now() - lastAnalysis.getTime() < this.config.analysisInterval
+      ) {
         continue;
       }
 
       // Extract promoterId and campaignId from key
       const [promoterId, campaignId] = key.split(':');
-      
+
       // Add to analysis batch
-      analysisPromises.push(this.performSingleAnalysis(promoterId, campaignId, viewRecords));
-      
+      analysisPromises.push(
+        this.performSingleAnalysis(promoterId, campaignId, viewRecords)
+      );
+
       // Limit batch size
       if (analysisPromises.length >= this.config.batchSize) {
         break;
@@ -240,22 +256,22 @@ export class RealTimeBotAnalyzer {
    * Perform analysis for a single promoter/campaign pair
    */
   private async performSingleAnalysis(
-    promoterId: string, 
-    campaignId: string, 
+    promoterId: string,
+    campaignId: string,
     viewRecords: ViewRecord[]
   ): Promise<void> {
     const key = this.getAnalysisKey(promoterId, campaignId);
-    
+
     try {
       const analysis = await this.botDetectionService.analyzeViews(
-        promoterId, 
-        campaignId, 
+        promoterId,
+        campaignId,
         viewRecords
       );
 
       // Cache the result
       this.cacheAnalysis(key, analysis);
-      
+
       // Update last analysis time
       this.lastAnalysisTime.set(key, new Date());
 
@@ -267,8 +283,10 @@ export class RealTimeBotAnalyzer {
       // Store to database (this would be implemented with actual DB connection)
       await this.storeAnalysisResult(analysis);
 
-      this.log('debug', `Analysis completed for ${key}: ${analysis.action} (score: ${analysis.botScore})`);
-      
+      this.log(
+        'debug',
+        `Analysis completed for ${key}: ${analysis.action} (score: ${analysis.botScore})`
+      );
     } catch (error) {
       this.log('error', `Failed to analyze ${key}: ${error}`);
     }
@@ -283,27 +301,51 @@ export class RealTimeBotAnalyzer {
       switch (analysis.action) {
         case 'ban':
           // Requirement 5.4: >90% confidence - auto ban and cancel payout
-          await this.banPromoter(analysis.promoterId, analysis.campaignId, analysis.reason);
-          this.log('warn', `BANNED promoter ${analysis.promoterId} for campaign ${analysis.campaignId}: ${analysis.reason}`);
+          await this.banPromoter(
+            analysis.promoterId,
+            analysis.campaignId,
+            analysis.reason
+          );
+          this.log(
+            'warn',
+            `BANNED promoter ${analysis.promoterId} for campaign ${analysis.campaignId}: ${analysis.reason}`
+          );
           return true;
 
         case 'warning':
           // Requirement 5.5: 50-90% confidence - warning and hold payout
-          await this.warnPromoter(analysis.promoterId, analysis.campaignId, analysis.reason);
-          this.log('warn', `WARNING issued to promoter ${analysis.promoterId} for campaign ${analysis.campaignId}: ${analysis.reason}`);
+          await this.warnPromoter(
+            analysis.promoterId,
+            analysis.campaignId,
+            analysis.reason
+          );
+          this.log(
+            'warn',
+            `WARNING issued to promoter ${analysis.promoterId} for campaign ${analysis.campaignId}: ${analysis.reason}`
+          );
           return true;
 
         case 'monitor':
           // Requirement 5.6: 20-50% confidence - monitoring notification
-          await this.monitorPromoter(analysis.promoterId, analysis.campaignId, analysis.reason);
-          this.log('info', `MONITORING promoter ${analysis.promoterId} for campaign ${analysis.campaignId}: ${analysis.reason}`);
+          await this.monitorPromoter(
+            analysis.promoterId,
+            analysis.campaignId,
+            analysis.reason
+          );
+          this.log(
+            'info',
+            `MONITORING promoter ${analysis.promoterId} for campaign ${analysis.campaignId}: ${analysis.reason}`
+          );
           return true;
 
         default:
           return false;
       }
     } catch (error) {
-      this.log('error', `Failed to take action for ${analysis.promoterId}: ${error}`);
+      this.log(
+        'error',
+        `Failed to take action for ${analysis.promoterId}: ${error}`
+      );
       return false;
     }
   }
@@ -311,10 +353,17 @@ export class RealTimeBotAnalyzer {
   /**
    * Ban promoter and cancel payout
    */
-  private async banPromoter(promoterId: string, campaignId: string, reason: string): Promise<void> {
+  private async banPromoter(
+    promoterId: string,
+    campaignId: string,
+    reason: string
+  ): Promise<void> {
     // This would integrate with actual user management and payout systems
-    this.log('info', `Banning promoter ${promoterId} for campaign ${campaignId}: ${reason}`);
-    
+    this.log(
+      'info',
+      `Banning promoter ${promoterId} for campaign ${campaignId}: ${reason}`
+    );
+
     // TODO: Implement actual ban logic:
     // - Update user status in database
     // - Cancel pending payouts
@@ -325,10 +374,17 @@ export class RealTimeBotAnalyzer {
   /**
    * Issue warning and hold payout for review
    */
-  private async warnPromoter(promoterId: string, campaignId: string, reason: string): Promise<void> {
+  private async warnPromoter(
+    promoterId: string,
+    campaignId: string,
+    reason: string
+  ): Promise<void> {
     // This would integrate with actual notification and payout systems
-    this.log('info', `Warning promoter ${promoterId} for campaign ${campaignId}: ${reason}`);
-    
+    this.log(
+      'info',
+      `Warning promoter ${promoterId} for campaign ${campaignId}: ${reason}`
+    );
+
     // TODO: Implement actual warning logic:
     // - Hold payout for manual review
     // - Send warning notification
@@ -338,10 +394,17 @@ export class RealTimeBotAnalyzer {
   /**
    * Add promoter to monitoring list
    */
-  private async monitorPromoter(promoterId: string, campaignId: string, reason: string): Promise<void> {
+  private async monitorPromoter(
+    promoterId: string,
+    campaignId: string,
+    reason: string
+  ): Promise<void> {
     // This would integrate with monitoring systems
-    this.log('info', `Monitoring promoter ${promoterId} for campaign ${campaignId}: ${reason}`);
-    
+    this.log(
+      'info',
+      `Monitoring promoter ${promoterId} for campaign ${campaignId}: ${reason}`
+    );
+
     // TODO: Implement actual monitoring logic:
     // - Add to monitoring list
     // - Send notification to admins
@@ -354,8 +417,11 @@ export class RealTimeBotAnalyzer {
    */
   private async storeAnalysisResult(analysis: BotAnalysis): Promise<void> {
     // This would integrate with actual database connection
-    this.log('debug', `Storing analysis result for ${analysis.promoterId}:${analysis.campaignId}`);
-    
+    this.log(
+      'debug',
+      `Storing analysis result for ${analysis.promoterId}:${analysis.campaignId}`
+    );
+
     // TODO: Implement actual database storage:
     // - Store to PostgreSQL for persistence
     // - Update Redis cache
@@ -376,11 +442,11 @@ export class RealTimeBotAnalyzer {
     const entry: CacheEntry = {
       analysis,
       timestamp: new Date(),
-      ttl: this.config.cacheTimeout
+      ttl: this.config.cacheTimeout,
     };
-    
+
     this.cache.set(key, entry);
-    
+
     // Clean up expired cache entries
     this.cleanupCache();
   }
@@ -391,13 +457,13 @@ export class RealTimeBotAnalyzer {
   private getCachedAnalysis(key: string): CacheEntry | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-    
+
     const age = (Date.now() - entry.timestamp.getTime()) / 1000;
     if (age > entry.ttl) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return entry;
   }
 
@@ -425,14 +491,19 @@ export class RealTimeBotAnalyzer {
   /**
    * Logging utility
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string
+  ): void {
     const levels = { debug: 0, info: 1, warn: 2, error: 3 };
     const configLevel = levels[this.config.logLevel];
     const messageLevel = levels[level];
-    
+
     if (messageLevel >= configLevel) {
       const timestamp = new Date().toISOString();
-      console.log(`[${timestamp}] [${level.toUpperCase()}] RealTimeBotAnalyzer: ${message}`);
+      console.log(
+        `[${timestamp}] [${level.toUpperCase()}] RealTimeBotAnalyzer: ${message}`
+      );
     }
   }
 }
@@ -458,7 +529,7 @@ export function getGlobalBotAnalyzer(): RealTimeBotAnalyzer {
   if (!globalAnalyzer) {
     globalAnalyzer = createRealTimeBotAnalyzer({
       logLevel: 'info',
-      enableAutoActions: true
+      enableAutoActions: true,
     });
   }
   return globalAnalyzer;

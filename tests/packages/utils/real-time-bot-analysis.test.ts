@@ -1,25 +1,25 @@
 /**
  * Example usage of the Real-Time Bot Analysis Engine
- * 
+ *
  * This example demonstrates how to:
  * 1. Set up the real-time bot analyzer
  * 2. Configure the background worker
  * 3. Process view records in real-time
  * 4. Handle bot detection results
  * 5. Monitor system performance
- * 
+ *
  * Requirements: 4.3, 4.4, 4.5, 5.1-5.7
  */
 
 import {
   RealTimeBotAnalyzer,
   createRealTimeBotAnalyzer,
-  getGlobalBotAnalyzer
+  getGlobalBotAnalyzer,
 } from '../real-time-bot-analyzer';
 import {
   BotAnalysisWorker,
   createBotAnalysisWorker,
-  getGlobalBotAnalysisWorker
+  getGlobalBotAnalysisWorker,
 } from '../bot-analysis-worker';
 import { ViewRecord, BotDetectionService } from '../bot-detection';
 
@@ -35,7 +35,7 @@ export async function basicBotAnalysisExample(): Promise<void> {
     batchSize: 100,
     cacheTimeout: 5 * 60, // 5 minutes
     enableAutoActions: true,
-    logLevel: 'info'
+    logLevel: 'info',
   });
 
   // Start the analyzer
@@ -53,7 +53,7 @@ export async function basicBotAnalysisExample(): Promise<void> {
       likeCount: 50,
       commentCount: 10,
       shareCount: 5,
-      timestamp: new Date()
+      timestamp: new Date(),
     },
     {
       id: '2',
@@ -65,8 +65,8 @@ export async function basicBotAnalysisExample(): Promise<void> {
       likeCount: 52,
       commentCount: 10,
       shareCount: 5,
-      timestamp: new Date(Date.now() + 60000) // 1 minute later
-    }
+      timestamp: new Date(Date.now() + 60000), // 1 minute later
+    },
   ];
 
   // Add records for analysis
@@ -74,20 +74,22 @@ export async function basicBotAnalysisExample(): Promise<void> {
 
   // Perform immediate analysis
   try {
-    const result = await analyzer.analyzeImmediate('promoter_001', 'campaign_001');
-    
+    const result = await analyzer.analyzeImmediate(
+      'promoter_001',
+      'campaign_001'
+    );
+
     console.log('Analysis Result:', {
       botScore: result.analysis.botScore,
       action: result.analysis.action,
       reason: result.analysis.reason,
       actionTaken: result.actionTaken,
-      processingTime: result.processingTime
+      processingTime: result.processingTime,
     });
 
     // Check statistics
     const stats = analyzer.getStatistics();
     console.log('Analyzer Statistics:', stats);
-
   } catch (error) {
     console.error('Analysis failed:', error);
   }
@@ -109,21 +111,21 @@ export async function backgroundWorkerExample(): Promise<void> {
       batchSize: 100,
       cacheTimeout: 5 * 60,
       enableAutoActions: true,
-      logLevel: 'info'
+      logLevel: 'info',
     },
     worker: {
       enabled: true,
       dataFetchInterval: 15 * 1000, // 15 seconds
       maxRetries: 3,
       retryDelay: 5000,
-      batchSize: 200
+      batchSize: 200,
     },
     logging: {
       enabled: true,
       logPath: 'logs/bot-detection/',
       maxLogSize: 10 * 1024 * 1024, // 10MB
-      rotateDaily: true
-    }
+      rotateDaily: true,
+    },
   });
 
   // Start the worker
@@ -132,7 +134,7 @@ export async function backgroundWorkerExample(): Promise<void> {
   // Simulate adding view records over time
   const simulateViewRecords = () => {
     const records: ViewRecord[] = [];
-    
+
     for (let i = 0; i < 10; i++) {
       records.push({
         id: `record_${Date.now()}_${i}`,
@@ -144,7 +146,7 @@ export async function backgroundWorkerExample(): Promise<void> {
         likeCount: Math.floor(Math.random() * 50) + 5,
         commentCount: Math.floor(Math.random() * 20) + 1,
         shareCount: Math.floor(Math.random() * 10) + 1,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
 
@@ -164,7 +166,7 @@ export async function backgroundWorkerExample(): Promise<void> {
       totalAnalysesPerformed: stats.totalAnalysesPerformed,
       totalActionsTriggered: stats.totalActionsTriggered,
       errorCount: stats.errorCount,
-      uptime: Math.round(stats.uptime / 1000) + 's'
+      uptime: Math.round(stats.uptime / 1000) + 's',
     });
   }, 20000);
 
@@ -187,13 +189,16 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
     analysisInterval: 30 * 1000, // 30 seconds for high-volume
     batchSize: 500,
     enableAutoActions: true,
-    logLevel: 'warn' // Only show warnings and errors
+    logLevel: 'warn', // Only show warnings and errors
   });
 
   analyzer.start();
 
   // Simulate suspicious bot activity
-  const createSuspiciousRecords = (promoterId: string, campaignId: string): ViewRecord[] => {
+  const createSuspiciousRecords = (
+    promoterId: string,
+    campaignId: string
+  ): ViewRecord[] => {
     const records: ViewRecord[] = [];
     const baseTime = Date.now();
 
@@ -205,11 +210,11 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
         campaignId,
         platform: 'tiktok',
         contentId: 'suspicious_post',
-        viewCount: 100 + (i * 500), // Rapid view increase
+        viewCount: 100 + i * 500, // Rapid view increase
         likeCount: 2, // Very low likes compared to views
         commentCount: 0, // No comments
         shareCount: 0, // No shares
-        timestamp: new Date(baseTime + (i * 30000)) // Every 30 seconds
+        timestamp: new Date(baseTime + i * 30000), // Every 30 seconds
       });
     }
 
@@ -217,7 +222,10 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
   };
 
   // Create normal activity for comparison
-  const createNormalRecords = (promoterId: string, campaignId: string): ViewRecord[] => {
+  const createNormalRecords = (
+    promoterId: string,
+    campaignId: string
+  ): ViewRecord[] => {
     const records: ViewRecord[] = [];
     const baseTime = Date.now();
 
@@ -228,11 +236,11 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
         campaignId,
         platform: 'instagram',
         contentId: 'normal_post',
-        viewCount: 50 + (i * 10), // Gradual increase
-        likeCount: Math.floor((50 + (i * 10)) / 8), // Reasonable like ratio
-        commentCount: Math.floor((50 + (i * 10)) / 25), // Reasonable comment ratio
-        shareCount: Math.floor((50 + (i * 10)) / 50), // Reasonable share ratio
-        timestamp: new Date(baseTime + (i * 60000)) // Every minute
+        viewCount: 50 + i * 10, // Gradual increase
+        likeCount: Math.floor((50 + i * 10) / 8), // Reasonable like ratio
+        commentCount: Math.floor((50 + i * 10) / 25), // Reasonable comment ratio
+        shareCount: Math.floor((50 + i * 10) / 50), // Reasonable share ratio
+        timestamp: new Date(baseTime + i * 60000), // Every minute
       });
     }
 
@@ -240,7 +248,10 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
   };
 
   // Add suspicious records
-  const suspiciousRecords = createSuspiciousRecords('bot_promoter', 'test_campaign');
+  const suspiciousRecords = createSuspiciousRecords(
+    'bot_promoter',
+    'test_campaign'
+  );
   analyzer.addViewRecords(suspiciousRecords);
 
   // Add normal records
@@ -250,7 +261,10 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
   // Analyze both scenarios
   try {
     console.log('Analyzing suspicious activity...');
-    const suspiciousResult = await analyzer.analyzeImmediate('bot_promoter', 'test_campaign');
+    const suspiciousResult = await analyzer.analyzeImmediate(
+      'bot_promoter',
+      'test_campaign'
+    );
     console.log('Suspicious Analysis:', {
       botScore: suspiciousResult.analysis.botScore,
       action: suspiciousResult.analysis.action,
@@ -258,12 +272,15 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
       metrics: {
         viewLikeRatio: suspiciousResult.analysis.metrics.viewLikeRatio,
         viewCommentRatio: suspiciousResult.analysis.metrics.viewCommentRatio,
-        spikeDetected: suspiciousResult.analysis.metrics.spikeDetected
-      }
+        spikeDetected: suspiciousResult.analysis.metrics.spikeDetected,
+      },
     });
 
     console.log('Analyzing normal activity...');
-    const normalResult = await analyzer.analyzeImmediate('normal_promoter', 'test_campaign');
+    const normalResult = await analyzer.analyzeImmediate(
+      'normal_promoter',
+      'test_campaign'
+    );
     console.log('Normal Analysis:', {
       botScore: normalResult.analysis.botScore,
       action: normalResult.analysis.action,
@@ -271,10 +288,9 @@ export async function highVolumeBotDetectionExample(): Promise<void> {
       metrics: {
         viewLikeRatio: normalResult.analysis.metrics.viewLikeRatio,
         viewCommentRatio: normalResult.analysis.metrics.viewCommentRatio,
-        spikeDetected: normalResult.analysis.metrics.spikeDetected
-      }
+        spikeDetected: normalResult.analysis.metrics.spikeDetected,
+      },
     });
-
   } catch (error) {
     console.error('High-volume analysis failed:', error);
   }
@@ -297,26 +313,31 @@ export async function globalSingletonExample(): Promise<void> {
   await globalWorker.start();
 
   // Use global instances
-  const testRecords: ViewRecord[] = [{
-    id: 'global_test',
-    promoterId: 'global_promoter',
-    campaignId: 'global_campaign',
-    platform: 'tiktok',
-    contentId: 'global_post',
-    viewCount: 500,
-    likeCount: 25,
-    commentCount: 5,
-    shareCount: 2,
-    timestamp: new Date()
-  }];
+  const testRecords: ViewRecord[] = [
+    {
+      id: 'global_test',
+      promoterId: 'global_promoter',
+      campaignId: 'global_campaign',
+      platform: 'tiktok',
+      contentId: 'global_post',
+      viewCount: 500,
+      likeCount: 25,
+      commentCount: 5,
+      shareCount: 2,
+      timestamp: new Date(),
+    },
+  ];
 
   globalWorker.addViewRecords(testRecords);
 
   try {
-    const result = await globalAnalyzer.analyzeImmediate('global_promoter', 'global_campaign');
+    const result = await globalAnalyzer.analyzeImmediate(
+      'global_promoter',
+      'global_campaign'
+    );
     console.log('Global Analysis Result:', {
       botScore: result.analysis.botScore,
-      action: result.analysis.action
+      action: result.analysis.action,
     });
   } catch (error) {
     console.error('Global analysis failed:', error);
@@ -339,46 +360,51 @@ export async function customBotDetectionExample(): Promise<void> {
       viewLikeRatio: 5, // Stricter ratio (default: 10)
       viewCommentRatio: 50, // Stricter ratio (default: 100)
       spikePercentage: 300, // Lower spike threshold (default: 500)
-      spikeTimeWindow: 3 * 60 * 1000 // 3 minutes (default: 5)
+      spikeTimeWindow: 3 * 60 * 1000, // 3 minutes (default: 5)
     },
     confidence: {
       ban: 80, // Lower ban threshold (default: 90)
       warning: 40, // Lower warning threshold (default: 50)
-      monitor: 15 // Lower monitor threshold (default: 20)
-    }
+      monitor: 15, // Lower monitor threshold (default: 20)
+    },
   });
 
   // Create analyzer with custom bot detection service
   const analyzer = new RealTimeBotAnalyzer(customBotService, {
     enableAutoActions: true,
-    logLevel: 'info'
+    logLevel: 'info',
   });
 
   analyzer.start();
 
   // Test with moderately suspicious activity
-  const moderateRecords: ViewRecord[] = [{
-    id: 'moderate_test',
-    promoterId: 'moderate_promoter',
-    campaignId: 'moderate_campaign',
-    platform: 'instagram',
-    contentId: 'moderate_post',
-    viewCount: 400,
-    likeCount: 60, // Ratio: 6.67:1 (would be normal with default, suspicious with custom)
-    commentCount: 10, // Ratio: 40:1 (would be normal with default, suspicious with custom)
-    shareCount: 5,
-    timestamp: new Date()
-  }];
+  const moderateRecords: ViewRecord[] = [
+    {
+      id: 'moderate_test',
+      promoterId: 'moderate_promoter',
+      campaignId: 'moderate_campaign',
+      platform: 'instagram',
+      contentId: 'moderate_post',
+      viewCount: 400,
+      likeCount: 60, // Ratio: 6.67:1 (would be normal with default, suspicious with custom)
+      commentCount: 10, // Ratio: 40:1 (would be normal with default, suspicious with custom)
+      shareCount: 5,
+      timestamp: new Date(),
+    },
+  ];
 
   analyzer.addViewRecords(moderateRecords);
 
   try {
-    const result = await analyzer.analyzeImmediate('moderate_promoter', 'moderate_campaign');
+    const result = await analyzer.analyzeImmediate(
+      'moderate_promoter',
+      'moderate_campaign'
+    );
     console.log('Custom Detection Result:', {
       botScore: result.analysis.botScore,
       action: result.analysis.action,
       reason: result.analysis.reason,
-      confidence: result.analysis.confidence
+      confidence: result.analysis.confidence,
     });
   } catch (error) {
     console.error('Custom detection failed:', error);
@@ -410,7 +436,6 @@ export async function runAllExamples(): Promise<void> {
     console.log('✅ All examples completed successfully!');
     console.log('\nTo run the background worker example separately:');
     console.log('backgroundWorkerExample()');
-
   } catch (error) {
     console.error('❌ Example execution failed:', error);
   }

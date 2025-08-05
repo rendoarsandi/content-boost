@@ -53,7 +53,7 @@ import { repositories } from '@repo/database';
 const user = await repositories.user.create({
   email: 'user@example.com',
   name: 'John Doe',
-  role: 'creator'
+  role: 'creator',
 });
 
 // Find campaigns by creator
@@ -142,6 +142,7 @@ npm test -- user.test.ts
 ### Indexes
 
 Strategic indexes are created for:
+
 - Timestamp-based queries on view_records
 - Campaign and promoter lookups
 - Bot score filtering

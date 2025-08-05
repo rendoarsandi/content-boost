@@ -1,6 +1,12 @@
-const { appLogger, botLogger, LogLevel } = typeof window === 'undefined' ? require('./logging') : require('./logging.client');
+const { appLogger, botLogger, LogLevel } =
+  typeof window === 'undefined'
+    ? require('./logging')
+    : require('./logging.client');
 
-const Sentry = typeof window === 'undefined' ? require('./sentry') : require('./sentry.client');
+const Sentry =
+  typeof window === 'undefined'
+    ? require('./sentry')
+    : require('./sentry.client');
 const { captureMessage } = Sentry;
 
 /**
@@ -74,7 +80,7 @@ export function createAlert(
 
   // Log the alert
   const logLevel = getLogLevelForSeverity(severity);
-  
+
   if (category === AlertCategory.BOT_DETECTION) {
     botLogger.log(logLevel, `ALERT: ${message}`, {
       alertId: alert.id,
@@ -113,19 +119,19 @@ export function createAlert(
  * @returns The resolved alert or undefined if not found
  */
 export function resolveAlert(alertId: string): Alert | undefined {
-  const alert = alerts.find((a) => a.id === alertId);
-  
+  const alert = alerts.find(a => a.id === alertId);
+
   if (alert && !alert.resolved) {
     alert.resolved = true;
     alert.resolvedAt = new Date();
-    
+
     appLogger.info(`Alert resolved: ${alert.message}`, {
       alertId: alert.id,
       severity: alert.severity,
       category: alert.category,
     });
   }
-  
+
   return alert;
 }
 
@@ -140,7 +146,7 @@ export function getActiveAlerts(
   severity?: AlertSeverity
 ): Alert[] {
   return alerts.filter(
-    (alert) =>
+    alert =>
       !alert.resolved &&
       (!category || alert.category === category) &&
       (!severity || alert.severity === severity)
@@ -158,7 +164,7 @@ export function getAllAlerts(
   severity?: AlertSeverity
 ): Alert[] {
   return alerts.filter(
-    (alert) =>
+    alert =>
       (!category || alert.category === category) &&
       (!severity || alert.severity === severity)
   );

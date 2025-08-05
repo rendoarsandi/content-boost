@@ -1,4 +1,8 @@
-import { BotDetectionMonitoringSystem, MonitoringSystemConfig, SystemAlert } from '../src/bot-detection-monitoring-system';
+import {
+  BotDetectionMonitoringSystem,
+  MonitoringSystemConfig,
+  SystemAlert,
+} from '../src/bot-detection-monitoring-system';
 import { BotAnalysis } from '../src/bot-detection';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -19,7 +23,7 @@ describe('BotDetectionMonitoringSystem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockConfig = {
       monitoring: {
         enabled: true,
@@ -29,15 +33,15 @@ describe('BotDetectionMonitoringSystem', () => {
           criticalBotScore: 90,
           warningBotScore: 50,
           monitorBotScore: 20,
-          alertFrequencyLimit: 5
-        }
+          alertFrequencyLimit: 5,
+        },
       },
       logging: {
         logPath: 'test-logs/bot-detection/',
         auditTrail: true,
         retention: 30,
         compression: false,
-        logLevels: ['info', 'warn', 'error']
+        logLevels: ['info', 'warn', 'error'],
       },
       reporting: {
         enabled: true,
@@ -47,22 +51,22 @@ describe('BotDetectionMonitoringSystem', () => {
           daily: true,
           weekly: false,
           monthly: false,
-          realTime: false
-        }
+          realTime: false,
+        },
       },
       notifications: {
         channels: {
           email: true,
           dashboard: true,
           webhook: false,
-          sms: false
+          sms: false,
         },
         recipients: {
           admins: ['test@admin.com'],
           promoters: true,
-          creators: false
-        }
-      }
+          creators: false,
+        },
+      },
     };
 
     monitoringSystem = new BotDetectionMonitoringSystem(mockConfig);
@@ -75,7 +79,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'campaign456',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 1000,
@@ -87,15 +91,19 @@ describe('BotDetectionMonitoringSystem', () => {
           spikePercentage: 600,
           totalViews: 10000,
           totalLikes: 100,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 95,
         action: 'ban',
         reason: 'High bot confidence: abnormal ratios and spike detected',
-        confidence: 95
+        confidence: 95,
       };
 
-      await monitoringSystem.processAnalysis('promoter123', 'campaign456', analysis);
+      await monitoringSystem.processAnalysis(
+        'promoter123',
+        'campaign456',
+        analysis
+      );
 
       // Verify logging was called
       expect(fs.promises.appendFile).toHaveBeenCalledWith(
@@ -118,7 +126,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'campaign123',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 500,
@@ -129,15 +137,19 @@ describe('BotDetectionMonitoringSystem', () => {
           spikeDetected: false,
           totalViews: 5000,
           totalLikes: 250,
-          totalComments: 50
+          totalComments: 50,
         },
         botScore: 65,
         action: 'warning',
         reason: 'Moderate bot confidence: suspicious ratios detected',
-        confidence: 65
+        confidence: 65,
       };
 
-      await monitoringSystem.processAnalysis('promoter789', 'campaign123', analysis);
+      await monitoringSystem.processAnalysis(
+        'promoter789',
+        'campaign123',
+        analysis
+      );
 
       // Verify analysis logging
       expect(fs.promises.appendFile).toHaveBeenCalledWith(
@@ -160,7 +172,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'campaign789',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 200,
@@ -171,15 +183,19 @@ describe('BotDetectionMonitoringSystem', () => {
           spikeDetected: false,
           totalViews: 2000,
           totalLikes: 150,
-          totalComments: 30
+          totalComments: 30,
         },
         botScore: 35,
         action: 'monitor',
         reason: 'Low bot confidence: minor suspicious patterns',
-        confidence: 35
+        confidence: 35,
       };
 
-      await monitoringSystem.processAnalysis('promoter456', 'campaign789', analysis);
+      await monitoringSystem.processAnalysis(
+        'promoter456',
+        'campaign789',
+        analysis
+      );
 
       // Verify analysis logging
       expect(fs.promises.appendFile).toHaveBeenCalledWith(
@@ -195,7 +211,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'campaign999',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 100,
@@ -206,20 +222,23 @@ describe('BotDetectionMonitoringSystem', () => {
           spikeDetected: false,
           totalViews: 1000,
           totalLikes: 100,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 15,
         action: 'none',
         reason: 'Normal activity detected',
-        confidence: 15
+        confidence: 15,
       };
 
       // Mock fs.promises.appendFile to throw an error
-      (fs.promises.appendFile as jest.Mock).mockRejectedValueOnce(new Error('File write error'));
+      (fs.promises.appendFile as jest.Mock).mockRejectedValueOnce(
+        new Error('File write error')
+      );
 
       // Should not throw error
-      await expect(monitoringSystem.processAnalysis('promoter999', 'campaign999', analysis))
-        .resolves.not.toThrow();
+      await expect(
+        monitoringSystem.processAnalysis('promoter999', 'campaign999', analysis)
+      ).resolves.not.toThrow();
 
       // Verify error logging was attempted
       expect(fs.promises.appendFile).toHaveBeenCalled();
@@ -233,7 +252,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'campaign123',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 300,
@@ -244,23 +263,28 @@ describe('BotDetectionMonitoringSystem', () => {
           spikeDetected: false,
           totalViews: 3000,
           totalLikes: 150,
-          totalComments: 20
+          totalComments: 20,
         },
         botScore: 60,
         action: 'warning',
         reason: 'Moderate suspicious activity',
-        confidence: 60
+        confidence: 60,
       };
 
       // Process multiple analyses for the same promoter
       for (let i = 0; i < 7; i++) {
-        await monitoringSystem.processAnalysis('frequent_promoter', 'campaign123', analysis);
+        await monitoringSystem.processAnalysis(
+          'frequent_promoter',
+          'campaign123',
+          analysis
+        );
       }
 
       // Should have limited the number of notifications due to frequency limit
-      const notificationCalls = (fs.promises.appendFile as jest.Mock).mock.calls
-        .filter(call => call[0].includes('notifications-'));
-      
+      const notificationCalls = (
+        fs.promises.appendFile as jest.Mock
+      ).mock.calls.filter(call => call[0].includes('notifications-'));
+
       // Should be less than 7 due to frequency limiting (threshold is 5)
       expect(notificationCalls.length).toBeLessThan(7);
     });
@@ -271,7 +295,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'campaign123',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 2000,
@@ -283,23 +307,28 @@ describe('BotDetectionMonitoringSystem', () => {
           spikePercentage: 800,
           totalViews: 20000,
           totalLikes: 50,
-          totalComments: 0
+          totalComments: 0,
         },
         botScore: 95,
         action: 'ban',
         reason: 'Critical bot activity detected',
-        confidence: 95
+        confidence: 95,
       };
 
       // Process multiple critical analyses
       for (let i = 0; i < 3; i++) {
-        await monitoringSystem.processAnalysis('critical_promoter', 'campaign123', criticalAnalysis);
+        await monitoringSystem.processAnalysis(
+          'critical_promoter',
+          'campaign123',
+          criticalAnalysis
+        );
       }
 
       // All critical alerts should be processed
-      const alertCalls = (fs.promises.appendFile as jest.Mock).mock.calls
-        .filter(call => call[0].includes('alerts-'));
-      
+      const alertCalls = (
+        fs.promises.appendFile as jest.Mock
+      ).mock.calls.filter(call => call[0].includes('alerts-'));
+
       expect(alertCalls.length).toBeGreaterThanOrEqual(3);
     });
   });
@@ -311,7 +340,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'campaign123',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 1500,
@@ -323,25 +352,30 @@ describe('BotDetectionMonitoringSystem', () => {
           spikePercentage: 700,
           totalViews: 15000,
           totalLikes: 80,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 92,
         action: 'ban',
         reason: 'High confidence bot detection',
-        confidence: 92
+        confidence: 92,
       };
 
-      await monitoringSystem.processAnalysis('banned_promoter', 'campaign123', banAnalysis);
+      await monitoringSystem.processAnalysis(
+        'banned_promoter',
+        'campaign123',
+        banAnalysis
+      );
 
       // Verify notification logging includes ban notifications
-      const notificationCalls = (fs.promises.appendFile as jest.Mock).mock.calls
-        .filter(call => call[0].includes('notifications-'));
-      
+      const notificationCalls = (
+        fs.promises.appendFile as jest.Mock
+      ).mock.calls.filter(call => call[0].includes('notifications-'));
+
       expect(notificationCalls.length).toBeGreaterThan(0);
-      
+
       // Check that ban notification was logged
-      const banNotificationCall = notificationCalls.find(call => 
-        call[1].includes('BAN') && call[1].includes('banned_promoter')
+      const banNotificationCall = notificationCalls.find(
+        call => call[1].includes('BAN') && call[1].includes('banned_promoter')
       );
       expect(banNotificationCall).toBeDefined();
     });
@@ -352,7 +386,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'campaign456',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 800,
@@ -363,22 +397,28 @@ describe('BotDetectionMonitoringSystem', () => {
           spikeDetected: false,
           totalViews: 8000,
           totalLikes: 300,
-          totalComments: 80
+          totalComments: 80,
         },
         botScore: 55,
         action: 'warning',
         reason: 'Suspicious activity patterns detected',
-        confidence: 55
+        confidence: 55,
       };
 
-      await monitoringSystem.processAnalysis('warned_promoter', 'campaign456', warningAnalysis);
+      await monitoringSystem.processAnalysis(
+        'warned_promoter',
+        'campaign456',
+        warningAnalysis
+      );
 
       // Verify warning notification was logged
-      const notificationCalls = (fs.promises.appendFile as jest.Mock).mock.calls
-        .filter(call => call[0].includes('notifications-'));
-      
-      const warningNotificationCall = notificationCalls.find(call => 
-        call[1].includes('WARNING') && call[1].includes('warned_promoter')
+      const notificationCalls = (
+        fs.promises.appendFile as jest.Mock
+      ).mock.calls.filter(call => call[0].includes('notifications-'));
+
+      const warningNotificationCall = notificationCalls.find(
+        call =>
+          call[1].includes('WARNING') && call[1].includes('warned_promoter')
       );
       expect(warningNotificationCall).toBeDefined();
     });
@@ -394,14 +434,26 @@ describe('BotDetectionMonitoringSystem', () => {
           analysis: {
             promoterId: 'promoter1',
             campaignId: 'campaign1',
-            analysisWindow: { start: new Date(Date.now() - 10 * 60 * 1000), end: new Date() },
-            metrics: {
-              avgViewsPerMinute: 100, avgLikesPerMinute: 10, avgCommentsPerMinute: 1,
-              viewLikeRatio: 10, viewCommentRatio: 100, spikeDetected: false,
-              totalViews: 1000, totalLikes: 100, totalComments: 10
+            analysisWindow: {
+              start: new Date(Date.now() - 10 * 60 * 1000),
+              end: new Date(),
             },
-            botScore: 25, action: 'monitor' as const, reason: 'Low risk', confidence: 25
-          }
+            metrics: {
+              avgViewsPerMinute: 100,
+              avgLikesPerMinute: 10,
+              avgCommentsPerMinute: 1,
+              viewLikeRatio: 10,
+              viewCommentRatio: 100,
+              spikeDetected: false,
+              totalViews: 1000,
+              totalLikes: 100,
+              totalComments: 10,
+            },
+            botScore: 25,
+            action: 'monitor' as const,
+            reason: 'Low risk',
+            confidence: 25,
+          },
         },
         {
           promoterId: 'promoter2',
@@ -409,19 +461,35 @@ describe('BotDetectionMonitoringSystem', () => {
           analysis: {
             promoterId: 'promoter2',
             campaignId: 'campaign2',
-            analysisWindow: { start: new Date(Date.now() - 10 * 60 * 1000), end: new Date() },
-            metrics: {
-              avgViewsPerMinute: 500, avgLikesPerMinute: 20, avgCommentsPerMinute: 3,
-              viewLikeRatio: 25, viewCommentRatio: 167, spikeDetected: false,
-              totalViews: 5000, totalLikes: 200, totalComments: 30
+            analysisWindow: {
+              start: new Date(Date.now() - 10 * 60 * 1000),
+              end: new Date(),
             },
-            botScore: 65, action: 'warning' as const, reason: 'Medium risk', confidence: 65
-          }
-        }
+            metrics: {
+              avgViewsPerMinute: 500,
+              avgLikesPerMinute: 20,
+              avgCommentsPerMinute: 3,
+              viewLikeRatio: 25,
+              viewCommentRatio: 167,
+              spikeDetected: false,
+              totalViews: 5000,
+              totalLikes: 200,
+              totalComments: 30,
+            },
+            botScore: 65,
+            action: 'warning' as const,
+            reason: 'Medium risk',
+            confidence: 65,
+          },
+        },
       ];
 
       for (const { promoterId, campaignId, analysis } of analyses) {
-        await monitoringSystem.processAnalysis(promoterId, campaignId, analysis);
+        await monitoringSystem.processAnalysis(
+          promoterId,
+          campaignId,
+          analysis
+        );
       }
 
       const status = monitoringSystem.getSystemStatus();
@@ -429,13 +497,15 @@ describe('BotDetectionMonitoringSystem', () => {
       expect(status).toHaveProperty('monitoring');
       expect(status).toHaveProperty('alerts');
       expect(status).toHaveProperty('performance');
-      
+
       expect(status.monitoring.enabled).toBe(true);
-      expect(status.monitoring.systemHealth).toMatch(/HEALTHY|WARNING|CRITICAL/);
-      
+      expect(status.monitoring.systemHealth).toMatch(
+        /HEALTHY|WARNING|CRITICAL/
+      );
+
       expect(typeof status.alerts.total).toBe('number');
       expect(typeof status.alerts.unacknowledged).toBe('number');
-      
+
       expect(typeof status.performance.averageProcessingTime).toBe('number');
       expect(typeof status.performance.throughput).toBe('number');
     });
@@ -449,7 +519,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'test_campaign',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 2000,
@@ -461,15 +531,19 @@ describe('BotDetectionMonitoringSystem', () => {
           spikePercentage: 600,
           totalViews: 20000,
           totalLikes: 100,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 95,
         action: 'ban',
         reason: 'Critical bot activity',
-        confidence: 95
+        confidence: 95,
       };
 
-      await monitoringSystem.processAnalysis('test_promoter', 'test_campaign', criticalAnalysis);
+      await monitoringSystem.processAnalysis(
+        'test_promoter',
+        'test_campaign',
+        criticalAnalysis
+      );
 
       const status = monitoringSystem.getSystemStatus();
       expect(status.alerts.total).toBeGreaterThan(0);
@@ -493,8 +567,8 @@ describe('BotDetectionMonitoringSystem', () => {
         ...mockConfig,
         logging: {
           ...mockConfig.logging!,
-          logLevels: ['error']
-        }
+          logLevels: ['error'],
+        },
       };
 
       const errorOnlySystem = new BotDetectionMonitoringSystem(errorOnlyConfig);
@@ -504,7 +578,7 @@ describe('BotDetectionMonitoringSystem', () => {
         campaignId: 'test_campaign',
         analysisWindow: {
           start: new Date(Date.now() - 10 * 60 * 1000),
-          end: new Date()
+          end: new Date(),
         },
         metrics: {
           avgViewsPerMinute: 100,
@@ -515,15 +589,19 @@ describe('BotDetectionMonitoringSystem', () => {
           spikeDetected: false,
           totalViews: 1000,
           totalLikes: 100,
-          totalComments: 10
+          totalComments: 10,
         },
         botScore: 15,
         action: 'none',
         reason: 'Normal activity',
-        confidence: 15
+        confidence: 15,
       };
 
-      await errorOnlySystem.processAnalysis('test_promoter', 'test_campaign', analysis);
+      await errorOnlySystem.processAnalysis(
+        'test_promoter',
+        'test_campaign',
+        analysis
+      );
 
       // Should still log analysis and metrics, but not info logs
       expect(fs.promises.appendFile).toHaveBeenCalledWith(

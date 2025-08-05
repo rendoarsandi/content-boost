@@ -18,7 +18,7 @@ export interface TikTokProfile {
 
 // TikTok provider will be implemented when proper OAuth configuration is available
 export const tiktokProvider = {
-  id: "tiktok",
-  name: "TikTok",
+  id: 'tiktok',
+  name: 'TikTok',
   // Implementation will be added later
 };

@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const session = await getSession();
-    
+
     if (!session?.user || (session.user as any).role !== 'promoter') {
       return NextResponse.json(
         { error: 'Unauthorized - Only promoters can view campaign details' },
@@ -25,9 +25,9 @@ export async function GET(
       where: { id: campaignId },
       include: {
         creator: {
-          select: { id: true, name: true }
-        }
-      }
+          select: { id: true, name: true },
+        },
+      },
     });
 
     if (!campaign) {
@@ -43,11 +43,11 @@ export async function GET(
     // });
 
     // Check if promoter has applied
-    const application = await db.promotion.findFirst({
+    const application = await db.campaignApplication.findFirst({
       where: {
         campaignId,
-        promoterId
-      }
+        promoterId,
+      },
     });
 
     const materials: any[] = []; // Placeholder until we confirm the table structure
@@ -58,7 +58,7 @@ export async function GET(
         materials,
         application: application || null,
         hasApplied: !!application,
-      }
+      },
     });
   } catch (error) {
     console.error('Error fetching campaign details:', error);

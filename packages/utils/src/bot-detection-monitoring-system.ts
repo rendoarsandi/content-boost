@@ -1,6 +1,15 @@
 import { BotAnalysis } from './bot-detection';
-import { BotDetectionMonitor, AlertEvent, NotificationPayload } from './bot-detection-monitor';
-import { BotDetectionReporter, DailySummary, WeeklySummary, MonthlySummary } from './bot-detection-reporter';
+import {
+  BotDetectionMonitor,
+  AlertEvent,
+  NotificationPayload,
+} from './bot-detection-monitor';
+import {
+  BotDetectionReporter,
+  DailySummary,
+  WeeklySummary,
+  MonthlySummary,
+} from './bot-detection-reporter';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -102,15 +111,15 @@ export class BotDetectionMonitoringSystem {
           criticalBotScore: 90,
           warningBotScore: 50,
           monitorBotScore: 20,
-          alertFrequencyLimit: 10 // Max 10 alerts per hour per promoter
-        }
+          alertFrequencyLimit: 10, // Max 10 alerts per hour per promoter
+        },
       },
       logging: {
         logPath: 'logs/bot-detection/',
         auditTrail: true,
         retention: 90, // 90 days
         compression: true,
-        logLevels: ['info', 'warn', 'error']
+        logLevels: ['info', 'warn', 'error'],
       },
       reporting: {
         enabled: true,
@@ -120,23 +129,23 @@ export class BotDetectionMonitoringSystem {
           daily: true,
           weekly: true,
           monthly: true,
-          realTime: false
-        }
+          realTime: false,
+        },
       },
       notifications: {
         channels: {
           email: true,
           dashboard: true,
           webhook: true,
-          sms: false
+          sms: false,
         },
         recipients: {
           admins: ['admin@platform.com'],
           promoters: true,
-          creators: true
-        }
+          creators: true,
+        },
       },
-      ...config
+      ...config,
     };
 
     this.monitor = new BotDetectionMonitor({
@@ -145,9 +154,9 @@ export class BotDetectionMonitoringSystem {
         thresholds: {
           highRiskAlerts: 3,
           warningAlerts: 5,
-          timeWindow: 60
+          timeWindow: 60,
         },
-        channels: this.config.notifications.channels
+        channels: this.config.notifications.channels,
       },
       logging: this.config.logging,
       reporting: {
@@ -155,8 +164,8 @@ export class BotDetectionMonitoringSystem {
         reportPath: this.config.reporting.reportPath,
         dailySummary: this.config.reporting.scheduling.daily,
         weeklySummary: this.config.reporting.scheduling.weekly,
-        monthlySummary: this.config.reporting.scheduling.monthly
-      }
+        monthlySummary: this.config.reporting.scheduling.monthly,
+      },
     });
 
     this.reporter = new BotDetectionReporter({
@@ -168,8 +177,8 @@ export class BotDetectionMonitoringSystem {
         daily: this.config.reporting.scheduling.daily,
         weekly: this.config.reporting.scheduling.weekly,
         monthly: this.config.reporting.scheduling.monthly,
-        realTime: this.config.reporting.scheduling.realTime
-      }
+        realTime: this.config.reporting.scheduling.realTime,
+      },
     });
 
     this.ensureDirectories();
@@ -193,13 +202,21 @@ export class BotDetectionMonitoringSystem {
       // Check if we should generate alerts based on frequency limits
       if (this.shouldGenerateAlert(promoterId, analysis.botScore)) {
         // Generate system alert
-        const systemAlert = await this.generateSystemAlert(promoterId, campaignId, analysis);
+        const systemAlert = await this.generateSystemAlert(
+          promoterId,
+          campaignId,
+          analysis
+        );
         if (systemAlert) {
           await this.processSystemAlert(systemAlert);
         }
 
         // Generate notifications based on bot score and action
-        const notifications = this.generateNotifications(promoterId, campaignId, analysis);
+        const notifications = this.generateNotifications(
+          promoterId,
+          campaignId,
+          analysis
+        );
         for (const notification of notifications) {
           await this.sendNotification(notification);
         }
@@ -223,8 +240,8 @@ export class BotDetectionMonitoringSystem {
         details: {
           viewsAnalyzed: analysis.metrics.totalViews,
           suspiciousPatterns: [analysis.reason],
-          metrics: analysis.metrics
-        }
+          metrics: analysis.metrics,
+        },
       };
 
       this.reporter.addAnalysisData({
@@ -233,25 +250,31 @@ export class BotDetectionMonitoringSystem {
         campaignId,
         analysis,
         actionResult,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       });
 
       // Log successful processing
-      await this.logInfo('processAnalysis', `Successfully processed analysis for promoter ${promoterId}, campaign ${campaignId}`, {
-        botScore: analysis.botScore,
-        action: analysis.action,
-        processingTime: Date.now() - startTime
-      });
-
+      await this.logInfo(
+        'processAnalysis',
+        `Successfully processed analysis for promoter ${promoterId}, campaign ${campaignId}`,
+        {
+          botScore: analysis.botScore,
+          action: analysis.action,
+          processingTime: Date.now() - startTime,
+        }
+      );
     } catch (error) {
       await this.logError('processAnalysis', error as Error, {
         promoterId,
         campaignId,
-        botScore: analysis.botScore
+        botScore: analysis.botScore,
       });
-      
+
       // Generate system error alert
-      await this.generateSystemErrorAlert('processAnalysis', error as Error, { promoterId, campaignId });
+      await this.generateSystemErrorAlert('processAnalysis', error as Error, {
+        promoterId,
+        campaignId,
+      });
     }
   }
 
@@ -280,10 +303,10 @@ export class BotDetectionMonitoringSystem {
             campaignId,
             botScore: analysis.botScore,
             actionTaken: 'ACCOUNT_BANNED',
-            timestamp: new Date()
+            timestamp: new Date(),
           },
           channels: ['email', 'dashboard'],
-          priority: 'HIGH'
+          priority: 'HIGH',
         });
 
         // Admin notification for ban
@@ -298,10 +321,10 @@ export class BotDetectionMonitoringSystem {
             campaignId,
             botScore: analysis.botScore,
             actionTaken: 'ACCOUNT_BANNED',
-            timestamp: new Date()
+            timestamp: new Date(),
           },
           channels: ['email', 'dashboard', 'webhook'],
-          priority: 'HIGH'
+          priority: 'HIGH',
         });
         break;
 
@@ -318,10 +341,10 @@ export class BotDetectionMonitoringSystem {
             campaignId,
             botScore: analysis.botScore,
             actionTaken: 'PAYOUT_HOLD',
-            timestamp: new Date()
+            timestamp: new Date(),
           },
           channels: ['email', 'dashboard'],
-          priority: 'MEDIUM'
+          priority: 'MEDIUM',
         });
 
         // Admin notification for warning
@@ -336,10 +359,10 @@ export class BotDetectionMonitoringSystem {
             campaignId,
             botScore: analysis.botScore,
             actionTaken: 'PAYOUT_HOLD',
-            timestamp: new Date()
+            timestamp: new Date(),
           },
           channels: ['dashboard', 'webhook'],
-          priority: 'MEDIUM'
+          priority: 'MEDIUM',
         });
         break;
 
@@ -356,16 +379,19 @@ export class BotDetectionMonitoringSystem {
             campaignId,
             botScore: analysis.botScore,
             actionTaken: 'ENHANCED_MONITORING',
-            timestamp: new Date()
+            timestamp: new Date(),
           },
           channels: ['dashboard'],
-          priority: 'LOW'
+          priority: 'LOW',
         });
         break;
     }
 
     // Notify campaign creator if enabled
-    if (this.config.notifications.recipients.creators && analysis.action !== 'none') {
+    if (
+      this.config.notifications.recipients.creators &&
+      analysis.action !== 'none'
+    ) {
       notifications.push({
         recipient: 'CREATOR',
         recipientId: `campaign_${campaignId}`,
@@ -377,10 +403,10 @@ export class BotDetectionMonitoringSystem {
           campaignId,
           botScore: analysis.botScore,
           actionTaken: analysis.action.toUpperCase(),
-          timestamp: new Date()
+          timestamp: new Date(),
         },
         channels: ['email', 'dashboard'],
-        priority: analysis.action === 'ban' ? 'HIGH' : 'MEDIUM'
+        priority: analysis.action === 'ban' ? 'HIGH' : 'MEDIUM',
       });
     }
 
@@ -399,11 +425,20 @@ export class BotDetectionMonitoringSystem {
     let type: SystemAlert['type'] = 'BOT_DETECTION';
 
     // Determine severity based on bot score and action
-    if (analysis.botScore >= this.config.monitoring.alertThresholds.criticalBotScore) {
+    if (
+      analysis.botScore >=
+      this.config.monitoring.alertThresholds.criticalBotScore
+    ) {
       severity = 'CRITICAL';
-    } else if (analysis.botScore >= this.config.monitoring.alertThresholds.warningBotScore) {
+    } else if (
+      analysis.botScore >=
+      this.config.monitoring.alertThresholds.warningBotScore
+    ) {
       severity = 'HIGH';
-    } else if (analysis.botScore >= this.config.monitoring.alertThresholds.monitorBotScore) {
+    } else if (
+      analysis.botScore >=
+      this.config.monitoring.alertThresholds.monitorBotScore
+    ) {
       severity = 'MEDIUM';
     }
 
@@ -418,9 +453,9 @@ export class BotDetectionMonitoringSystem {
         promoterId,
         campaignId,
         analysis,
-        metrics: analysis.metrics
+        metrics: analysis.metrics,
       },
-      acknowledged: false
+      acknowledged: false,
     };
 
     return alert;
@@ -445,9 +480,9 @@ export class BotDetectionMonitoringSystem {
         operation,
         error: error.message,
         stack: error.stack,
-        context
+        context,
       },
-      acknowledged: false
+      acknowledged: false,
     };
 
     await this.processSystemAlert(alert);
@@ -475,10 +510,10 @@ export class BotDetectionMonitoringSystem {
         campaignId: alert.data.campaignId || 'system',
         botScore: alert.data.analysis?.botScore || 0,
         actionTaken: alert.type,
-        timestamp: alert.timestamp
+        timestamp: alert.timestamp,
       },
       channels: this.getAlertChannels(alert.severity),
-      priority: alert.severity === 'CRITICAL' ? 'HIGH' : 'MEDIUM'
+      priority: alert.severity === 'CRITICAL' ? 'HIGH' : 'MEDIUM',
     };
 
     await this.sendNotification(alertNotification);
@@ -497,16 +532,20 @@ export class BotDetectionMonitoringSystem {
 
     // Check frequency limits for non-critical alerts
     const now = Date.now();
-    const hourAgo = now - (60 * 60 * 1000);
-    
+    const hourAgo = now - 60 * 60 * 1000;
+
     if (!this.alertFrequencyTracker.has(promoterId)) {
       this.alertFrequencyTracker.set(promoterId, []);
     }
 
-    const recentAlerts = this.alertFrequencyTracker.get(promoterId)!
+    const recentAlerts = this.alertFrequencyTracker
+      .get(promoterId)!
       .filter(timestamp => timestamp > hourAgo);
 
-    return recentAlerts.length < this.config.monitoring.alertThresholds.alertFrequencyLimit;
+    return (
+      recentAlerts.length <
+      this.config.monitoring.alertThresholds.alertFrequencyLimit
+    );
   }
 
   /**
@@ -520,10 +559,12 @@ export class BotDetectionMonitoringSystem {
     this.alertFrequencyTracker.get(promoterId)!.push(now);
 
     // Clean up old entries (older than 1 hour)
-    const hourAgo = now - (60 * 60 * 1000);
+    const hourAgo = now - 60 * 60 * 1000;
     this.alertFrequencyTracker.set(
       promoterId,
-      this.alertFrequencyTracker.get(promoterId)!.filter(timestamp => timestamp > hourAgo)
+      this.alertFrequencyTracker
+        .get(promoterId)!
+        .filter(timestamp => timestamp > hourAgo)
     );
   }
 
@@ -532,15 +573,15 @@ export class BotDetectionMonitoringSystem {
    */
   private getAlertChannels(severity: SystemAlert['severity']): string[] {
     const channels: string[] = [];
-    
+
     if (this.config.notifications.channels.dashboard) {
       channels.push('dashboard');
     }
-    
+
     if (this.config.notifications.channels.webhook) {
       channels.push('webhook');
     }
-    
+
     if (severity === 'CRITICAL' || severity === 'HIGH') {
       if (this.config.notifications.channels.email) {
         channels.push('email');
@@ -549,14 +590,16 @@ export class BotDetectionMonitoringSystem {
         channels.push('sms');
       }
     }
-    
+
     return channels;
   }
 
   /**
    * Send notification through appropriate channels
    */
-  private async sendNotification(notification: NotificationPayload): Promise<void> {
+  private async sendNotification(
+    notification: NotificationPayload
+  ): Promise<void> {
     try {
       // Log notification
       await this.logNotification(notification);
@@ -565,11 +608,10 @@ export class BotDetectionMonitoringSystem {
       for (const channel of notification.channels) {
         await this.sendThroughChannel(channel, notification);
       }
-
     } catch (error) {
       await this.logError('sendNotification', error as Error, {
         notificationId: `${notification.recipient}_${notification.recipientId}`,
-        type: notification.type
+        type: notification.type,
       });
     }
   }
@@ -588,7 +630,7 @@ export class BotDetectionMonitoringSystem {
       type: notification.type,
       title: notification.title,
       priority: notification.priority,
-      success: true
+      success: true,
     };
 
     try {
@@ -610,10 +652,12 @@ export class BotDetectionMonitoringSystem {
       }
 
       await this.logChannelActivity(channel, channelLog);
-
     } catch (error) {
       channelLog.success = false;
-      await this.logChannelActivity(channel, { ...channelLog, error: (error as Error).message });
+      await this.logChannelActivity(channel, {
+        ...channelLog,
+        error: (error as Error).message,
+      });
       throw error;
     }
   }
@@ -621,10 +665,14 @@ export class BotDetectionMonitoringSystem {
   /**
    * Send email notification (implementation placeholder)
    */
-  private async sendEmailNotification(notification: NotificationPayload): Promise<void> {
+  private async sendEmailNotification(
+    notification: NotificationPayload
+  ): Promise<void> {
     // TODO: Integrate with actual email service (SendGrid, AWS SES, etc.)
-    console.log(`📧 EMAIL: ${notification.title} → ${notification.recipientId}`);
-    
+    console.log(
+      `📧 EMAIL: ${notification.title} → ${notification.recipientId}`
+    );
+
     // Simulate email sending delay
     await new Promise(resolve => setTimeout(resolve, 100));
   }
@@ -632,10 +680,12 @@ export class BotDetectionMonitoringSystem {
   /**
    * Send dashboard notification (implementation placeholder)
    */
-  private async sendDashboardNotification(notification: NotificationPayload): Promise<void> {
+  private async sendDashboardNotification(
+    notification: NotificationPayload
+  ): Promise<void> {
     // TODO: Integrate with actual dashboard system (WebSocket, Server-Sent Events)
     console.log(`📊 DASHBOARD: ${notification.title}`);
-    
+
     // Simulate dashboard update
     await new Promise(resolve => setTimeout(resolve, 50));
   }
@@ -643,10 +693,12 @@ export class BotDetectionMonitoringSystem {
   /**
    * Send webhook notification (implementation placeholder)
    */
-  private async sendWebhookNotification(notification: NotificationPayload): Promise<void> {
+  private async sendWebhookNotification(
+    notification: NotificationPayload
+  ): Promise<void> {
     // TODO: Integrate with actual webhook endpoints (Slack, Discord, custom webhooks)
     console.log(`🔗 WEBHOOK: ${notification.title}`);
-    
+
     // Simulate webhook call
     await new Promise(resolve => setTimeout(resolve, 200));
   }
@@ -654,10 +706,14 @@ export class BotDetectionMonitoringSystem {
   /**
    * Send SMS notification (implementation placeholder)
    */
-  private async sendSMSNotification(notification: NotificationPayload): Promise<void> {
+  private async sendSMSNotification(
+    notification: NotificationPayload
+  ): Promise<void> {
     // TODO: Integrate with actual SMS service (Twilio, AWS SNS, etc.)
-    console.log(`📱 SMS: ${notification.title.substring(0, 50)}... → ${notification.recipientId}`);
-    
+    console.log(
+      `📱 SMS: ${notification.title.substring(0, 50)}... → ${notification.recipientId}`
+    );
+
     // Simulate SMS sending delay
     await new Promise(resolve => setTimeout(resolve, 300));
   }
@@ -665,13 +721,17 @@ export class BotDetectionMonitoringSystem {
   /**
    * Update monitoring metrics
    */
-  private async updateMetrics(analysis: BotAnalysis, processingTime: number): Promise<void> {
+  private async updateMetrics(
+    analysis: BotAnalysis,
+    processingTime: number
+  ): Promise<void> {
     const now = new Date();
-    
+
     // Find or create current hour metrics
-    let currentMetrics = this.metrics.find(m => 
-      m.timestamp.getHours() === now.getHours() &&
-      m.timestamp.getDate() === now.getDate()
+    let currentMetrics = this.metrics.find(
+      m =>
+        m.timestamp.getHours() === now.getHours() &&
+        m.timestamp.getDate() === now.getDate()
     );
 
     if (!currentMetrics) {
@@ -682,23 +742,23 @@ export class BotDetectionMonitoringSystem {
           banned: 0,
           warned: 0,
           monitored: 0,
-          clean: 0
+          clean: 0,
         },
         averageBotScore: 0,
         systemPerformance: {
           averageProcessingTime: 0,
           errorRate: 0,
-          throughput: 0
+          throughput: 0,
         },
         alertsGenerated: 0,
-        notificationsSent: 0
+        notificationsSent: 0,
       };
       this.metrics.push(currentMetrics);
     }
 
     // Update metrics
     currentMetrics.totalAnalyses++;
-    
+
     switch (analysis.action) {
       case 'ban':
         currentMetrics.botDetections.banned++;
@@ -714,14 +774,17 @@ export class BotDetectionMonitoringSystem {
     }
 
     // Update average bot score
-    currentMetrics.averageBotScore = (
-      (currentMetrics.averageBotScore * (currentMetrics.totalAnalyses - 1)) + analysis.botScore
-    ) / currentMetrics.totalAnalyses;
+    currentMetrics.averageBotScore =
+      (currentMetrics.averageBotScore * (currentMetrics.totalAnalyses - 1) +
+        analysis.botScore) /
+      currentMetrics.totalAnalyses;
 
     // Update processing time
-    currentMetrics.systemPerformance.averageProcessingTime = (
-      (currentMetrics.systemPerformance.averageProcessingTime * (currentMetrics.totalAnalyses - 1)) + processingTime
-    ) / currentMetrics.totalAnalyses;
+    currentMetrics.systemPerformance.averageProcessingTime =
+      (currentMetrics.systemPerformance.averageProcessingTime *
+        (currentMetrics.totalAnalyses - 1) +
+        processingTime) /
+      currentMetrics.totalAnalyses;
 
     // Update throughput (analyses per hour)
     currentMetrics.systemPerformance.throughput = currentMetrics.totalAnalyses;
@@ -750,7 +813,10 @@ export class BotDetectionMonitoringSystem {
    * Generate monthly summary report
    * Requirement 10.3: Monthly summary files
    */
-  async generateMonthlySummary(month?: number, year?: number): Promise<MonthlySummary> {
+  async generateMonthlySummary(
+    month?: number,
+    year?: number
+  ): Promise<MonthlySummary> {
     return await this.reporter.generateMonthlySummary(month, year);
   }
 
@@ -758,7 +824,11 @@ export class BotDetectionMonitoringSystem {
    * Logging methods
    * Requirement 10.4: Audit trail logging
    */
-  private async logAnalysis(promoterId: string, campaignId: string, analysis: BotAnalysis): Promise<void> {
+  private async logAnalysis(
+    promoterId: string,
+    campaignId: string,
+    analysis: BotAnalysis
+  ): Promise<void> {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level: 'info',
@@ -768,7 +838,7 @@ export class BotDetectionMonitoringSystem {
       botScore: analysis.botScore,
       action: analysis.action,
       reason: analysis.reason,
-      metrics: analysis.metrics
+      metrics: analysis.metrics,
     };
 
     await this.writeLog('analysis', logEntry);
@@ -783,13 +853,15 @@ export class BotDetectionMonitoringSystem {
       type: alert.type,
       severity: alert.severity,
       message: alert.message,
-      data: alert.data
+      data: alert.data,
     };
 
     await this.writeLog('alerts', logEntry);
   }
 
-  private async logNotification(notification: NotificationPayload): Promise<void> {
+  private async logNotification(
+    notification: NotificationPayload
+  ): Promise<void> {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level: 'info',
@@ -799,25 +871,32 @@ export class BotDetectionMonitoringSystem {
       type: notification.type,
       title: notification.title,
       channels: notification.channels,
-      priority: notification.priority
+      priority: notification.priority,
     };
 
     await this.writeLog('notifications', logEntry);
   }
 
-  private async logChannelActivity(channel: string, activity: any): Promise<void> {
+  private async logChannelActivity(
+    channel: string,
+    activity: any
+  ): Promise<void> {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level: 'info',
       event: 'channel_activity',
       channel,
-      ...activity
+      ...activity,
     };
 
     await this.writeLog(`channel-${channel}`, logEntry);
   }
 
-  private async logInfo(operation: string, message: string, data?: any): Promise<void> {
+  private async logInfo(
+    operation: string,
+    message: string,
+    data?: any
+  ): Promise<void> {
     if (!this.config.logging.logLevels.includes('info')) return;
 
     const logEntry = {
@@ -825,13 +904,17 @@ export class BotDetectionMonitoringSystem {
       level: 'info',
       operation,
       message,
-      data
+      data,
     };
 
     await this.writeLog('system', logEntry);
   }
 
-  private async logError(operation: string, error: Error, context?: any): Promise<void> {
+  private async logError(
+    operation: string,
+    error: Error,
+    context?: any
+  ): Promise<void> {
     if (!this.config.logging.logLevels.includes('error')) return;
 
     const logEntry = {
@@ -840,7 +923,7 @@ export class BotDetectionMonitoringSystem {
       operation,
       error: error.message,
       stack: error.stack,
-      context
+      context,
     };
 
     await this.writeLog('errors', logEntry);
@@ -852,9 +935,12 @@ export class BotDetectionMonitoringSystem {
   private async writeLog(logType: string, entry: any): Promise<void> {
     try {
       const date = new Date().toISOString().split('T')[0];
-      const logFile = path.join(this.config.logging.logPath, `${logType}-${date}.log`);
+      const logFile = path.join(
+        this.config.logging.logPath,
+        `${logType}-${date}.log`
+      );
       const logLine = JSON.stringify(entry) + '\n';
-      
+
       await fs.promises.appendFile(logFile, logLine, 'utf8');
     } catch (error) {
       console.error(`Failed to write log entry: ${error}`);
@@ -867,9 +953,12 @@ export class BotDetectionMonitoringSystem {
   private async saveMetrics(metrics: MonitoringMetrics): Promise<void> {
     try {
       const date = new Date().toISOString().split('T')[0];
-      const metricsFile = path.join(this.config.logging.logPath, `metrics-${date}.log`);
+      const metricsFile = path.join(
+        this.config.logging.logPath,
+        `metrics-${date}.log`
+      );
       const metricsLine = JSON.stringify(metrics) + '\n';
-      
+
       await fs.promises.appendFile(metricsFile, metricsLine, 'utf8');
     } catch (error) {
       console.error(`Failed to save metrics: ${error}`);
@@ -886,7 +975,7 @@ export class BotDetectionMonitoringSystem {
         this.config.reporting.reportPath,
         path.join(this.config.reporting.reportPath, 'daily'),
         path.join(this.config.reporting.reportPath, 'weekly'),
-        path.join(this.config.reporting.reportPath, 'monthly')
+        path.join(this.config.reporting.reportPath, 'monthly'),
       ];
 
       for (const dir of directories) {
@@ -922,18 +1011,21 @@ export class BotDetectionMonitoringSystem {
     };
   } {
     const recentMetrics = this.metrics.slice(-24); // Last 24 hours
-    const totalAnalyses = recentMetrics.reduce((sum, m) => sum + m.totalAnalyses, 0);
-    const recentAlerts = this.systemAlerts.filter(a => 
-      Date.now() - a.timestamp.getTime() < 24 * 60 * 60 * 1000
+    const totalAnalyses = recentMetrics.reduce(
+      (sum, m) => sum + m.totalAnalyses,
+      0
+    );
+    const recentAlerts = this.systemAlerts.filter(
+      a => Date.now() - a.timestamp.getTime() < 24 * 60 * 60 * 1000
     ).length;
 
     // Determine system health
     let systemHealth: 'HEALTHY' | 'WARNING' | 'CRITICAL' = 'HEALTHY';
-    const criticalAlerts = this.systemAlerts.filter(a => 
-      a.severity === 'CRITICAL' && !a.acknowledged
+    const criticalAlerts = this.systemAlerts.filter(
+      a => a.severity === 'CRITICAL' && !a.acknowledged
     ).length;
-    const highAlerts = this.systemAlerts.filter(a => 
-      a.severity === 'HIGH' && !a.acknowledged
+    const highAlerts = this.systemAlerts.filter(
+      a => a.severity === 'HIGH' && !a.acknowledged
     ).length;
 
     if (criticalAlerts > 0) {
@@ -943,47 +1035,65 @@ export class BotDetectionMonitoringSystem {
     }
 
     // Alert statistics
-    const alertsByType = this.systemAlerts.reduce((acc, alert) => {
-      acc[alert.type] = (acc[alert.type] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    const alertsByType = this.systemAlerts.reduce(
+      (acc, alert) => {
+        acc[alert.type] = (acc[alert.type] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number }
+    );
 
-    const alertsBySeverity = this.systemAlerts.reduce((acc, alert) => {
-      acc[alert.severity] = (acc[alert.severity] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    const alertsBySeverity = this.systemAlerts.reduce(
+      (acc, alert) => {
+        acc[alert.severity] = (acc[alert.severity] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number }
+    );
 
     // Performance metrics
-    const avgProcessingTime = recentMetrics.length > 0
-      ? recentMetrics.reduce((sum, m) => sum + m.systemPerformance.averageProcessingTime, 0) / recentMetrics.length
-      : 0;
+    const avgProcessingTime =
+      recentMetrics.length > 0
+        ? recentMetrics.reduce(
+            (sum, m) => sum + m.systemPerformance.averageProcessingTime,
+            0
+          ) / recentMetrics.length
+        : 0;
 
-    const throughput = recentMetrics.length > 0
-      ? recentMetrics.reduce((sum, m) => sum + m.systemPerformance.throughput, 0) / recentMetrics.length
-      : 0;
+    const throughput =
+      recentMetrics.length > 0
+        ? recentMetrics.reduce(
+            (sum, m) => sum + m.systemPerformance.throughput,
+            0
+          ) / recentMetrics.length
+        : 0;
 
-    const errorRate = recentMetrics.length > 0
-      ? recentMetrics.reduce((sum, m) => sum + m.systemPerformance.errorRate, 0) / recentMetrics.length
-      : 0;
+    const errorRate =
+      recentMetrics.length > 0
+        ? recentMetrics.reduce(
+            (sum, m) => sum + m.systemPerformance.errorRate,
+            0
+          ) / recentMetrics.length
+        : 0;
 
     return {
       monitoring: {
         enabled: this.config.monitoring.enabled,
         totalAnalyses,
         recentAlerts,
-        systemHealth
+        systemHealth,
       },
       alerts: {
         total: this.systemAlerts.length,
         unacknowledged: this.systemAlerts.filter(a => !a.acknowledged).length,
         byType: alertsByType,
-        bySeverity: alertsBySeverity
+        bySeverity: alertsBySeverity,
       },
       performance: {
         averageProcessingTime: avgProcessingTime,
         throughput,
-        errorRate
-      }
+        errorRate,
+      },
     };
   }
 
@@ -995,8 +1105,10 @@ export class BotDetectionMonitoringSystem {
     if (!alert) return false;
 
     alert.acknowledged = true;
-    
-    await this.logInfo('acknowledgeAlert', `Alert ${alertId} acknowledged`, { alertId });
+
+    await this.logInfo('acknowledgeAlert', `Alert ${alertId} acknowledged`, {
+      alertId,
+    });
     return true;
   }
 
@@ -1009,8 +1121,10 @@ export class BotDetectionMonitoringSystem {
 
     alert.acknowledged = true;
     alert.resolvedAt = new Date();
-    
-    await this.logInfo('resolveAlert', `Alert ${alertId} resolved`, { alertId });
+
+    await this.logInfo('resolveAlert', `Alert ${alertId} resolved`, {
+      alertId,
+    });
     return true;
   }
 }

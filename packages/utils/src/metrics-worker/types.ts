@@ -143,11 +143,14 @@ export interface MetricsCollectionStats {
     maxProcessingTime: number;
     totalProcessingTime: number;
   };
-  platforms: Record<SocialPlatform, {
-    collections: number;
-    successRate: number;
-    averageProcessingTime: number;
-  }>;
+  platforms: Record<
+    SocialPlatform,
+    {
+      collections: number;
+      successRate: number;
+      averageProcessingTime: number;
+    }
+  >;
   errors: Array<{
     error: string;
     count: number;

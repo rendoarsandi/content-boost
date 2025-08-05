@@ -1,6 +1,6 @@
 // packages/auth/src/server-only.ts
-import "server-only";
-import type { Session } from "./config";
+import 'server-only';
+import type { Session } from './config';
 
 /**
  * Mengembalikan sesi pengguna palsu untuk tujuan build dan pengembangan.

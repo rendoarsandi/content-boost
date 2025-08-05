@@ -1,27 +1,44 @@
-import { BaseRepository, PaginationOptions } from './base';
+import { BaseRepository, PaginationOptions, TransactionClient } from './base';
 import { Prisma, ViewRecord, TrackingSession } from '@prisma/client';
 
-export class ViewRecordRepository extends BaseRepository<ViewRecord, Prisma.ViewRecordCreateInput, Prisma.ViewRecordUpdateInput> {
-  async findById(id: string): Promise<ViewRecord | null> {
-    return this.db.viewRecord.findUnique({ where: { id } });
+export class ViewRecordRepository extends BaseRepository {
+  async findById(
+    id: string,
+    tx?: TransactionClient
+  ): Promise<ViewRecord | null> {
+    return this.getClient(tx).viewRecord.findUnique({ where: { id } });
   }
 
-  async create(data: Prisma.ViewRecordCreateInput): Promise<ViewRecord> {
-    return this.db.viewRecord.create({ data });
+  async create(
+    data: Prisma.ViewRecordCreateInput,
+    tx?: TransactionClient
+  ): Promise<ViewRecord> {
+    return this.getClient(tx).viewRecord.create({ data });
   }
 
-  async update(id: string, data: Prisma.ViewRecordUpdateInput): Promise<ViewRecord | null> {
-    return this.db.viewRecord.update({ where: { id }, data });
+  async update(
+    id: string,
+    data: Prisma.ViewRecordUpdateInput,
+    tx?: TransactionClient
+  ): Promise<ViewRecord> {
+    return this.getClient(tx).viewRecord.update({ where: { id }, data });
   }
 
-  async delete(id: string): Promise<boolean> {
-    await this.db.viewRecord.delete({ where: { id } });
-    return true;
+  async delete(id: string, tx?: TransactionClient): Promise<ViewRecord> {
+    return this.getClient(tx).viewRecord.delete({ where: { id } });
   }
 
-  async findAll(options: PaginationOptions = {}): Promise<ViewRecord[]> {
-    const { limit = 50, offset = 0, orderBy = 'timestamp', orderDirection = 'desc' } = options;
-    return this.db.viewRecord.findMany({
+  async findAll(
+    options: PaginationOptions = {},
+    tx?: TransactionClient
+  ): Promise<ViewRecord[]> {
+    const {
+      limit = 50,
+      offset = 0,
+      orderBy = 'timestamp',
+      orderDirection = 'desc',
+    } = options;
+    return this.getClient(tx).viewRecord.findMany({
       take: limit,
       skip: offset,
       orderBy: { [orderBy]: orderDirection },
@@ -29,27 +46,44 @@ export class ViewRecordRepository extends BaseRepository<ViewRecord, Prisma.View
   }
 }
 
-export class TrackingSessionRepository extends BaseRepository<TrackingSession, Prisma.TrackingSessionCreateInput, Prisma.TrackingSessionUpdateInput> {
-  async findById(id: string): Promise<TrackingSession | null> {
-    return this.db.trackingSession.findUnique({ where: { id } });
+export class TrackingSessionRepository extends BaseRepository {
+  async findById(
+    id: string,
+    tx?: TransactionClient
+  ): Promise<TrackingSession | null> {
+    return this.getClient(tx).trackingSession.findUnique({ where: { id } });
   }
 
-  async create(data: Prisma.TrackingSessionCreateInput): Promise<TrackingSession> {
-    return this.db.trackingSession.create({ data });
+  async create(
+    data: Prisma.TrackingSessionCreateInput,
+    tx?: TransactionClient
+  ): Promise<TrackingSession> {
+    return this.getClient(tx).trackingSession.create({ data });
   }
 
-  async update(id: string, data: Prisma.TrackingSessionUpdateInput): Promise<TrackingSession | null> {
-    return this.db.trackingSession.update({ where: { id }, data });
+  async update(
+    id: string,
+    data: Prisma.TrackingSessionUpdateInput,
+    tx?: TransactionClient
+  ): Promise<TrackingSession> {
+    return this.getClient(tx).trackingSession.update({ where: { id }, data });
   }
 
-  async delete(id: string): Promise<boolean> {
-    await this.db.trackingSession.delete({ where: { id } });
-    return true;
+  async delete(id: string, tx?: TransactionClient): Promise<TrackingSession> {
+    return this.getClient(tx).trackingSession.delete({ where: { id } });
   }
 
-  async findAll(options: PaginationOptions = {}): Promise<TrackingSession[]> {
-    const { limit = 50, offset = 0, orderBy = 'startTime', orderDirection = 'desc' } = options;
-    return this.db.trackingSession.findMany({
+  async findAll(
+    options: PaginationOptions = {},
+    tx?: TransactionClient
+  ): Promise<TrackingSession[]> {
+    const {
+      limit = 50,
+      offset = 0,
+      orderBy = 'startTime',
+      orderDirection = 'desc',
+    } = options;
+    return this.getClient(tx).trackingSession.findMany({
       take: limit,
       skip: offset,
       orderBy: { [orderBy]: orderDirection },

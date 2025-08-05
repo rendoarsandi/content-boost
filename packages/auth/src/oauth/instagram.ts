@@ -10,7 +10,7 @@ export interface InstagramTokenResponse {
 export interface InstagramUserInfo {
   id: string;
   username: string;
-  account_type: "BUSINESS" | "MEDIA_CREATOR" | "PERSONAL";
+  account_type: 'BUSINESS' | 'MEDIA_CREATOR' | 'PERSONAL';
   media_count: number;
   followers_count?: number;
   follows_count?: number;
@@ -33,76 +33,83 @@ export class InstagramOAuth {
 
   // Generate authorization URL
   getAuthorizationUrl(state?: string): string {
-    const authUrl = new URL("https://api.instagram.com/oauth/authorize");
-    
-    authUrl.searchParams.set("client_id", this.clientId);
-    authUrl.searchParams.set("redirect_uri", this.redirectUri);
-    authUrl.searchParams.set("scope", "user_profile,user_media");
-    authUrl.searchParams.set("response_type", "code");
-    
+    const authUrl = new URL('https://api.instagram.com/oauth/authorize');
+
+    authUrl.searchParams.set('client_id', this.clientId);
+    authUrl.searchParams.set('redirect_uri', this.redirectUri);
+    authUrl.searchParams.set('scope', 'user_profile,user_media');
+    authUrl.searchParams.set('response_type', 'code');
+
     if (state) {
-      authUrl.searchParams.set("state", state);
+      authUrl.searchParams.set('state', state);
     }
-    
+
     return authUrl.toString();
   }
 
   // Exchange authorization code for access token
   async exchangeCodeForToken(code: string): Promise<InstagramTokenResponse> {
     // First, get short-lived access token
-    const response = await fetch("https://api.instagram.com/oauth/access_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
-        grant_type: "authorization_code",
-        redirect_uri: this.redirectUri,
-        code,
-      }),
-    });
+    const response = await fetch(
+      'https://api.instagram.com/oauth/access_token',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'authorization_code',
+          redirect_uri: this.redirectUri,
+          code,
+        }),
+      }
+    );
 
     const shortTokenData = await response.json();
 
     if (shortTokenData.error) {
-      throw new Error(`Instagram OAuth error: ${shortTokenData.error_description || shortTokenData.error}`);
+      throw new Error(
+        `Instagram OAuth error: ${shortTokenData.error_description || shortTokenData.error}`
+      );
     }
 
     // Exchange for long-lived access token
     const longTokenResponse = await fetch(
       `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${this.clientSecret}&access_token=${shortTokenData.access_token}`,
-      { method: "GET" }
+      { method: 'GET' }
     );
 
     const longTokenData = await longTokenResponse.json();
 
     if (longTokenData.error) {
-      throw new Error(`Instagram long-lived token error: ${longTokenData.error.message || longTokenData.error}`);
+      throw new Error(
+        `Instagram long-lived token error: ${longTokenData.error.message || longTokenData.error}`
+      );
     }
 
     return {
       access_token: longTokenData.access_token,
       expires_in: longTokenData.expires_in,
-      token_type: longTokenData.token_type || "Bearer",
+      token_type: longTokenData.token_type || 'Bearer',
     };
   }
 
   // Get user information using access token
   async getUserInfo(accessToken: string): Promise<InstagramUserInfo> {
     const fields = [
-      "id",
-      "username",
-      "account_type",
-      "media_count",
-      "followers_count",
-      "follows_count",
-      "name",
-      "biography",
-      "website",
-      "profile_picture_url"
-    ].join(",");
+      'id',
+      'username',
+      'account_type',
+      'media_count',
+      'followers_count',
+      'follows_count',
+      'name',
+      'biography',
+      'website',
+      'profile_picture_url',
+    ].join(',');
 
     const response = await fetch(
       `https://graph.instagram.com/me?fields=${fields}&access_token=${accessToken}`
@@ -111,29 +118,35 @@ export class InstagramOAuth {
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(`Instagram API error: ${data.error.message || data.error}`);
+      throw new Error(
+        `Instagram API error: ${data.error.message || data.error}`
+      );
     }
 
     return data;
   }
 
   // Refresh access token (Instagram long-lived tokens)
-  async refreshAccessToken(accessToken: string): Promise<InstagramTokenResponse> {
+  async refreshAccessToken(
+    accessToken: string
+  ): Promise<InstagramTokenResponse> {
     const response = await fetch(
       `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${accessToken}`,
-      { method: "GET" }
+      { method: 'GET' }
     );
 
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(`Instagram token refresh error: ${data.error.message || data.error}`);
+      throw new Error(
+        `Instagram token refresh error: ${data.error.message || data.error}`
+      );
     }
 
     return {
       access_token: data.access_token,
       expires_in: data.expires_in,
-      token_type: data.token_type || "Bearer",
+      token_type: data.token_type || 'Bearer',
     };
   }
 

@@ -1,8 +1,8 @@
-import { 
+import {
   MetricsBackgroundService,
   createMetricsBackgroundService,
   createMetricsWorker,
-  createDataPipeline
+  createDataPipeline,
 } from '../../src/metrics-worker';
 import { RedisCache } from '@repo/cache';
 import { SocialMediaAPIManager } from '../../src/social-api/manager';
@@ -23,12 +23,12 @@ describe('Metrics Worker Integration', () => {
       del: jest.fn(),
       keys: jest.fn().mockResolvedValue([]),
       ttl: jest.fn(),
-      deletePattern: jest.fn()
+      deletePattern: jest.fn(),
     } as any;
 
     mockApiManager = {
       collectMetrics: jest.fn(),
-      healthCheck: jest.fn().mockResolvedValue(new Map())
+      healthCheck: jest.fn().mockResolvedValue(new Map()),
     } as any;
   });
 
@@ -39,32 +39,36 @@ describe('Metrics Worker Integration', () => {
   describe('factory functions', () => {
     it('should create background service with factory function', () => {
       const service = createMetricsBackgroundService(mockCache, mockApiManager);
-      
+
       expect(service).toBeInstanceOf(MetricsBackgroundService);
     });
 
     it('should create background service with custom config', () => {
       const config = {
         enableCronJobs: false,
-        logLevel: 'debug' as const
+        logLevel: 'debug' as const,
       };
 
-      const service = createMetricsBackgroundService(mockCache, mockApiManager, config);
+      const service = createMetricsBackgroundService(
+        mockCache,
+        mockApiManager,
+        config
+      );
       const serviceConfig = service.getConfig();
-      
+
       expect(serviceConfig.enableCronJobs).toBe(false);
       expect(serviceConfig.logLevel).toBe('debug');
     });
 
     it('should create standalone worker', () => {
       const worker = createMetricsWorker(mockCache, mockApiManager);
-      
+
       expect(worker).toBeDefined();
     });
 
     it('should create data pipeline', () => {
       const pipeline = createDataPipeline(mockCache);
-      
+
       expect(pipeline).toBeDefined();
     });
   });
@@ -73,9 +77,13 @@ describe('Metrics Worker Integration', () => {
     let backgroundService: MetricsBackgroundService;
 
     beforeEach(() => {
-      backgroundService = createMetricsBackgroundService(mockCache, mockApiManager, {
-        logLevel: 'error' // Reduce log noise in tests
-      });
+      backgroundService = createMetricsBackgroundService(
+        mockCache,
+        mockApiManager,
+        {
+          logLevel: 'error', // Reduce log noise in tests
+        }
+      );
     });
 
     it('should complete full metrics collection workflow', async () => {
@@ -91,12 +99,12 @@ describe('Metrics Worker Integration', () => {
             views: 1000,
             likes: 100,
             comments: 10,
-            shares: 5
+            shares: 5,
           },
           timestamp: new Date(),
-          isValid: true
+          isValid: true,
         },
-        rateLimited: false
+        rateLimited: false,
       });
 
       // Start the service
@@ -135,7 +143,6 @@ describe('Metrics Worker Integration', () => {
         // Check health
         const health = await backgroundService.checkHealth();
         expect(health.overall).toBeDefined();
-
       } finally {
         // Clean up
         await backgroundService.stop();
@@ -148,9 +155,9 @@ describe('Metrics Worker Integration', () => {
         success: false,
         error: {
           code: 'API_ERROR',
-          message: 'API request failed'
+          message: 'API request failed',
         },
-        rateLimited: false
+        rateLimited: false,
       });
 
       await backgroundService.start();
@@ -164,7 +171,6 @@ describe('Metrics Worker Integration', () => {
         );
 
         expect(metrics).toBeNull();
-
       } finally {
         await backgroundService.stop();
       }
@@ -177,10 +183,10 @@ describe('Metrics Worker Integration', () => {
         error: {
           code: 'RATE_LIMITED',
           message: 'Rate limit exceeded',
-          retryAfter: 60
+          retryAfter: 60,
         },
         rateLimited: true,
-        retryAfter: 60
+        retryAfter: 60,
       });
 
       await backgroundService.start();
@@ -194,7 +200,6 @@ describe('Metrics Worker Integration', () => {
         );
 
         expect(metrics).toBeNull();
-
       } finally {
         await backgroundService.stop();
       }
@@ -209,27 +214,26 @@ describe('Metrics Worker Integration', () => {
           name: 'test_job',
           schedule: '*/10 * * * *',
           enabled: true,
-          description: 'Test job'
+          description: 'Test job',
         });
 
         const cronJobs = backgroundService.getCronJobs();
         const testJob = cronJobs.find(job => job.name === 'test_job');
-        
+
         expect(testJob).toBeDefined();
         expect(testJob?.enabled).toBe(true);
 
         // Disable the job
         await backgroundService.disableCronJob('test_job');
-        
+
         const updatedJobs = backgroundService.getCronJobs();
         const disabledJob = updatedJobs.find(job => job.name === 'test_job');
-        
+
         expect(disabledJob?.enabled).toBe(false);
 
         // Remove the job
         const removed = await backgroundService.removeCronJob('test_job');
         expect(removed).toBe(true);
-
       } finally {
         await backgroundService.stop();
       }
@@ -248,20 +252,22 @@ describe('Metrics Worker Integration', () => {
             views: 1000.7, // Will be normalized to integer
             likes: 100,
             comments: 10,
-            shares: 5
+            shares: 5,
           },
           timestamp: new Date(),
-          isValid: true
+          isValid: true,
         };
 
-        const processedMetrics = await backgroundService.processMetrics(rawMetrics);
+        const processedMetrics =
+          await backgroundService.processMetrics(rawMetrics);
 
         expect(processedMetrics).toBeDefined();
         expect(processedMetrics.processed.validationResults).toBeDefined();
         expect(processedMetrics.processed.normalizationApplied).toBeDefined();
-        expect(processedMetrics.processed.qualityScore).toBeGreaterThanOrEqual(0);
+        expect(processedMetrics.processed.qualityScore).toBeGreaterThanOrEqual(
+          0
+        );
         expect(processedMetrics.raw.originalMetrics).toEqual(rawMetrics);
-
       } finally {
         await backgroundService.stop();
       }
@@ -275,7 +281,7 @@ describe('Metrics Worker Integration', () => {
         const cachedMetrics = {
           userId: 'user123',
           cached: true,
-          timestamp: new Date()
+          timestamp: new Date(),
         };
 
         mockCache.get.mockResolvedValue(cachedMetrics);
@@ -294,7 +300,6 @@ describe('Metrics Worker Integration', () => {
         expect(mockCache.deletePattern).toHaveBeenCalledWith(
           'processed_metrics:user123:*'
         );
-
       } finally {
         await backgroundService.stop();
       }
@@ -349,7 +354,7 @@ describe('Metrics Worker Integration', () => {
 
       // Mock a component to fail during start
       const mockScheduler = {
-        start: jest.fn().mockRejectedValue(new Error('Scheduler start failed'))
+        start: jest.fn().mockRejectedValue(new Error('Scheduler start failed')),
       };
 
       // Replace scheduler with failing mock
@@ -376,10 +381,14 @@ describe('Metrics Worker Integration', () => {
       const customConfig = {
         collectionInterval: 30000, // 30 seconds
         enableCronJobs: false,
-        logLevel: 'debug' as const
+        logLevel: 'debug' as const,
       };
 
-      const service = createMetricsBackgroundService(mockCache, mockApiManager, customConfig);
+      const service = createMetricsBackgroundService(
+        mockCache,
+        mockApiManager,
+        customConfig
+      );
       const config = service.getConfig();
 
       expect(config.collectionInterval).toBe(30000);
@@ -392,7 +401,7 @@ describe('Metrics Worker Integration', () => {
 
       service.updateConfig({
         logLevel: 'warn',
-        gracefulShutdownTimeout: 60000
+        gracefulShutdownTimeout: 60000,
       });
 
       const config = service.getConfig();

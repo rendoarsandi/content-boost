@@ -19,7 +19,7 @@ export class MetricsCronScheduler {
     this.cache = cache;
     this.worker = worker;
     this.scheduler = scheduler;
-    
+
     this.initializeDefaultJobs();
   }
 
@@ -68,11 +68,13 @@ export class MetricsCronScheduler {
     console.log('Cron scheduler stopped');
   }
 
-  async addCronJob(config: Omit<CronJobConfig, 'runCount' | 'errorCount'>): Promise<void> {
+  async addCronJob(
+    config: Omit<CronJobConfig, 'runCount' | 'errorCount'>
+  ): Promise<void> {
     const fullConfig: CronJobConfig = {
       ...config,
       runCount: 0,
-      errorCount: 0
+      errorCount: 0,
     };
 
     this.cronJobs.set(config.name, fullConfig);
@@ -137,10 +139,13 @@ export class MetricsCronScheduler {
     return this.cronJobs.get(jobName);
   }
 
-  async getJobHistory(jobName: string, limit: number = 10): Promise<CronJobResult[]> {
+  async getJobHistory(
+    jobName: string,
+    limit: number = 10
+  ): Promise<CronJobResult[]> {
     try {
       const historyKey = `cron_history:${jobName}`;
-      const history = await this.cache.get<CronJobResult[]>(historyKey) || [];
+      const history = (await this.cache.get<CronJobResult[]>(historyKey)) || [];
       return history.slice(-limit);
     } catch (error) {
       console.error(`Failed to get job history for ${jobName}:`, error);
@@ -159,9 +164,11 @@ export class MetricsCronScheduler {
 
     // Parse cron expression and calculate interval
     const intervalMs = this.parseCronExpression(config.schedule);
-    
+
     if (intervalMs <= 0) {
-      console.error(`Invalid cron schedule for job ${jobName}: ${config.schedule}`);
+      console.error(
+        `Invalid cron schedule for job ${jobName}: ${config.schedule}`
+      );
       return;
     }
 
@@ -212,24 +219,26 @@ export class MetricsCronScheduler {
         startTime,
         endTime,
         duration: endTime.getTime() - startTime.getTime(),
-        metricsProcessed
+        metricsProcessed,
       };
 
-      console.log(`Cron job ${jobName} completed successfully in ${result.duration}ms`);
-
+      console.log(
+        `Cron job ${jobName} completed successfully in ${result.duration}ms`
+      );
     } catch (error) {
       const endTime = new Date();
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
       config.errorCount++;
-      
+
       result = {
         jobName,
         success: false,
         startTime,
         endTime,
         duration: endTime.getTime() - startTime.getTime(),
-        error: errorMessage
+        error: errorMessage,
       };
 
       console.error(`Cron job ${jobName} failed:`, error);
@@ -246,16 +255,16 @@ export class MetricsCronScheduler {
     switch (jobName) {
       case 'metrics_collection':
         return await this.executeMetricsCollection();
-      
+
       case 'metrics_validation':
         return await this.executeMetricsValidation();
-      
+
       case 'cache_cleanup':
         return await this.executeCacheCleanup();
-      
+
       case 'health_check':
         return await this.executeHealthCheck();
-      
+
       default:
         throw new Error(`Unknown cron job: ${jobName}`);
     }
@@ -264,7 +273,7 @@ export class MetricsCronScheduler {
   private async executeMetricsCollection(): Promise<number> {
     // Get all due jobs from scheduler
     const dueJobs = await this.scheduler.getDueJobs();
-    
+
     if (dueJobs.length === 0) {
       return 0;
     }
@@ -276,8 +285,8 @@ export class MetricsCronScheduler {
 
     for (let i = 0; i < dueJobs.length; i += batchSize) {
       const batch = dueJobs.slice(i, i + batchSize);
-      
-      const promises = batch.map(async (job) => {
+
+      const promises = batch.map(async job => {
         try {
           const result = await this.worker.collectMetricsNow(
             job.userId,
@@ -285,11 +294,11 @@ export class MetricsCronScheduler {
             job.postId,
             job.campaignId
           );
-          
+
           if (result.success) {
             processedCount++;
           }
-          
+
           return result;
         } catch (error) {
           console.error(`Failed to collect metrics for job ${job.id}:`, error);
@@ -298,7 +307,7 @@ export class MetricsCronScheduler {
       });
 
       await Promise.allSettled(promises);
-      
+
       // Small delay between batches to be respectful to APIs
       if (i + batchSize < dueJobs.length) {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -317,20 +326,16 @@ export class MetricsCronScheduler {
   private async executeCacheCleanup(): Promise<number> {
     try {
       // Clean up expired cache entries
-      const patterns = [
-        'processed_metrics:*',
-        'metrics_job:*',
-        'rate_limit:*'
-      ];
+      const patterns = ['processed_metrics:*', 'metrics_job:*', 'rate_limit:*'];
 
       let cleanedCount = 0;
-      
+
       for (const pattern of patterns) {
         const keys = await this.cache.keys(pattern);
-        
+
         for (const key of keys) {
           const ttl = await this.cache.ttl(key);
-          
+
           // Remove keys that are expired or have no TTL set
           if (ttl === -1 || ttl === 0) {
             await this.cache.del(key);
@@ -341,7 +346,6 @@ export class MetricsCronScheduler {
 
       console.log(`Cleaned up ${cleanedCount} expired cache entries`);
       return cleanedCount;
-      
     } catch (error) {
       console.error('Cache cleanup failed:', error);
       return 0;
@@ -352,27 +356,26 @@ export class MetricsCronScheduler {
     try {
       // Check worker status
       const workerStatus = await this.worker.getWorkerStatus();
-      
+
       // Check scheduler status
       const schedulerStatus = await this.scheduler.getStatus();
-      
+
       // Log health status
       console.log('Health Check Results:', {
         worker: {
           isRunning: workerStatus.isRunning,
           processedJobs: workerStatus.processedJobs,
           failedJobs: workerStatus.failedJobs,
-          currentLoad: workerStatus.currentLoad
+          currentLoad: workerStatus.currentLoad,
         },
         scheduler: {
           isRunning: schedulerStatus.isRunning,
           queueSize: schedulerStatus.queueSize,
-          processingRate: schedulerStatus.processingRate
-        }
+          processingRate: schedulerStatus.processingRate,
+        },
       });
 
       return 1; // Health check completed
-      
     } catch (error) {
       console.error('Health check failed:', error);
       throw error;
@@ -382,25 +385,27 @@ export class MetricsCronScheduler {
   private parseCronExpression(schedule: string): number {
     // Simple cron parser for basic expressions
     // For production, consider using a proper cron library like 'node-cron'
-    
+
     switch (schedule) {
       case '* * * * *': // Every minute
         return 60 * 1000;
-      
+
       case '*/5 * * * *': // Every 5 minutes
         return 5 * 60 * 1000;
-      
+
       case '*/15 * * * *': // Every 15 minutes
         return 15 * 60 * 1000;
-      
+
       case '0 * * * *': // Every hour
         return 60 * 60 * 1000;
-      
+
       case '0 0 * * *': // Every day at midnight
         return 24 * 60 * 60 * 1000;
-      
+
       default:
-        console.warn(`Unsupported cron expression: ${schedule}, defaulting to 1 minute`);
+        console.warn(
+          `Unsupported cron expression: ${schedule}, defaulting to 1 minute`
+        );
         return 60 * 1000;
     }
   }
@@ -411,9 +416,10 @@ export class MetricsCronScheduler {
       name: 'metrics_collection',
       schedule: '* * * * *', // Every minute
       enabled: true,
-      description: 'Collect metrics from social media APIs for all active tracking jobs',
+      description:
+        'Collect metrics from social media APIs for all active tracking jobs',
       runCount: 0,
-      errorCount: 0
+      errorCount: 0,
     });
 
     // Cache cleanup job - runs every hour
@@ -421,9 +427,10 @@ export class MetricsCronScheduler {
       name: 'cache_cleanup',
       schedule: '0 * * * *', // Every hour
       enabled: true,
-      description: 'Clean up expired cache entries and optimize Redis memory usage',
+      description:
+        'Clean up expired cache entries and optimize Redis memory usage',
       runCount: 0,
-      errorCount: 0
+      errorCount: 0,
     });
 
     // Health check job - runs every 5 minutes
@@ -433,21 +440,21 @@ export class MetricsCronScheduler {
       enabled: true,
       description: 'Check system health and log status information',
       runCount: 0,
-      errorCount: 0
+      errorCount: 0,
     });
   }
 
   private async loadJobConfigurations(): Promise<void> {
     try {
       const configKeys = await this.cache.keys('cron_config:*');
-      
+
       for (const key of configKeys) {
         const config = await this.cache.get<CronJobConfig>(key);
         if (config) {
           this.cronJobs.set(config.name, config);
         }
       }
-      
+
       console.log(`Loaded ${configKeys.length} cron job configurations`);
     } catch (error) {
       console.error('Failed to load cron job configurations:', error);
@@ -464,7 +471,10 @@ export class MetricsCronScheduler {
     }
   }
 
-  private async saveJobConfiguration(jobName: string, config: CronJobConfig): Promise<void> {
+  private async saveJobConfiguration(
+    jobName: string,
+    config: CronJobConfig
+  ): Promise<void> {
     try {
       const configKey = `cron_config:${jobName}`;
       await this.cache.set(configKey, config, { ttl: 24 * 60 * 60 }); // 24 hours
@@ -478,22 +488,25 @@ export class MetricsCronScheduler {
       const configKey = `cron_config:${jobName}`;
       await this.cache.del(configKey);
     } catch (error) {
-      console.error(`Failed to remove configuration for job ${jobName}:`, error);
+      console.error(
+        `Failed to remove configuration for job ${jobName}:`,
+        error
+      );
     }
   }
 
   private async saveJobResult(result: CronJobResult): Promise<void> {
     try {
       const historyKey = `cron_history:${result.jobName}`;
-      const history = await this.cache.get<CronJobResult[]>(historyKey) || [];
-      
+      const history = (await this.cache.get<CronJobResult[]>(historyKey)) || [];
+
       history.push(result);
-      
+
       // Keep only last 100 results
       if (history.length > 100) {
         history.splice(0, history.length - 100);
       }
-      
+
       await this.cache.set(historyKey, history, { ttl: 7 * 24 * 60 * 60 }); // 7 days
     } catch (error) {
       console.error(`Failed to save job result for ${result.jobName}:`, error);

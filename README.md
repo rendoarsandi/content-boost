@@ -5,6 +5,7 @@ Platform promosi konten kreator dengan sistem pay-per-view dan deteksi bot otoma
 ## 🏗️ Architecture
 
 ### Monorepo Structure
+
 ```
 creator-promotion-platform/
 ├── apps/                    # Next.js Applications
@@ -27,10 +28,12 @@ creator-promotion-platform/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js >= 18.0.0
 - npm >= 9.0.0
 
 ### Installation
+
 ```bash
 # Install dependencies
 npm install
@@ -48,6 +51,7 @@ npm run dev:bg
 ## 📜 Available Scripts
 
 ### Development
+
 - `npm run dev` - Start all development servers with timeout monitoring ⚠️
 - `npm run dev:app [app-name]` - Start single app with timeout monitoring
 - `npm run dev:bg` - Start development servers in background with auto-restart
@@ -59,9 +63,11 @@ npm run dev:bg
 **⚠️ IMPORTANT**: Always use timeout scripts to prevent hanging processes!
 
 ### Database
+
 - `npm run migrate` - Run database migrations with timeout monitoring
 
 ### Utilities
+
 - `npm run clean` - Clean all build artifacts
 - `npm run type-check` - Run TypeScript type checking
 
@@ -85,7 +91,9 @@ The platform includes advanced process management with timeout handling:
 ## 📁 Directory Organization
 
 ### Apps Structure
+
 Each app includes:
+
 - `__tests__/` - Test files
 - `config/` - App-specific configuration
 - `src/` - Source code
@@ -93,7 +101,9 @@ Each app includes:
 - `package.json` - Dependencies and scripts
 
 ### Packages Structure
+
 Each package includes:
+
 - `__tests__/` - Test files
 - `config/` - Package-specific configuration
 - `src/` - Source code
@@ -104,7 +114,9 @@ Each package includes:
 ## 🔧 Configuration
 
 ### Environment Variables
+
 Create `.env.local` files in each app with:
+
 ```env
 DATABASE_URL=postgresql://...
 REDIS_URL=redis://...
@@ -116,12 +128,15 @@ INSTAGRAM_CLIENT_SECRET=...
 ```
 
 ### Process Configuration
+
 Customize timeouts and process behavior in `packages/config/src/process.ts`.
 
 ## 🚦 Development Workflow
 
 ### For Each New Task:
+
 1. **Create Feature Branch**:
+
    ```bash
    git checkout main
    git pull origin main
@@ -129,6 +144,7 @@ Customize timeouts and process behavior in `packages/config/src/process.ts`.
    ```
 
 2. **Development Process**:
+
    ```bash
    npm run dev          # Start development servers
    npm run test         # Run tests during development
@@ -136,6 +152,7 @@ Customize timeouts and process behavior in `packages/config/src/process.ts`.
    ```
 
 3. **Commit and Push**:
+
    ```bash
    git add .
    git commit -m "feat: [deskripsi task]"
@@ -145,6 +162,7 @@ Customize timeouts and process behavior in `packages/config/src/process.ts`.
 4. **Create Pull Request** to main branch on GitHub
 
 ### Daily Development:
+
 - `npm run dev` - Start all development servers
 - `npm run dev:bg` - Start development servers in background
 - `npm run test` - Run test suite

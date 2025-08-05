@@ -71,14 +71,14 @@ export class BotDetectionAlerting {
       thresholds: {
         critical: 90,
         warning: 50,
-        monitor: 20
+        monitor: 20,
       },
       notifications: {
         email: true,
         dashboard: true,
-        webhook: true
+        webhook: true,
       },
-      ...config
+      ...config,
     };
 
     this.ensureDirectories();
@@ -98,7 +98,11 @@ export class BotDetectionAlerting {
       await this.logAnalysis(promoterId, campaignId, analysis);
 
       // Generate notification if needed
-      const notification = this.generateNotification(promoterId, campaignId, analysis);
+      const notification = this.generateNotification(
+        promoterId,
+        campaignId,
+        analysis
+      );
       if (notification) {
         await this.sendNotification(notification);
       }
@@ -106,11 +110,17 @@ export class BotDetectionAlerting {
       // Update daily statistics
       this.updateDailyStats(analysis);
 
-      console.log(`✅ Processed analysis for promoter ${promoterId}, campaign ${campaignId}`);
-      console.log(`   Bot Score: ${analysis.botScore}%, Action: ${analysis.action.toUpperCase()}`);
-
+      console.log(
+        `✅ Processed analysis for promoter ${promoterId}, campaign ${campaignId}`
+      );
+      console.log(
+        `   Bot Score: ${analysis.botScore}%, Action: ${analysis.action.toUpperCase()}`
+      );
     } catch (error) {
-      await this.logError('processAnalysis', error as Error, { promoterId, campaignId });
+      await this.logError('processAnalysis', error as Error, {
+        promoterId,
+        campaignId,
+      });
     }
   }
 
@@ -157,7 +167,7 @@ export class BotDetectionAlerting {
       botScore: analysis.botScore,
       action: analysis.action,
       reason: analysis.reason,
-      channels
+      channels,
     };
 
     return notification;
@@ -166,7 +176,9 @@ export class BotDetectionAlerting {
   /**
    * Send notification through configured channels
    */
-  private async sendNotification(notification: AlertNotification): Promise<void> {
+  private async sendNotification(
+    notification: AlertNotification
+  ): Promise<void> {
     this.notifications.push(notification);
 
     // Log notification
@@ -177,8 +189,12 @@ export class BotDetectionAlerting {
       await this.sendThroughChannel(channel, notification);
     }
 
-    console.log(`🚨 ${notification.severity} Alert: ${notification.type} for promoter ${notification.promoterId}`);
-    console.log(`   Bot Score: ${notification.botScore}%, Reason: ${notification.reason}`);
+    console.log(
+      `🚨 ${notification.severity} Alert: ${notification.type} for promoter ${notification.promoterId}`
+    );
+    console.log(
+      `   Bot Score: ${notification.botScore}%, Reason: ${notification.reason}`
+    );
   }
 
   /**
@@ -196,13 +212,15 @@ export class BotDetectionAlerting {
       severity: notification.severity,
       promoterId: notification.promoterId,
       campaignId: notification.campaignId,
-      success: true
+      success: true,
     };
 
     try {
       switch (channel) {
         case 'email':
-          console.log(`📧 EMAIL: ${notification.type} alert for promoter ${notification.promoterId}`);
+          console.log(
+            `📧 EMAIL: ${notification.type} alert for promoter ${notification.promoterId}`
+          );
           break;
         case 'dashboard':
           console.log(`📊 DASHBOARD: ${notification.type} alert displayed`);
@@ -215,10 +233,12 @@ export class BotDetectionAlerting {
       }
 
       await this.logChannelActivity(channel, channelLog);
-
     } catch (error) {
       channelLog.success = false;
-      await this.logChannelActivity(channel, { ...channelLog, error: (error as Error).message });
+      await this.logChannelActivity(channel, {
+        ...channelLog,
+        error: (error as Error).message,
+      });
     }
   }
 
@@ -227,7 +247,7 @@ export class BotDetectionAlerting {
    */
   private updateDailyStats(analysis: BotAnalysis): void {
     const today = new Date().toISOString().split('T')[0];
-    
+
     if (!this.dailyStats.has(today)) {
       this.dailyStats.set(today, {
         date: today,
@@ -236,15 +256,15 @@ export class BotDetectionAlerting {
           banned: 0,
           warned: 0,
           monitored: 0,
-          clean: 0
+          clean: 0,
         },
         averageBotScore: 0,
         alerts: {
           critical: 0,
           high: 0,
           medium: 0,
-          low: 0
-        }
+          low: 0,
+        },
       });
     }
 
@@ -267,9 +287,9 @@ export class BotDetectionAlerting {
     }
 
     // Update average bot score
-    stats.averageBotScore = (
-      (stats.averageBotScore * (stats.totalAnalyses - 1)) + analysis.botScore
-    ) / stats.totalAnalyses;
+    stats.averageBotScore =
+      (stats.averageBotScore * (stats.totalAnalyses - 1) + analysis.botScore) /
+      stats.totalAnalyses;
 
     // Update alert counts
     if (analysis.botScore >= this.config.thresholds.critical) {
@@ -290,7 +310,7 @@ export class BotDetectionAlerting {
   async generateDailySummary(date?: Date): Promise<DailyReport> {
     const targetDate = date || new Date();
     const dateStr = targetDate.toISOString().split('T')[0];
-    
+
     const report = this.dailyStats.get(dateStr) || {
       date: dateStr,
       totalAnalyses: 0,
@@ -298,15 +318,15 @@ export class BotDetectionAlerting {
         banned: 0,
         warned: 0,
         monitored: 0,
-        clean: 0
+        clean: 0,
       },
       averageBotScore: 0,
       alerts: {
         critical: 0,
         high: 0,
         medium: 0,
-        low: 0
-      }
+        low: 0,
+      },
     };
 
     // Save report to file
@@ -326,14 +346,23 @@ export class BotDetectionAlerting {
   private async saveDailyReport(report: DailyReport): Promise<void> {
     try {
       // Save as JSON
-      const jsonFile = path.join(this.config.reportPath, `daily-summary-${report.date}.json`);
-      await fs.promises.writeFile(jsonFile, JSON.stringify(report, null, 2), 'utf8');
+      const jsonFile = path.join(
+        this.config.reportPath,
+        `daily-summary-${report.date}.json`
+      );
+      await fs.promises.writeFile(
+        jsonFile,
+        JSON.stringify(report, null, 2),
+        'utf8'
+      );
 
       // Save as HTML
-      const htmlFile = path.join(this.config.reportPath, `daily-summary-${report.date}.html`);
+      const htmlFile = path.join(
+        this.config.reportPath,
+        `daily-summary-${report.date}.html`
+      );
       const htmlContent = this.generateReportHTML(report);
       await fs.promises.writeFile(htmlFile, htmlContent, 'utf8');
-
     } catch (error) {
       console.error(`Failed to save daily report: ${error}`);
     }
@@ -402,7 +431,11 @@ export class BotDetectionAlerting {
    * Logging methods
    * Requirement 10.4: Audit trail logging di logs/bot-detection/
    */
-  private async logAnalysis(promoterId: string, campaignId: string, analysis: BotAnalysis): Promise<void> {
+  private async logAnalysis(
+    promoterId: string,
+    campaignId: string,
+    analysis: BotAnalysis
+  ): Promise<void> {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level: 'info',
@@ -418,14 +451,16 @@ export class BotDetectionAlerting {
         totalComments: analysis.metrics.totalComments,
         viewLikeRatio: analysis.metrics.viewLikeRatio,
         viewCommentRatio: analysis.metrics.viewCommentRatio,
-        spikeDetected: analysis.metrics.spikeDetected
-      }
+        spikeDetected: analysis.metrics.spikeDetected,
+      },
     };
 
     await this.writeLog('analysis', logEntry);
   }
 
-  private async logNotification(notification: AlertNotification): Promise<void> {
+  private async logNotification(
+    notification: AlertNotification
+  ): Promise<void> {
     const logEntry = {
       timestamp: notification.timestamp.toISOString(),
       level: 'info',
@@ -436,32 +471,39 @@ export class BotDetectionAlerting {
       promoterId: notification.promoterId,
       campaignId: notification.campaignId,
       botScore: notification.botScore,
-      channels: notification.channels
+      channels: notification.channels,
     };
 
     await this.writeLog('notifications', logEntry);
   }
 
-  private async logChannelActivity(channel: string, activity: any): Promise<void> {
+  private async logChannelActivity(
+    channel: string,
+    activity: any
+  ): Promise<void> {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level: 'info',
       event: 'channel_activity',
       channel,
-      ...activity
+      ...activity,
     };
 
     await this.writeLog(`channel-${channel}`, logEntry);
   }
 
-  private async logError(operation: string, error: Error, context?: any): Promise<void> {
+  private async logError(
+    operation: string,
+    error: Error,
+    context?: any
+  ): Promise<void> {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level: 'error',
       operation,
       error: error.message,
       stack: error.stack,
-      context
+      context,
     };
 
     await this.writeLog('errors', logEntry);
@@ -475,7 +517,7 @@ export class BotDetectionAlerting {
       const date = new Date().toISOString().split('T')[0];
       const logFile = path.join(this.config.logPath, `${logType}-${date}.log`);
       const logLine = JSON.stringify(entry) + '\n';
-      
+
       await fs.promises.appendFile(logFile, logLine, 'utf8');
     } catch (error) {
       console.error(`Failed to write log entry: ${error}`);
@@ -487,10 +529,7 @@ export class BotDetectionAlerting {
    */
   private ensureDirectories(): void {
     try {
-      const directories = [
-        this.config.logPath,
-        this.config.reportPath
-      ];
+      const directories = [this.config.logPath, this.config.reportPath];
 
       for (const dir of directories) {
         if (!fs.existsSync(dir)) {
@@ -511,25 +550,31 @@ export class BotDetectionAlerting {
     notificationsBySeverity: { [key: string]: number };
     recentActivity: number;
   } {
-    const recentNotifications = this.notifications.filter(n => 
-      Date.now() - n.timestamp.getTime() < 24 * 60 * 60 * 1000
+    const recentNotifications = this.notifications.filter(
+      n => Date.now() - n.timestamp.getTime() < 24 * 60 * 60 * 1000
     );
 
-    const byType = this.notifications.reduce((acc, n) => {
-      acc[n.type] = (acc[n.type] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    const byType = this.notifications.reduce(
+      (acc, n) => {
+        acc[n.type] = (acc[n.type] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number }
+    );
 
-    const bySeverity = this.notifications.reduce((acc, n) => {
-      acc[n.severity] = (acc[n.severity] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
+    const bySeverity = this.notifications.reduce(
+      (acc, n) => {
+        acc[n.severity] = (acc[n.severity] || 0) + 1;
+        return acc;
+      },
+      {} as { [key: string]: number }
+    );
 
     return {
       totalNotifications: this.notifications.length,
       notificationsByType: byType,
       notificationsBySeverity: bySeverity,
-      recentActivity: recentNotifications.length
+      recentActivity: recentNotifications.length,
     };
   }
 }

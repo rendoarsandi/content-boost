@@ -5,7 +5,7 @@ This module provides OAuth integration for TikTok and Instagram platforms, allow
 ## Features
 
 - **TikTok OAuth Flow**: Complete OAuth 2.0 implementation with scope for metrics access
-- **Instagram OAuth Flow**: Complete OAuth 2.0 implementation with scope for metrics access  
+- **Instagram OAuth Flow**: Complete OAuth 2.0 implementation with scope for metrics access
 - **Token Refresh Mechanism**: Automatic token refresh with error handling
 - **Social Account Management**: Connect/disconnect functionality
 - **Database Integration**: Secure token storage with Drizzle ORM
@@ -27,7 +27,9 @@ const instagramTokens = await instagramOAuth.exchangeCodeForToken(code);
 
 // Get user info
 const tiktokUser = await tiktokOAuth.getUserInfo(tiktokTokens.access_token);
-const instagramUser = await instagramOAuth.getUserInfo(instagramTokens.access_token);
+const instagramUser = await instagramOAuth.getUserInfo(
+  instagramTokens.access_token
+);
 ```
 
 ### Using Social Account Service
@@ -60,11 +62,11 @@ await service.autoRefreshTokens();
 ### API Route Handlers
 
 ```typescript
-import { 
-  handleTikTokAuth, 
+import {
+  handleTikTokAuth,
   handleInstagramAuth,
   handleLinkTikTok,
-  handleLinkInstagram 
+  handleLinkInstagram,
 } from '@repo/auth';
 
 // In your Next.js API routes
@@ -80,24 +82,29 @@ export async function POST(request: NextRequest) {
 ## OAuth Scopes
 
 ### TikTok Scopes
+
 - `user.info.basic`: Basic user information
 - `user.info.profile`: Profile information including follower counts
 - `user.info.stats`: User statistics
 - `video.list`: Access to user's video list for metrics
 
 ### Instagram Scopes
+
 - `user_profile`: Basic profile information
 - `user_media`: Access to user's media for metrics tracking
 
 ## Token Management
 
 ### Automatic Token Refresh
+
 Tokens are automatically refreshed when:
+
 - Token expires within 5 minutes
 - API calls return 401 Unauthorized
 - Manual refresh is triggered
 
 ### Token Storage
+
 - Access tokens stored securely in database
 - Refresh tokens encrypted at rest
 - Automatic cleanup of expired tokens
@@ -126,7 +133,7 @@ Required environment variables:
 TIKTOK_CLIENT_ID=your_tiktok_client_id
 TIKTOK_CLIENT_SECRET=your_tiktok_client_secret
 
-# Instagram OAuth  
+# Instagram OAuth
 INSTAGRAM_CLIENT_ID=your_instagram_client_id
 INSTAGRAM_CLIENT_SECRET=your_instagram_client_secret
 

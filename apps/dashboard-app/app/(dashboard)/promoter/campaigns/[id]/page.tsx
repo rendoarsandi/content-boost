@@ -3,7 +3,15 @@ import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
 // import { campaigns, campaignMaterials, users, campaignApplications } from '@repo/database';
 // import { eq, and } from 'drizzle-orm';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+} from '@repo/ui';
 import Link from 'next/link';
 import { CampaignApplicationForm } from '../../components/campaign-application-form';
 import { ApplicationService } from '@repo/utils/application-service';
@@ -12,16 +20,16 @@ async function getCampaignDetails(campaignId: string, promoterId: string) {
   // Get campaign with creator info
   const campaign = await db.campaign.findUnique({
     where: {
-      id: campaignId
+      id: campaignId,
     },
     include: {
       creator: {
         select: {
           id: true,
-          name: true
-        }
-      }
-    }
+          name: true,
+        },
+      },
+    },
   });
 
   if (!campaign) {
@@ -32,22 +40,24 @@ async function getCampaignDetails(campaignId: string, promoterId: string) {
   const materials: any[] = [];
 
   // Check if promoter has already applied (check existing promotions)
-  const promotion = await db.promotion.findFirst({
+  const promotion = await db.campaignApplication.findFirst({
     where: {
       campaignId: campaignId,
-      promoterId: promoterId
-    }
+      promoterId: promoterId,
+    },
   });
 
   return {
     campaign,
     creator: campaign.creator,
     materials,
-    application: promotion ? {
-      id: promotion.id,
-      status: 'approved', // Since promotion exists, it's approved
-      appliedAt: promotion.createdAt,
-    } : null,
+    application: promotion
+      ? {
+          id: promotion.id,
+          status: 'APPROVED', // Since promotion exists, it's approved
+          appliedAt: promotion.appliedAt,
+        }
+      : null,
     hasApplied: !!promotion,
   };
 }
@@ -69,18 +79,22 @@ function getStatusColor(status: string) {
 
 function getApplicationStatusColor(status: string) {
   switch (status) {
-    case 'approved':
+    case 'APPROVED':
       return 'bg-green-100 text-green-800';
-    case 'pending':
+    case 'PENDING':
       return 'bg-yellow-100 text-yellow-800';
-    case 'rejected':
+    case 'REJECTED':
       return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
 }
 
-export default async function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CampaignDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await getSession();
 
   if (!session?.user || (session.user as any).role !== 'promoter') {
@@ -88,13 +102,20 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
   }
 
   const { id } = await params;
-  const campaignDetails = await getCampaignDetails(id, (session.user as any).id);
+  const campaignDetails = await getCampaignDetails(
+    id,
+    (session.user as any).id
+  );
 
   if (!campaignDetails) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Campaign Not Found</h1>
-        <p className="text-gray-600 mb-6">The campaign you're looking for doesn't exist or has been removed.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Campaign Not Found
+        </h1>
+        <p className="text-gray-600 mb-6">
+          The campaign you're looking for doesn't exist or has been removed.
+        </p>
         <Link href="/promoter/campaigns">
           <Button>Browse Other Campaigns</Button>
         </Link>
@@ -102,23 +123,25 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
     );
   }
 
-  const { campaign, creator, materials, application, hasApplied } = campaignDetails;
+  const { campaign, creator, materials, application, hasApplied } =
+    campaignDetails;
   const maxViews = Math.floor(Number(campaign.budget) / Number(1000));
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <Link href="/promoter/campaigns" className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block">
+          <Link
+            href="/promoter/campaigns"
+            className="text-blue-600 hover:text-blue-800 text-sm mb-2 inline-block"
+          >
             ← Back to Campaigns
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">{campaign.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{campaign.title}</h1>
           <p className="text-gray-600 mt-2">by {creator.name}</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Badge className={getStatusColor('active')}>
-            {'active'}
-          </Badge>
+          <Badge className={getStatusColor('active')}>{'active'}</Badge>
           {hasApplied && application && (
             <Badge className={getApplicationStatusColor(application.status)}>
               Application: {application.status}
@@ -136,10 +159,11 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               <CardTitle>Campaign Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700">Campaign description not available</p>
+              <p className="text-gray-700">
+                Campaign description not available
+              </p>
             </CardContent>
           </Card>
-
 
           {/* Campaign Materials */}
           {materials.length > 0 && (
@@ -147,23 +171,24 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               <CardHeader>
                 <CardTitle>Campaign Materials</CardTitle>
                 <CardDescription>
-                  {application?.status === 'approved' 
+                  {application?.status === 'APPROVED'
                     ? 'Download and use these materials for your promotion'
-                    : 'Materials will be available after your application is approved'
-                  }
+                    : 'Materials will be available after your application is approved'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {application?.status === 'approved' ? (
+                {application?.status === 'APPROVED' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {materials.map((material) => (
+                    {materials.map(material => (
                       <div key={material.id} className="border rounded-lg p-4">
                         <div className="flex items-start justify-between mb-2">
                           <h4 className="font-medium">{material.title}</h4>
                           <Badge variant="outline">{material.type}</Badge>
                         </div>
                         {material.description && (
-                          <p className="text-sm text-gray-600 mb-3">{material.description}</p>
+                          <p className="text-sm text-gray-600 mb-3">
+                            {material.description}
+                          </p>
                         )}
                         <a
                           href={material.url}
@@ -179,8 +204,12 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <div className="text-4xl mb-4">🔒</div>
-                    <p>Materials are locked until your application is approved</p>
-                    <p className="text-sm mt-2">{materials.length} materials available</p>
+                    <p>
+                      Materials are locked until your application is approved
+                    </p>
+                    <p className="text-sm mt-2">
+                      {materials.length} materials available
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -193,40 +222,50 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               <CardHeader>
                 <CardTitle>Your Application</CardTitle>
                 <CardDescription>
-                  Application submitted on {new Date(application!.appliedAt).toLocaleDateString()}
+                  Application submitted on{' '}
+                  {new Date(application!.appliedAt).toLocaleDateString()}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="font-medium">Status</span>
-                  <Badge className={getApplicationStatusColor(application!.status)}>
+                  <Badge
+                    className={getApplicationStatusColor(application!.status)}
+                  >
                     {application!.status}
                   </Badge>
                 </div>
-
 
                 <div>
                   <h4 className="font-medium mb-2">Tracking Link</h4>
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <code className="text-sm text-blue-800">
-                      {ApplicationService.generateEnhancedTrackingLink(campaign.id, session.user.id)}
+                      {ApplicationService.generateEnhancedTrackingLink(
+                        campaign.id,
+                        session.user.id
+                      )}
                     </code>
                   </div>
                 </div>
 
-                {application!.status === 'approved' && (
+                {application!.status === 'APPROVED' && (
                   <div className="flex space-x-3">
-                    <Link href={`/promoter/applications/${application!.id}/content`}>
+                    <Link
+                      href={`/promoter/applications/${application!.id}/content`}
+                    >
                       <Button>Edit Content</Button>
                     </Link>
-                    <Link href={`/promoter/analytics?campaignId=${campaign.id}`}>
+                    <Link
+                      href={`/promoter/analytics?campaignId=${campaign.id}`}
+                    >
                       <Button variant="outline">View Analytics</Button>
                     </Link>
                   </div>
                 )}
 
                 <p className="text-xs text-gray-500">
-                  Applied on {new Date(application!.appliedAt).toLocaleDateString()}
+                  Applied on{' '}
+                  {new Date(application!.appliedAt).toLocaleDateString()}
                 </p>
               </CardContent>
             </Card>
@@ -235,7 +274,9 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               <Card>
                 <CardHeader>
                   <CardTitle>Apply to Campaign</CardTitle>
-                  <CardDescription>Submit your application to join this campaign</CardDescription>
+                  <CardDescription>
+                    Submit your application to join this campaign
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <CampaignApplicationForm campaignId={campaign.id} />
@@ -274,15 +315,14 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
                 </p>
               </div>
 
-              {campaign.createdAt && (
+              {campaign.startDate && (
                 <div>
                   <p className="text-sm text-gray-600">Start Date</p>
                   <p className="font-medium">
-                    {new Date(campaign.createdAt).toLocaleDateString()}
+                    {new Date(campaign.startDate).toLocaleDateString()}
                   </p>
                 </div>
               )}
-
 
               <div>
                 <p className="text-sm text-gray-600">Created</p>
@@ -329,7 +369,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
                   My Applications
                 </Button>
               </Link>
-              {application?.status === 'approved' && (
+              {application?.status === 'APPROVED' && (
                 <Link href="/promoter/analytics" className="block">
                   <Button variant="outline" className="w-full">
                     View Analytics

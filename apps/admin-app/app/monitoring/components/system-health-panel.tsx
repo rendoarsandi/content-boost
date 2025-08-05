@@ -21,7 +21,7 @@ interface ServiceHealth {
 export default function SystemHealthPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [services, setServices] = useState<ServiceHealth[]>([]);
-  
+
   useEffect(() => {
     // In a real app, this would fetch from an API
     // For now, we'll simulate with mock data
@@ -67,7 +67,7 @@ export default function SystemHealthPanel() {
       setIsLoading(false);
     }, 1000);
   }, []);
-  
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
@@ -80,7 +80,7 @@ export default function SystemHealthPanel() {
         return 'bg-gray-500';
     }
   };
-  
+
   const refreshHealth = () => {
     setIsLoading(true);
     // In a real app, this would fetch from an API
@@ -88,7 +88,7 @@ export default function SystemHealthPanel() {
       setIsLoading(false);
     }, 1000);
   };
-  
+
   return (
     <Card>
       <CardHeader>
@@ -97,7 +97,7 @@ export default function SystemHealthPanel() {
           Monitor the health of all services and infrastructure
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center py-8">
@@ -105,22 +105,26 @@ export default function SystemHealthPanel() {
           </div>
         ) : (
           <div className="space-y-4">
-            {services.map((service) => (
+            {services.map(service => (
               <div
                 key={service.name}
                 className="border rounded-lg p-4 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${getStatusColor(service.status)}`}></div>
+                  <div
+                    className={`w-3 h-3 rounded-full ${getStatusColor(service.status)}`}
+                  ></div>
                   <div className="font-medium">{service.name}</div>
                 </div>
-                
+
                 <div className="flex items-center gap-6">
                   <div className="text-sm">
                     <span className="text-gray-500">Response time:</span>{' '}
-                    <span className="font-medium">{service.responseTime}ms</span>
+                    <span className="font-medium">
+                      {service.responseTime}ms
+                    </span>
                   </div>
-                  
+
                   <div className="text-sm text-gray-500">
                     Last checked: {service.lastChecked.toLocaleTimeString()}
                   </div>
@@ -130,7 +134,7 @@ export default function SystemHealthPanel() {
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter>
         <Button onClick={refreshHealth} disabled={isLoading}>
           {isLoading ? 'Refreshing...' : 'Refresh Health Status'}

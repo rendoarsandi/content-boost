@@ -12,10 +12,16 @@ export const initSentry = (
     appLogger.warn('Sentry DSN not provided, error tracking disabled');
     return;
   }
-  appLogger.info('Sentry mock initialized for client', { environment, release });
+  appLogger.info('Sentry mock initialized for client', {
+    environment,
+    release,
+  });
 };
 
-export const captureException = (error: Error, context?: Record<string, any>) => {
+export const captureException = (
+  error: Error,
+  context?: Record<string, any>
+) => {
   appLogger.error('Sentry mock: logging error locally', { error, context });
 };
 
@@ -24,7 +30,11 @@ export const captureMessage = (
   level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug' = 'info',
   context?: Record<string, any>
 ) => {
-  appLogger.warn('Sentry mock: logging message locally', { message, level, context });
+  appLogger.warn('Sentry mock: logging message locally', {
+    message,
+    level,
+    context,
+  });
 };
 
 export const startTransaction = (name: string, op: string) => {

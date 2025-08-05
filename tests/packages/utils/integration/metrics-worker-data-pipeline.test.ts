@@ -20,20 +20,25 @@ describe('MetricsDataPipeline', () => {
       set: jest.fn(),
       get: jest.fn(),
       del: jest.fn(),
-      deletePattern: jest.fn()
+      deletePattern: jest.fn(),
     } as any;
 
     mockValidator = {
       validateMetrics: jest.fn(),
       calculateQualityScore: jest.fn(),
-      detectAnomalies: jest.fn()
+      detectAnomalies: jest.fn(),
     } as any;
 
     mockNormalizer = {
-      normalizeMetrics: jest.fn()
+      normalizeMetrics: jest.fn(),
     } as any;
 
-    pipeline = new MetricsDataPipeline(mockCache, undefined, mockValidator, mockNormalizer);
+    pipeline = new MetricsDataPipeline(
+      mockCache,
+      undefined,
+      mockValidator,
+      mockNormalizer
+    );
   });
 
   afterEach(() => {
@@ -50,10 +55,10 @@ describe('MetricsDataPipeline', () => {
         views: 1000,
         likes: 100,
         comments: 10,
-        shares: 5
+        shares: 5,
       },
       timestamp: new Date(),
-      isValid: true
+      isValid: true,
     };
 
     beforeEach(() => {
@@ -64,8 +69,8 @@ describe('MetricsDataPipeline', () => {
           field: 'test_field',
           passed: true,
           value: 'test_value',
-          severity: 'warning'
-        }
+          severity: 'warning',
+        },
       ]);
 
       mockValidator.calculateQualityScore.mockReturnValue(100);
@@ -73,7 +78,7 @@ describe('MetricsDataPipeline', () => {
 
       mockNormalizer.normalizeMetrics.mockResolvedValue({
         normalizedMetrics: mockRawMetrics,
-        appliedRules: ['test_normalization']
+        appliedRules: ['test_normalization'],
       });
 
       mockCache.set.mockResolvedValue();
@@ -86,7 +91,9 @@ describe('MetricsDataPipeline', () => {
       expect(result.userId).toBe('user123');
       expect(result.processed).toBeDefined();
       expect(result.processed.validationResults).toBeDefined();
-      expect(result.processed.normalizationApplied).toContain('test_normalization');
+      expect(result.processed.normalizationApplied).toContain(
+        'test_normalization'
+      );
       expect(result.processed.qualityScore).toBe(100);
       expect(result.processed.anomalyDetected).toBe(false);
       expect(result.raw).toBeDefined();
@@ -95,33 +102,42 @@ describe('MetricsDataPipeline', () => {
 
     it('should include original API response in raw data', async () => {
       const originalApiResponse = { api_data: 'test' };
-      
-      const result = await pipeline.processMetrics(mockRawMetrics, originalApiResponse);
+
+      const result = await pipeline.processMetrics(
+        mockRawMetrics,
+        originalApiResponse
+      );
 
       expect(result.raw.apiResponse).toEqual(originalApiResponse);
     });
 
     it('should handle validation stage errors gracefully', async () => {
-      mockValidator.validateMetrics.mockRejectedValue(new Error('Validation failed'));
+      mockValidator.validateMetrics.mockRejectedValue(
+        new Error('Validation failed')
+      );
 
       const result = await pipeline.processMetrics(mockRawMetrics);
 
       expect(result).toBeDefined();
       expect(result.processed.validationResults).toHaveLength(1);
       expect(result.processed.validationResults[0].passed).toBe(false);
-      expect(result.processed.validationResults[0].message).toContain('Pipeline processing failed');
+      expect(result.processed.validationResults[0].message).toContain(
+        'Pipeline processing failed'
+      );
     });
 
     it('should handle normalization stage errors gracefully', async () => {
-      mockNormalizer.normalizeMetrics.mockRejectedValue(new Error('Normalization failed'));
+      mockNormalizer.normalizeMetrics.mockRejectedValue(
+        new Error('Normalization failed')
+      );
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const result = await pipeline.processMetrics(mockRawMetrics);
 
       expect(result).toBeDefined();
       expect(consoleSpy).toHaveBeenCalled();
-      
+
       consoleSpy.mockRestore();
     });
 
@@ -129,20 +145,27 @@ describe('MetricsDataPipeline', () => {
       mockCache.set.mockRejectedValue(new Error('Cache failed'));
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const result = await pipeline.processMetrics(mockRawMetrics);
 
       expect(result).toBeDefined();
-      expect(consoleSpy).toHaveBeenCalledWith('Caching stage error:', expect.any(Error));
-      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Caching stage error:',
+        expect.any(Error)
+      );
+
       consoleSpy.mockRestore();
     });
 
     it('should calculate processing time correctly', async () => {
       const result = await pipeline.processMetrics(mockRawMetrics);
 
-      expect(result.raw.collectionMetadata.processingTime).toBeGreaterThanOrEqual(0);
-      expect(typeof result.raw.collectionMetadata.processingTime).toBe('number');
+      expect(
+        result.raw.collectionMetadata.processingTime
+      ).toBeGreaterThanOrEqual(0);
+      expect(typeof result.raw.collectionMetadata.processingTime).toBe(
+        'number'
+      );
     });
 
     it('should set processing timestamp', async () => {
@@ -151,8 +174,12 @@ describe('MetricsDataPipeline', () => {
       const afterProcessing = new Date();
 
       expect(result.processed.processingTimestamp).toBeInstanceOf(Date);
-      expect(result.processed.processingTimestamp.getTime()).toBeGreaterThanOrEqual(beforeProcessing.getTime());
-      expect(result.processed.processingTimestamp.getTime()).toBeLessThanOrEqual(afterProcessing.getTime());
+      expect(
+        result.processed.processingTimestamp.getTime()
+      ).toBeGreaterThanOrEqual(beforeProcessing.getTime());
+      expect(
+        result.processed.processingTimestamp.getTime()
+      ).toBeLessThanOrEqual(afterProcessing.getTime());
     });
   });
 
@@ -165,7 +192,7 @@ describe('MetricsDataPipeline', () => {
         campaignId: 'campaign1',
         metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       },
       {
         userId: 'user2',
@@ -174,8 +201,8 @@ describe('MetricsDataPipeline', () => {
         campaignId: 'campaign2',
         metrics: { views: 2000, likes: 200, comments: 20, shares: 10 },
         timestamp: new Date(),
-        isValid: true
-      }
+        isValid: true,
+      },
     ];
 
     beforeEach(() => {
@@ -184,7 +211,7 @@ describe('MetricsDataPipeline', () => {
       mockValidator.detectAnomalies.mockReturnValue(false);
       mockNormalizer.normalizeMetrics.mockResolvedValue({
         normalizedMetrics: mockMetricsList[0],
-        appliedRules: []
+        appliedRules: [],
       });
       mockCache.set.mockResolvedValue();
     });
@@ -199,7 +226,7 @@ describe('MetricsDataPipeline', () => {
 
     it('should process batch in parallel when configured', async () => {
       pipeline.updateConfig({ parallelProcessing: true });
-      
+
       const results = await pipeline.processBatch(mockMetricsList);
 
       expect(results).toHaveLength(2);
@@ -209,8 +236,11 @@ describe('MetricsDataPipeline', () => {
 
     it('should handle batch with API responses', async () => {
       const apiResponses = [{ api1: 'data1' }, { api2: 'data2' }];
-      
-      const results = await pipeline.processBatch(mockMetricsList, apiResponses);
+
+      const results = await pipeline.processBatch(
+        mockMetricsList,
+        apiResponses
+      );
 
       expect(results).toHaveLength(2);
       expect(results[0].raw.apiResponse).toEqual(apiResponses[0]);
@@ -224,36 +254,36 @@ describe('MetricsDataPipeline', () => {
         name: 'custom_stage',
         processor: jest.fn().mockResolvedValue({ custom: 'processed' }),
         enabled: true,
-        order: 10
+        order: 10,
       };
 
       pipeline.addStage(customStage);
-      
+
       const stages = pipeline.getStages();
       const addedStage = stages.find(s => s.name === 'custom_stage');
-      
+
       expect(addedStage).toBeDefined();
       expect(addedStage?.enabled).toBe(true);
     });
 
     it('should allow removing stages', () => {
       pipeline.removeStage('validation');
-      
+
       const stages = pipeline.getStages();
       const validationStage = stages.find(s => s.name === 'validation');
-      
+
       expect(validationStage).toBeUndefined();
     });
 
     it('should allow enabling and disabling stages', () => {
       pipeline.disableStage('normalization');
-      
+
       let stages = pipeline.getStages();
       let normalizationStage = stages.find(s => s.name === 'normalization');
       expect(normalizationStage?.enabled).toBe(false);
 
       pipeline.enableStage('normalization');
-      
+
       stages = pipeline.getStages();
       normalizationStage = stages.find(s => s.name === 'normalization');
       expect(normalizationStage?.enabled).toBe(true);
@@ -261,25 +291,25 @@ describe('MetricsDataPipeline', () => {
 
     it('should execute stages in correct order', async () => {
       const executionOrder: string[] = [];
-      
+
       const stage1 = {
         name: 'stage1',
-        processor: jest.fn().mockImplementation(async (data) => {
+        processor: jest.fn().mockImplementation(async data => {
           executionOrder.push('stage1');
           return data;
         }),
         enabled: true,
-        order: 1
+        order: 1,
       };
 
       const stage2 = {
         name: 'stage2',
-        processor: jest.fn().mockImplementation(async (data) => {
+        processor: jest.fn().mockImplementation(async data => {
           executionOrder.push('stage2');
           return data;
         }),
         enabled: true,
-        order: 2
+        order: 2,
       };
 
       pipeline.addStage(stage2); // Add in reverse order
@@ -292,7 +322,7 @@ describe('MetricsDataPipeline', () => {
         campaignId: 'campaign123',
         metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       await pipeline.processMetrics(mockMetrics);
@@ -305,7 +335,7 @@ describe('MetricsDataPipeline', () => {
         name: 'disabled_stage',
         processor: jest.fn(),
         enabled: false,
-        order: 1
+        order: 1,
       };
 
       pipeline.addStage(disabledStage);
@@ -317,7 +347,7 @@ describe('MetricsDataPipeline', () => {
         campaignId: 'campaign123',
         metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       await pipeline.processMetrics(mockMetrics);
@@ -335,7 +365,7 @@ describe('MetricsDataPipeline', () => {
         campaignId: 'campaign123',
         metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       mockValidator.validateMetrics.mockResolvedValue([]);
@@ -343,7 +373,7 @@ describe('MetricsDataPipeline', () => {
       mockValidator.detectAnomalies.mockReturnValue(false);
       mockNormalizer.normalizeMetrics.mockResolvedValue({
         normalizedMetrics: mockMetrics,
-        appliedRules: []
+        appliedRules: [],
       });
 
       await pipeline.processMetrics(mockMetrics);
@@ -359,34 +389,51 @@ describe('MetricsDataPipeline', () => {
       const cachedMetrics = { userId: 'user123', cached: true };
       mockCache.get.mockResolvedValue(cachedMetrics);
 
-      const result = await pipeline.getCachedMetrics('user123', 'campaign123', 'post123');
+      const result = await pipeline.getCachedMetrics(
+        'user123',
+        'campaign123',
+        'post123'
+      );
 
       expect(result).toEqual(cachedMetrics);
-      expect(mockCache.get).toHaveBeenCalledWith('processed_metrics:user123:campaign123:post123');
+      expect(mockCache.get).toHaveBeenCalledWith(
+        'processed_metrics:user123:campaign123:post123'
+      );
     });
 
     it('should return null when cache retrieval fails', async () => {
       mockCache.get.mockRejectedValue(new Error('Cache error'));
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      const result = await pipeline.getCachedMetrics('user123', 'campaign123', 'post123');
+      const result = await pipeline.getCachedMetrics(
+        'user123',
+        'campaign123',
+        'post123'
+      );
 
       expect(result).toBeNull();
-      expect(consoleSpy).toHaveBeenCalledWith('Cache retrieval error:', expect.any(Error));
-      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Cache retrieval error:',
+        expect.any(Error)
+      );
+
       consoleSpy.mockRestore();
     });
 
     it('should clear cache with pattern', async () => {
       await pipeline.clearCache('user123', 'campaign123');
 
-      expect(mockCache.deletePattern).toHaveBeenCalledWith('processed_metrics:user123:campaign123:*');
+      expect(mockCache.deletePattern).toHaveBeenCalledWith(
+        'processed_metrics:user123:campaign123:*'
+      );
     });
 
     it('should clear all cache when no parameters provided', async () => {
       await pipeline.clearCache();
 
-      expect(mockCache.deletePattern).toHaveBeenCalledWith('processed_metrics:*');
+      expect(mockCache.deletePattern).toHaveBeenCalledWith(
+        'processed_metrics:*'
+      );
     });
 
     it('should handle cache clearing errors', async () => {
@@ -395,8 +442,11 @@ describe('MetricsDataPipeline', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       await pipeline.clearCache();
 
-      expect(consoleSpy).toHaveBeenCalledWith('Cache clearing error:', expect.any(Error));
-      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Cache clearing error:',
+        expect.any(Error)
+      );
+
       consoleSpy.mockRestore();
     });
   });
@@ -405,7 +455,7 @@ describe('MetricsDataPipeline', () => {
     it('should update configuration', () => {
       const newConfig = {
         parallelProcessing: true,
-        errorHandling: 'stop' as const
+        errorHandling: 'stop' as const,
       };
 
       pipeline.updateConfig(newConfig);
@@ -430,7 +480,9 @@ describe('MetricsDataPipeline', () => {
       mockValidator.validateMetrics.mockResolvedValue([]);
       mockValidator.calculateQualityScore.mockReturnValue(100);
       mockValidator.detectAnomalies.mockReturnValue(false);
-      mockNormalizer.normalizeMetrics.mockRejectedValue(new Error('Stage failed'));
+      mockNormalizer.normalizeMetrics.mockRejectedValue(
+        new Error('Stage failed')
+      );
     });
 
     it('should continue processing on error when configured to continue', async () => {
@@ -443,7 +495,7 @@ describe('MetricsDataPipeline', () => {
         campaignId: 'campaign123',
         metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
@@ -451,7 +503,7 @@ describe('MetricsDataPipeline', () => {
 
       expect(result).toBeDefined();
       expect(consoleSpy).toHaveBeenCalled();
-      
+
       consoleSpy.mockRestore();
     });
 
@@ -465,13 +517,15 @@ describe('MetricsDataPipeline', () => {
         campaignId: 'campaign123',
         metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const result = await pipeline.processMetrics(mockMetrics);
 
       expect(result.processed.validationResults[0].passed).toBe(false);
-      expect(result.processed.validationResults[0].message).toContain('Pipeline processing failed');
+      expect(result.processed.validationResults[0].message).toContain(
+        'Pipeline processing failed'
+      );
     });
 
     it('should retry on error when configured to retry', async () => {
@@ -492,9 +546,9 @@ describe('MetricsDataPipeline', () => {
             campaignId: 'campaign123',
             metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
             timestamp: new Date(),
-            isValid: true
+            isValid: true,
           },
-          appliedRules: []
+          appliedRules: [],
         });
       });
 
@@ -505,7 +559,7 @@ describe('MetricsDataPipeline', () => {
         campaignId: 'campaign123',
         metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const result = await pipeline.processMetrics(mockMetrics);

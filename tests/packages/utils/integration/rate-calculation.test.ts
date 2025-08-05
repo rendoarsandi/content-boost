@@ -5,7 +5,7 @@ import {
   calculateBreakEven,
   analyzeCompetitiveRates,
   validateRateAndBudget,
-  DEFAULT_RATE_CONFIG
+  DEFAULT_RATE_CONFIG,
 } from '../src/rate-calculation';
 
 describe('Rate Calculation Utilities', () => {
@@ -13,8 +13,12 @@ describe('Rate Calculation Utilities', () => {
     it('should calculate optimal rate within constraints', () => {
       const result = calculateOptimalRate(1000000, 1000, 5); // 1M budget, 1000 target views, 5% platform fee
 
-      expect(result.ratePerView).toBeGreaterThanOrEqual(DEFAULT_RATE_CONFIG.minRatePerView);
-      expect(result.ratePerView).toBeLessThanOrEqual(DEFAULT_RATE_CONFIG.maxRatePerView);
+      expect(result.ratePerView).toBeGreaterThanOrEqual(
+        DEFAULT_RATE_CONFIG.minRatePerView
+      );
+      expect(result.ratePerView).toBeLessThanOrEqual(
+        DEFAULT_RATE_CONFIG.maxRatePerView
+      );
       expect(result.adjustedTargetViews).toBeGreaterThan(0);
       expect(result.budgetUtilization).toBeGreaterThan(0);
       expect(result.budgetUtilization).toBeLessThanOrEqual(100);
@@ -37,8 +41,12 @@ describe('Rate Calculation Utilities', () => {
     });
 
     it('should throw error for invalid inputs', () => {
-      expect(() => calculateOptimalRate(1000, 1000)).toThrow('Budget must be at least');
-      expect(() => calculateOptimalRate(1000000, 0)).toThrow('Target views must be positive');
+      expect(() => calculateOptimalRate(1000, 1000)).toThrow(
+        'Budget must be at least'
+      );
+      expect(() => calculateOptimalRate(1000000, 0)).toThrow(
+        'Target views must be positive'
+      );
     });
   });
 
@@ -62,7 +70,9 @@ describe('Rate Calculation Utilities', () => {
     it('should provide recommendations', () => {
       const result = analyzeCampaignBudget(1000000, 100, 5); // Low rate
 
-      expect(result.recommendations.some(rec => rec.includes('increasing rate'))).toBe(true);
+      expect(
+        result.recommendations.some(rec => rec.includes('increasing rate'))
+      ).toBe(true);
     });
   });
 
@@ -73,7 +83,7 @@ describe('Rate Calculation Utilities', () => {
       expect(result.daily.estimatedViews).toBe(1000);
       expect(result.weekly.estimatedViews).toBe(7000);
       expect(result.monthly.estimatedViews).toBe(30000);
-      
+
       expect(result.daily.legitimacyRate).toBe(85);
       expect(result.daily.projectedPayout).toBeGreaterThan(0);
       expect(result.daily.projectedPlatformFee).toBeGreaterThan(0);
@@ -147,14 +157,18 @@ describe('Rate Calculation Utilities', () => {
       const result = validateRateAndBudget(50, 1000000); // Below minimum
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('below minimum'))).toBe(true);
+      expect(result.errors.some(error => error.includes('below minimum'))).toBe(
+        true
+      );
     });
 
     it('should identify invalid budget', () => {
       const result = validateRateAndBudget(1000, 5000); // Below minimum
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('below minimum'))).toBe(true);
+      expect(result.errors.some(error => error.includes('below minimum'))).toBe(
+        true
+      );
     });
 
     it('should provide warnings', () => {

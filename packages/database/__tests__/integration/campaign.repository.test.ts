@@ -1,4 +1,8 @@
-import { CampaignRepository, CampaignMaterialRepository, CampaignApplicationRepository } from '../../src/repositories/campaign';
+import {
+  CampaignRepository,
+  CampaignMaterialRepository,
+  CampaignApplicationRepository,
+} from '../../src/repositories/campaign';
 import { UserRepository } from '../../src/repositories/user';
 import { getDatabaseConnection } from '../../src/connection';
 
@@ -21,14 +25,14 @@ describe('Campaign Repository Tests', () => {
     const creator = await userRepo.create({
       email: 'creator@test.com',
       name: 'Test Creator',
-      role: 'creator'
+      role: 'creator',
     });
     testCreatorId = creator.id;
 
     const promoter = await userRepo.create({
       email: 'promoter@test.com',
       name: 'Test Promoter',
-      role: 'promoter'
+      role: 'promoter',
     });
     testPromoterId = promoter.id;
   });
@@ -36,8 +40,13 @@ describe('Campaign Repository Tests', () => {
   afterAll(async () => {
     // Clean up test data
     const db = getDatabaseConnection();
-    await db.query('DELETE FROM campaigns WHERE creator_id = $1', [testCreatorId]);
-    await db.query('DELETE FROM users WHERE id IN ($1, $2)', [testCreatorId, testPromoterId]);
+    await db.query('DELETE FROM campaigns WHERE creator_id = $1', [
+      testCreatorId,
+    ]);
+    await db.query('DELETE FROM users WHERE id IN ($1, $2)', [
+      testCreatorId,
+      testPromoterId,
+    ]);
     await db.disconnect();
   });
 
@@ -50,7 +59,7 @@ describe('Campaign Repository Tests', () => {
         budget: 1000,
         ratePerView: 10,
         status: 'draft' as const,
-        requirements: ['Must have TikTok account', 'Minimum 1000 followers']
+        requirements: ['Must have TikTok account', 'Minimum 1000 followers'],
       };
 
       const campaign = await campaignRepo.create(campaignData);
@@ -86,10 +95,13 @@ describe('Campaign Repository Tests', () => {
       const updateData = {
         title: 'Updated Test Campaign',
         budget: 2000,
-        status: 'active' as const
+        status: 'active' as const,
       };
 
-      const updatedCampaign = await campaignRepo.update(testCampaignId, updateData);
+      const updatedCampaign = await campaignRepo.update(
+        testCampaignId,
+        updateData
+      );
 
       expect(updatedCampaign).toBeDefined();
       expect(updatedCampaign!.title).toBe(updateData.title);
@@ -122,7 +134,7 @@ describe('Campaign Repository Tests', () => {
         type: 'youtube' as const,
         url: 'https://youtube.com/watch?v=test',
         title: 'Test Video Material',
-        description: 'A test video for the campaign'
+        description: 'A test video for the campaign',
       };
 
       const material = await materialRepo.create(materialData);
@@ -147,10 +159,13 @@ describe('Campaign Repository Tests', () => {
     test('should update material', async () => {
       const updateData = {
         title: 'Updated Test Material',
-        description: 'Updated description'
+        description: 'Updated description',
       };
 
-      const updatedMaterial = await materialRepo.update(testMaterialId, updateData);
+      const updatedMaterial = await materialRepo.update(
+        testMaterialId,
+        updateData
+      );
 
       expect(updatedMaterial).toBeDefined();
       expect(updatedMaterial!.title).toBe(updateData.title);
@@ -173,8 +188,9 @@ describe('Campaign Repository Tests', () => {
       const applicationData = {
         campaignId: testCampaignId,
         promoterId: testPromoterId,
-        submittedContent: 'I will create engaging TikTok videos for this campaign',
-        trackingLink: 'https://track.domain.com/test-tracking-link'
+        submittedContent:
+          'I will create engaging TikTok videos for this campaign',
+        trackingLink: 'https://track.domain.com/test-tracking-link',
       };
 
       const application = await applicationRepo.create(applicationData);
@@ -189,7 +205,8 @@ describe('Campaign Repository Tests', () => {
     });
 
     test('should find applications by campaign id', async () => {
-      const applications = await applicationRepo.findByCampaignId(testCampaignId);
+      const applications =
+        await applicationRepo.findByCampaignId(testCampaignId);
 
       expect(applications).toBeDefined();
       expect(applications.length).toBeGreaterThan(0);
@@ -197,7 +214,8 @@ describe('Campaign Repository Tests', () => {
     });
 
     test('should find applications by promoter id', async () => {
-      const applications = await applicationRepo.findByPromoterId(testPromoterId);
+      const applications =
+        await applicationRepo.findByPromoterId(testPromoterId);
 
       expect(applications).toBeDefined();
       expect(applications.length).toBeGreaterThan(0);
@@ -206,10 +224,13 @@ describe('Campaign Repository Tests', () => {
 
     test('should update application status', async () => {
       const updateData = {
-        status: 'approved' as const
+        status: 'approved' as const,
       };
 
-      const updatedApplication = await applicationRepo.update(testApplicationId, updateData);
+      const updatedApplication = await applicationRepo.update(
+        testApplicationId,
+        updateData
+      );
 
       expect(updatedApplication).toBeDefined();
       expect(updatedApplication!.status).toBe('approved');
@@ -217,10 +238,13 @@ describe('Campaign Repository Tests', () => {
     });
 
     test('should find applications by status', async () => {
-      const approvedApplications = await applicationRepo.findByStatus('approved');
+      const approvedApplications =
+        await applicationRepo.findByStatus('approved');
 
       expect(approvedApplications).toBeDefined();
-      expect(approvedApplications.every(app => app.status === 'approved')).toBe(true);
+      expect(approvedApplications.every(app => app.status === 'approved')).toBe(
+        true
+      );
     });
 
     test('should delete application', async () => {

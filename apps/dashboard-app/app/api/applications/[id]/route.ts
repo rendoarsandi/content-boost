@@ -17,11 +17,14 @@ export async function POST(
     const validatedData = CreateApplicationSchema.parse(body);
 
     // Simplified response to avoid bundling circular dependency
-    return NextResponse.json({
-      applicationId,
-      campaignId: validatedData.campaignId,
-      message: 'Application created successfully'
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        applicationId,
+        campaignId: validatedData.campaignId,
+        message: 'Application created successfully',
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating application:', error);
     return NextResponse.json(
@@ -38,11 +41,11 @@ export async function GET(
 ) {
   try {
     const { id: applicationId } = await params;
-    
+
     return NextResponse.json({
       applicationId,
       status: 'active',
-      message: 'Application found'
+      message: 'Application found',
     });
   } catch (error) {
     console.error('Error fetching application:', error);

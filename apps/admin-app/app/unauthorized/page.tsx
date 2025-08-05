@@ -1,4 +1,11 @@
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@repo/ui';
 import Link from 'next/link';
 
 export default function UnauthorizedPage() {

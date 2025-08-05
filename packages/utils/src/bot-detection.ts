@@ -1,21 +1,21 @@
 /**
  * Bot Detection Algorithm
- * 
+ *
  * This module implements the bot detection algorithm for identifying suspicious
  * view patterns in social media content promotion.
  */
 
 export interface BotDetectionConfig {
   thresholds: {
-    viewLikeRatio: number;     // Threshold for view:like ratio (e.g., 10:1)
-    viewCommentRatio: number;  // Threshold for view:comment ratio (e.g., 100:1)
-    spikePercentage: number;   // Percentage increase to consider a spike (e.g., 500%)
-    spikeTimeWindow: number;   // Time window to detect spikes in milliseconds (e.g., 5 minutes)
+    viewLikeRatio: number; // Threshold for view:like ratio (e.g., 10:1)
+    viewCommentRatio: number; // Threshold for view:comment ratio (e.g., 100:1)
+    spikePercentage: number; // Percentage increase to consider a spike (e.g., 500%)
+    spikeTimeWindow: number; // Time window to detect spikes in milliseconds (e.g., 5 minutes)
   };
   confidence: {
-    ban: number;      // Confidence threshold for automatic ban (e.g., 90%)
-    warning: number;  // Confidence threshold for warning (e.g., 50%)
-    monitor: number;  // Confidence threshold for monitoring (e.g., 20%)
+    ban: number; // Confidence threshold for automatic ban (e.g., 90%)
+    warning: number; // Confidence threshold for warning (e.g., 50%)
+    monitor: number; // Confidence threshold for monitoring (e.g., 20%)
   };
 }
 
@@ -97,18 +97,18 @@ const DEFAULT_CONFIG: BotDetectionConfig = {
     viewLikeRatio: 10,
     viewCommentRatio: 100,
     spikePercentage: 500,
-    spikeTimeWindow: 5 * 60 * 1000 // 5 minutes
+    spikeTimeWindow: 5 * 60 * 1000, // 5 minutes
   },
   confidence: {
     ban: 90,
     warning: 50,
-    monitor: 20
-  }
+    monitor: 20,
+  },
 };
 
 /**
  * Analyzes view metrics to detect bot activity
- * 
+ *
  * @param promoterId - ID of the promoter
  * @param campaignId - ID of the campaign
  * @param viewMetrics - Array of view metrics data points
@@ -125,64 +125,90 @@ export function detectBot(
   const sortedMetrics = [...viewMetrics].sort(
     (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
   );
-  
+
   if (sortedMetrics.length === 0) {
     return createEmptyAnalysis(promoterId, campaignId);
   }
-  
+
   // Calculate time window
   const startTime = sortedMetrics[0].timestamp;
   const endTime = sortedMetrics[sortedMetrics.length - 1].timestamp;
   const totalMinutes = (endTime.getTime() - startTime.getTime()) / (60 * 1000);
-  
+
   // Calculate averages
-  const totalViews = sortedMetrics.reduce((sum, metric) => sum + metric.viewCount, 0);
-  const totalLikes = sortedMetrics.reduce((sum, metric) => sum + metric.likeCount, 0);
-  const totalComments = sortedMetrics.reduce((sum, metric) => sum + metric.commentCount, 0);
-  
+  const totalViews = sortedMetrics.reduce(
+    (sum, metric) => sum + metric.viewCount,
+    0
+  );
+  const totalLikes = sortedMetrics.reduce(
+    (sum, metric) => sum + metric.likeCount,
+    0
+  );
+  const totalComments = sortedMetrics.reduce(
+    (sum, metric) => sum + metric.commentCount,
+    0
+  );
+
   const avgViewsPerMinute = totalMinutes > 0 ? totalViews / totalMinutes : 0;
   const avgLikesPerMinute = totalMinutes > 0 ? totalLikes / totalMinutes : 0;
-  const avgCommentsPerMinute = totalMinutes > 0 ? totalComments / totalMinutes : 0;
-  
+  const avgCommentsPerMinute =
+    totalMinutes > 0 ? totalComments / totalMinutes : 0;
+
   // Calculate ratios
   const viewLikeRatio = totalLikes > 0 ? totalViews / totalLikes : Infinity;
-  const viewCommentRatio = totalComments > 0 ? totalViews / totalComments : Infinity;
-  
+  const viewCommentRatio =
+    totalComments > 0 ? totalViews / totalComments : Infinity;
+
   // Detect spikes
   const { spikeDetected, spikePercentage } = detectViewSpikes(
     sortedMetrics,
     config.thresholds.spikeTimeWindow,
     config.thresholds.spikePercentage
   );
-  
+
   // Calculate bot score
   let botScore = 0;
   let reasons: string[] = [];
-  
+
   // Check view:like ratio
   if (viewLikeRatio > config.thresholds.viewLikeRatio) {
-    const severity = Math.min(100, (viewLikeRatio / config.thresholds.viewLikeRatio) * 30);
+    const severity = Math.min(
+      100,
+      (viewLikeRatio / config.thresholds.viewLikeRatio) * 30
+    );
     botScore += severity;
     reasons.push(`High view:like ratio (${viewLikeRatio.toFixed(1)}:1)`);
   }
-  
+
   // Check view:comment ratio
   if (viewCommentRatio > config.thresholds.viewCommentRatio) {
-    const severity = Math.min(100, (viewCommentRatio / config.thresholds.viewCommentRatio) * 25);
+    const severity = Math.min(
+      100,
+      (viewCommentRatio / config.thresholds.viewCommentRatio) * 25
+    );
     botScore += severity;
     reasons.push(`High view:comment ratio (${viewCommentRatio.toFixed(1)}:1)`);
   }
-  
+
   // Check for spikes
-  if (spikeDetected && spikePercentage && spikePercentage > config.thresholds.spikePercentage) {
-    const severity = Math.min(100, (spikePercentage / config.thresholds.spikePercentage) * 45);
+  if (
+    spikeDetected &&
+    spikePercentage &&
+    spikePercentage > config.thresholds.spikePercentage
+  ) {
+    const severity = Math.min(
+      100,
+      (spikePercentage / config.thresholds.spikePercentage) * 45
+    );
     botScore += severity;
-    reasons.push(`View spike detected (${spikePercentage.toFixed(1)}% increase)`);
+    reasons.push(
+      `View spike detected (${spikePercentage.toFixed(1)}% increase)`
+    );
   }
-  
+
   // Normalize bot score to 0-100 range
   botScore = Math.min(100, botScore);
-  
+
   // Determine action
   let action: 'none' | 'monitor' | 'warning' | 'ban' = 'none';
   if (botScore >= config.confidence.ban) {
@@ -192,13 +218,13 @@ export function detectBot(
   } else if (botScore >= config.confidence.monitor) {
     action = 'monitor';
   }
-  
+
   return {
     promoterId,
     campaignId,
     analysisWindow: {
       start: startTime,
-      end: endTime
+      end: endTime,
     },
     metrics: {
       avgViewsPerMinute,
@@ -207,11 +233,11 @@ export function detectBot(
       viewLikeRatio,
       viewCommentRatio,
       spikeDetected,
-      spikePercentage
+      spikePercentage,
     },
     botScore,
     action,
-    reason: reasons.join('; ')
+    reason: reasons.join('; '),
   };
 }
 
@@ -226,58 +252,71 @@ function detectViewSpikes(
   if (metrics.length < 3) {
     return { spikeDetected: false };
   }
-  
+
   let maxSpikePercentage = 0;
   let spikeDetected = false;
-  
+
   // Calculate baseline average (excluding potential spikes)
   const baselineMetrics = metrics.slice(0, Math.floor(metrics.length * 0.7));
-  const baselineTotal = baselineMetrics.reduce((sum, m) => sum + m.viewCount, 0);
+  const baselineTotal = baselineMetrics.reduce(
+    (sum, m) => sum + m.viewCount,
+    0
+  );
   const baselineAvg = baselineTotal / baselineMetrics.length;
-  
+
   // Check each data point for spikes
   for (let i = 1; i < metrics.length; i++) {
     const current = metrics[i];
-    
+
     // Find all points within the time window before current
     const windowStart = new Date(current.timestamp.getTime() - timeWindowMs);
-    const previousPoints = metrics
-      .filter(m => m.timestamp >= windowStart && m.timestamp < current.timestamp);
-    
+    const previousPoints = metrics.filter(
+      m => m.timestamp >= windowStart && m.timestamp < current.timestamp
+    );
+
     if (previousPoints.length > 0) {
       // Calculate average views in previous window
-      const prevAvg = previousPoints.reduce((sum, m) => sum + m.viewCount, 0) / previousPoints.length;
-      
+      const prevAvg =
+        previousPoints.reduce((sum, m) => sum + m.viewCount, 0) /
+        previousPoints.length;
+
       // Skip if previous average is too low (avoid division by small numbers)
       if (prevAvg < 10) continue;
-      
+
       // Calculate percentage increase
-      const percentageIncrease = ((current.viewCount - prevAvg) / prevAvg) * 100;
-      
-      if (percentageIncrease > thresholdPercentage && current.viewCount > baselineAvg * 2) {
+      const percentageIncrease =
+        ((current.viewCount - prevAvg) / prevAvg) * 100;
+
+      if (
+        percentageIncrease > thresholdPercentage &&
+        current.viewCount > baselineAvg * 2
+      ) {
         spikeDetected = true;
         maxSpikePercentage = Math.max(maxSpikePercentage, percentageIncrease);
       }
     }
   }
-  
+
   return {
     spikeDetected,
-    spikePercentage: spikeDetected ? maxSpikePercentage : undefined
+    spikePercentage: spikeDetected ? maxSpikePercentage : undefined,
   };
 }
 
 /**
  * Creates an empty analysis result when no data is available
  */
-function createEmptyAnalysis(promoterId: string, campaignId: string): BotAnalysis {
+function createEmptyAnalysis(
+  promoterId: string,
+  campaignId: string
+): BotAnalysis {
   const now = new Date();
   return {
     promoterId,
     campaignId,
     analysisWindow: {
       start: now,
-      end: now
+      end: now,
     },
     metrics: {
       avgViewsPerMinute: 0,
@@ -285,16 +324,16 @@ function createEmptyAnalysis(promoterId: string, campaignId: string): BotAnalysi
       avgCommentsPerMinute: 0,
       viewLikeRatio: 0,
       viewCommentRatio: 0,
-      spikeDetected: false
+      spikeDetected: false,
     },
     botScore: 0,
     action: 'none',
-    reason: 'Insufficient data for analysis'
+    reason: 'Insufficient data for analysis',
   };
 }
 
 // Export the module
 export default {
   detectBot,
-  DEFAULT_CONFIG
+  DEFAULT_CONFIG,
 };

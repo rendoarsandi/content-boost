@@ -1,4 +1,7 @@
-import { RealTimeBotAnalyzer, RealTimeBotAnalyzerConfig } from './real-time-bot-analyzer';
+import {
+  RealTimeBotAnalyzer,
+  RealTimeBotAnalyzerConfig,
+} from './real-time-bot-analyzer';
 import { ViewRecord } from './bot-detection';
 
 export interface BotAnalysisWorkerConfig {
@@ -48,22 +51,22 @@ export class BotAnalysisWorker {
         batchSize: 100,
         cacheTimeout: 5 * 60, // 5 minutes
         enableAutoActions: true,
-        logLevel: 'info'
+        logLevel: 'info',
       },
       worker: {
         enabled: true,
         dataFetchInterval: 30 * 1000, // 30 seconds
         maxRetries: 3,
         retryDelay: 5000, // 5 seconds
-        batchSize: 500
+        batchSize: 500,
       },
       logging: {
         enabled: true,
         logPath: 'logs/bot-detection/',
         maxLogSize: 10 * 1024 * 1024, // 10MB
-        rotateDaily: true
+        rotateDaily: true,
       },
-      ...config
+      ...config,
     };
 
     this.analyzer = new RealTimeBotAnalyzer(undefined, this.config.analyzer);
@@ -131,7 +134,7 @@ export class BotAnalysisWorker {
   getStats(): WorkerStats {
     return {
       ...this.stats,
-      uptime: this.startTime ? Date.now() - this.startTime.getTime() : 0
+      uptime: this.startTime ? Date.now() - this.startTime.getTime() : 0,
     };
   }
 
@@ -140,17 +143,25 @@ export class BotAnalysisWorker {
    */
   async triggerAnalysis(promoterId: string, campaignId: string): Promise<void> {
     try {
-      this.log('info', `Manually triggering analysis for ${promoterId}:${campaignId}`);
-      
-      const result = await this.analyzer.analyzeImmediate(promoterId, campaignId);
-      
+      this.log(
+        'info',
+        `Manually triggering analysis for ${promoterId}:${campaignId}`
+      );
+
+      const result = await this.analyzer.analyzeImmediate(
+        promoterId,
+        campaignId
+      );
+
       this.stats.totalAnalysesPerformed++;
       if (result.actionTaken) {
         this.stats.totalActionsTriggered++;
       }
-      
-      this.log('info', `Manual analysis completed: ${result.analysis.action} (score: ${result.analysis.botScore})`);
-      
+
+      this.log(
+        'info',
+        `Manual analysis completed: ${result.analysis.action} (score: ${result.analysis.botScore})`
+      );
     } catch (error) {
       this.stats.errorCount++;
       this.log('error', `Failed to trigger manual analysis: ${error}`);
@@ -192,7 +203,7 @@ export class BotAnalysisWorker {
       lastFetchTime: null,
       lastAnalysisTime: null,
       errorCount: 0,
-      uptime: 0
+      uptime: 0,
     };
   }
 
@@ -213,7 +224,10 @@ export class BotAnalysisWorker {
 
       // Schedule next fetch
       if (this.isRunning) {
-        this.dataFetchTimer = setTimeout(fetchData, this.config.worker.dataFetchInterval);
+        this.dataFetchTimer = setTimeout(
+          fetchData,
+          this.config.worker.dataFetchInterval
+        );
       }
     };
 
@@ -230,12 +244,14 @@ export class BotAnalysisWorker {
       // This would integrate with actual data sources
       // For now, we'll simulate fetching data
       const newViewRecords = await this.fetchNewViewRecords();
-      
+
       if (newViewRecords.length > 0) {
         this.addViewRecords(newViewRecords);
-        this.log('debug', `Fetched and processed ${newViewRecords.length} new view records`);
+        this.log(
+          'debug',
+          `Fetched and processed ${newViewRecords.length} new view records`
+        );
       }
-
     } catch (error) {
       this.log('error', `Failed to fetch and process data: ${error}`);
       throw error;
@@ -251,14 +267,14 @@ export class BotAnalysisWorker {
     // - PostgreSQL view_records table
     // - Redis cache
     // - Social media APIs (TikTok, Instagram)
-    
+
     // For now, return empty array
     // In real implementation, this would:
     // 1. Query database for recent view records
     // 2. Check Redis for cached data
     // 3. Fetch from social media APIs if needed
     // 4. Return combined results
-    
+
     return [];
   }
 
@@ -271,20 +287,23 @@ export class BotAnalysisWorker {
     maxRetries: number = this.config.worker.maxRetries
   ): Promise<T> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await operation();
       } catch (error) {
         lastError = error as Error;
-        this.log('warn', `${operationName} failed (attempt ${attempt}/${maxRetries}): ${error}`);
-        
+        this.log(
+          'warn',
+          `${operationName} failed (attempt ${attempt}/${maxRetries}): ${error}`
+        );
+
         if (attempt < maxRetries) {
           await this.sleep(this.config.worker.retryDelay * attempt); // Exponential backoff
         }
       }
     }
-    
+
     throw lastError;
   }
 
@@ -298,13 +317,16 @@ export class BotAnalysisWorker {
   /**
    * Logging utility with file output
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string
+  ): void {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [${level.toUpperCase()}] BotAnalysisWorker: ${message}`;
-    
+
     // Console output
     console.log(logMessage);
-    
+
     // File output (if enabled)
     if (this.config.logging.enabled) {
       this.writeToLogFile(logMessage);
@@ -323,10 +345,8 @@ export class BotAnalysisWorker {
       // 2. Write to daily log file if rotateDaily is true
       // 3. Handle log rotation based on maxLogSize
       // 4. Ensure proper file permissions
-      
       // For now, just log to console that we would write to file
       // console.log(`[FILE LOG] ${message}`);
-      
     } catch (error) {
       console.error(`Failed to write to log file: ${error}`);
     }
@@ -358,14 +378,14 @@ export function getGlobalBotAnalysisWorker(): BotAnalysisWorker {
         dataFetchInterval: 30 * 1000, // 30 seconds
         maxRetries: 3,
         retryDelay: 5000,
-        batchSize: 500
+        batchSize: 500,
       },
       logging: {
         enabled: true,
         logPath: 'logs/bot-detection/',
         maxLogSize: 10 * 1024 * 1024,
-        rotateDaily: true
-      }
+        rotateDaily: true,
+      },
     });
   }
   return globalWorker;

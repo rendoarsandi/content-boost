@@ -1,7 +1,15 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect, notFound } from 'next/navigation';
 import { db } from '@repo/database';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+} from '@repo/ui';
 import Link from 'next/link';
 import { CampaignStatusActions } from '../../components/campaign-status-actions';
 import { RealTimeMetrics } from '../../components/real-time-metrics';
@@ -11,33 +19,37 @@ async function getCampaignDetails(campaignId: string, creatorId: string) {
   const campaign = await db.campaign.findFirst({
     where: {
       id: campaignId,
-      creatorId
+      creatorId,
     },
     include: {
-      promotions: {
+      applications: {
         include: {
-          promoter: true
-        }
+          promoter: true,
+          viewRecords: true,
+          payouts: true,
+        },
       },
       _count: {
         select: {
-          promotions: true
-        }
-      }
-    }
+          applications: true,
+        },
+      },
+    },
   });
 
   if (!campaign) {
     return null;
   }
 
-  // Calculate statistics from promotions
-  const totalViews = campaign.promotions.reduce((sum, p) => sum + p.views, 0);
-  const totalEarnings = campaign.promotions.reduce((sum, p) => sum + p.earnings, 0);
+  // Calculate statistics from related data
+  const totalViews = campaign.applications.reduce((sum, app) => 
+    sum + app.viewRecords.reduce((viewSum, record) => viewSum + record.viewCount, 0), 0);
+  const totalEarnings = campaign.applications.reduce((sum, app) => 
+    sum + app.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0), 0);
 
   // Create applications from promotions
-  const applications = campaign.promotions.map(promotion => ({
-    application: { ...promotion, status: 'approved' },
+  const applications = campaign.applications.map(promotion => ({
+    application: { ...promotion, status: 'APPROVED' },
     promoter: promotion.promoter,
   }));
 
@@ -72,11 +84,11 @@ function getStatusColor(status: string) {
 
 function getApplicationStatusColor(status: string) {
   switch (status) {
-    case 'approved':
+    case 'APPROVED':
       return 'bg-green-100 text-green-800';
-    case 'pending':
+    case 'PENDING':
       return 'bg-yellow-100 text-yellow-800';
-    case 'rejected':
+    case 'REJECTED':
       return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
@@ -95,7 +107,10 @@ export default async function CampaignDetailsPage({
   }
 
   const { id } = await params;
-  const campaignDetails = await getCampaignDetails(id, (session.user as any).id);
+  const campaignDetails = await getCampaignDetails(
+    id,
+    (session.user as any).id
+  );
 
   if (!campaignDetails) {
     notFound();
@@ -103,8 +118,12 @@ export default async function CampaignDetailsPage({
 
   const { campaign, materials, applications, stats } = campaignDetails;
 
-  const approvedApplications = applications.filter(app => app.application.status === 'approved');
-  const pendingApplications = applications.filter(app => app.application.status === 'pending');
+  const approvedApplications = applications.filter(
+    app => app.application.status === 'APPROVED'
+  );
+  const pendingApplications = applications.filter(
+    app => app.application.status === 'PENDING'
+  );
 
   return (
     <div className="space-y-8">
@@ -112,9 +131,13 @@ export default async function CampaignDetailsPage({
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center space-x-3 mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">{campaign.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {campaign.title}
+            </h1>
           </div>
-          <p className="text-gray-600">Campaign Budget: Rp {campaign.budget.toLocaleString()}</p>
+          <p className="text-gray-600">
+            Campaign Budget: Rp {campaign.budget.toLocaleString()}
+          </p>
         </div>
         <div className="flex flex-col space-y-2">
           <div className="flex space-x-2">
@@ -125,7 +148,7 @@ export default async function CampaignDetailsPage({
               <Button variant="outline">Manage Applications</Button>
             </Link>
           </div>
-          <CampaignStatusActions 
+          <CampaignStatusActions
             campaignId={campaign.id}
             currentStatus="active"
           />
@@ -133,7 +156,7 @@ export default async function CampaignDetailsPage({
       </div>
 
       {/* Real-Time Metrics */}
-      <RealTimeMetrics 
+      <RealTimeMetrics
         campaignId={campaign.id}
         initialData={{
           totalViews: stats.totalViews,
@@ -149,7 +172,9 @@ export default async function CampaignDetailsPage({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Budget</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Budget
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
@@ -161,23 +186,29 @@ export default async function CampaignDetailsPage({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Rate per View</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Rate per View
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              Rp 100
-            </div>
+            <div className="text-2xl font-bold text-green-600">Rp 100</div>
             <p className="text-xs text-gray-500 mt-1">Per legitimate view</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Budget Used</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Budget Used
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {((stats.legitimateViews * 100 / Number(campaign.budget)) * 100).toFixed(1)}%
+              {(
+                ((stats.legitimateViews * 100) / Number(campaign.budget)) *
+                100
+              ).toFixed(1)}
+              %
             </div>
             <p className="text-xs text-gray-500 mt-1">Of total budget</p>
           </CardContent>
@@ -185,7 +216,9 @@ export default async function CampaignDetailsPage({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Active Promoters</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Active Promoters
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
@@ -205,17 +238,23 @@ export default async function CampaignDetailsPage({
           </CardHeader>
           <CardContent>
             {materials.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No materials uploaded</p>
+              <p className="text-gray-500 text-center py-4">
+                No materials uploaded
+              </p>
             ) : (
               <div className="space-y-3">
-                {materials.map((material) => (
+                {materials.map(material => (
                   <div key={material.id} className="border rounded-lg p-3">
                     <div className="flex items-start justify-between">
                       <div>
                         <h4 className="font-medium">{material.title}</h4>
-                        <p className="text-sm text-gray-600 capitalize">{material.type}</p>
+                        <p className="text-sm text-gray-600 capitalize">
+                          {material.type}
+                        </p>
                         {material.description && (
-                          <p className="text-sm text-gray-500 mt-1">{material.description}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {material.description}
+                          </p>
                         )}
                       </div>
                       <a
@@ -238,10 +277,14 @@ export default async function CampaignDetailsPage({
         <Card>
           <CardHeader>
             <CardTitle>Requirements</CardTitle>
-            <CardDescription>Criteria for promoter applications</CardDescription>
+            <CardDescription>
+              Criteria for promoter applications
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-500 text-center py-4">No specific requirements</p>
+            <p className="text-gray-500 text-center py-4">
+              No specific requirements
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -270,12 +313,17 @@ export default async function CampaignDetailsPage({
           {applications.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>No applications yet</p>
-              <p className="text-sm mt-2">Applications will appear here once promoters apply</p>
+              <p className="text-sm mt-2">
+                Applications will appear here once promoters apply
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
               {applications.slice(0, 5).map(({ application, promoter }) => (
-                <div key={application.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={application.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-medium">
@@ -283,16 +331,20 @@ export default async function CampaignDetailsPage({
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium">{promoter.name || 'Unknown User'}</p>
+                      <p className="font-medium">
+                        {promoter.name || 'Unknown User'}
+                      </p>
                       <p className="text-sm text-gray-600">{promoter.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Badge className={getApplicationStatusColor(application.status)}>
+                    <Badge
+                      className={getApplicationStatusColor(application.status)}
+                    >
                       {application.status}
                     </Badge>
                     <span className="text-sm text-gray-500">
-                      {new Date(application.createdAt).toLocaleDateString()}
+                      {new Date(application.appliedAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>

@@ -45,27 +45,39 @@ export class SocialTokenManager {
   // Store token in cache
   async storeToken(token: SocialToken): Promise<void> {
     const key = this.getTokenCacheKey(token.userId, token.platform);
-    const ttl = Math.max(0, Math.floor((token.expiresAt.getTime() - Date.now()) / 1000));
-    
+    const ttl = Math.max(
+      0,
+      Math.floor((token.expiresAt.getTime() - Date.now()) / 1000)
+    );
+
     await this.cache.set(key, token, { ttl });
   }
 
   // Get token from cache
-  async getToken(userId: string, platform: 'tiktok' | 'instagram'): Promise<SocialToken | null> {
+  async getToken(
+    userId: string,
+    platform: 'tiktok' | 'instagram'
+  ): Promise<SocialToken | null> {
     const key = this.getTokenCacheKey(userId, platform);
     return await this.cache.get<SocialToken>(key);
   }
 
   // Remove token from cache
-  async removeToken(userId: string, platform: 'tiktok' | 'instagram'): Promise<void> {
+  async removeToken(
+    userId: string,
+    platform: 'tiktok' | 'instagram'
+  ): Promise<void> {
     const key = this.getTokenCacheKey(userId, platform);
     await this.cache.del(key);
   }
 
   // Check if token exists and is valid
-  async validateToken(userId: string, platform: 'tiktok' | 'instagram'): Promise<TokenValidationResult> {
+  async validateToken(
+    userId: string,
+    platform: 'tiktok' | 'instagram'
+  ): Promise<TokenValidationResult> {
     const token = await this.getToken(userId, platform);
-    
+
     if (!token) {
       return {
         valid: false,
@@ -89,8 +101,11 @@ export class SocialTokenManager {
 
     // Validate token with API
     try {
-      const isValid = await this.apiManager.validateToken(platform, token.accessToken);
-      
+      const isValid = await this.apiManager.validateToken(
+        platform,
+        token.accessToken
+      );
+
       if (!isValid) {
         return {
           valid: false,
@@ -108,13 +123,17 @@ export class SocialTokenManager {
       return {
         valid: false,
         needsRefresh: true,
-        error: error instanceof Error ? error.message : 'Unknown validation error',
+        error:
+          error instanceof Error ? error.message : 'Unknown validation error',
       };
     }
   }
 
   // Refresh token with distributed locking to prevent concurrent refreshes
-  async refreshToken(userId: string, platform: 'tiktok' | 'instagram'): Promise<TokenRefreshResult> {
+  async refreshToken(
+    userId: string,
+    platform: 'tiktok' | 'instagram'
+  ): Promise<TokenRefreshResult> {
     const lockKey = this.getRefreshLockKey(userId, platform);
     const lockTTL = 30; // 30 seconds lock
 
@@ -128,7 +147,9 @@ export class SocialTokenManager {
         return {
           success: !!token,
           token: token || undefined,
-          error: token ? undefined : 'Token refresh in progress by another process',
+          error: token
+            ? undefined
+            : 'Token refresh in progress by another process',
         };
       }
 
@@ -150,8 +171,11 @@ export class SocialTokenManager {
       }
 
       // Attempt to refresh the token
-      const refreshResult = await this.apiManager.refreshToken(platform, currentToken.refreshToken);
-      
+      const refreshResult = await this.apiManager.refreshToken(
+        platform,
+        currentToken.refreshToken
+      );
+
       // Calculate new expiration time
       const expiresAt = new Date();
       if (platform === 'tiktok') {
@@ -176,16 +200,18 @@ export class SocialTokenManager {
       };
     } catch (error) {
       console.error(`Token refresh error for ${platform}:`, error);
-      
+
       if (error instanceof APIError) {
         return {
           success: false,
           error: error.message,
-          needsReauth: error.code === 'TOKEN_REFRESH_FAILED' || error.statusCode === 401,
+          needsReauth:
+            error.code === 'TOKEN_REFRESH_FAILED' || error.statusCode === 401,
         };
       }
 
-      const errorMessage = error instanceof Error ? error.message : 'Unknown refresh error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown refresh error';
       return {
         success: false,
         error: errorMessage,
@@ -198,16 +224,19 @@ export class SocialTokenManager {
   }
 
   // Get valid token, refreshing if necessary
-  async getValidToken(userId: string, platform: 'tiktok' | 'instagram'): Promise<SocialToken | null> {
+  async getValidToken(
+    userId: string,
+    platform: 'tiktok' | 'instagram'
+  ): Promise<SocialToken | null> {
     const validation = await this.validateToken(userId, platform);
-    
+
     if (validation.valid && !validation.needsRefresh) {
       return await this.getToken(userId, platform);
     }
 
     if (validation.needsRefresh) {
       const refreshResult = await this.refreshToken(userId, platform);
-      
+
       if (refreshResult.success && refreshResult.token) {
         return refreshResult.token;
       }
@@ -265,7 +294,7 @@ export class SocialTokenManager {
   }> {
     const tiktokValidation = await this.validateToken(userId, 'tiktok');
     const instagramValidation = await this.validateToken(userId, 'instagram');
-    
+
     const tiktokToken = await this.getToken(userId, 'tiktok');
     const instagramToken = await this.getToken(userId, 'instagram');
 
@@ -290,7 +319,9 @@ export class SocialTokenManager {
   // Batch token operations for multiple users
   async batchRefreshTokens(
     userPlatforms: Array<{ userId: string; platform: 'tiktok' | 'instagram' }>
-  ): Promise<Array<{ userId: string; platform: string; result: TokenRefreshResult }>> {
+  ): Promise<
+    Array<{ userId: string; platform: string; result: TokenRefreshResult }>
+  > {
     const results = await Promise.allSettled(
       userPlatforms.map(async ({ userId, platform }) => ({
         userId,
@@ -308,7 +339,8 @@ export class SocialTokenManager {
           platform: userPlatforms[index].platform,
           result: {
             success: false,
-            error: result.reason?.message || 'Unknown error during batch refresh',
+            error:
+              result.reason?.message || 'Unknown error during batch refresh',
           },
         };
       }
@@ -362,6 +394,9 @@ export class SocialTokenManager {
 }
 
 // Export factory function
-export const createSocialTokenManager = (cache: RedisCache, apiManager: SocialMediaAPIManager) => {
+export const createSocialTokenManager = (
+  cache: RedisCache,
+  apiManager: SocialMediaAPIManager
+) => {
   return new SocialTokenManager(cache, apiManager);
 };

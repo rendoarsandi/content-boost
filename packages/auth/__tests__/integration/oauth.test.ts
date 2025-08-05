@@ -14,12 +14,14 @@ const mockDb = {
   }),
   insert: jest.fn().mockReturnValue({
     values: jest.fn().mockReturnValue({
-      returning: jest.fn().mockResolvedValue([{
-        id: 'test-user-id',
-        email: 'test@example.com',
-        name: 'Test User',
-        role: 'promoter',
-      }]),
+      returning: jest.fn().mockResolvedValue([
+        {
+          id: 'test-user-id',
+          email: 'test@example.com',
+          name: 'Test User',
+          role: 'promoter',
+        },
+      ]),
     }),
   }),
   update: jest.fn().mockReturnValue({
@@ -49,7 +51,7 @@ describe('TikTok OAuth', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    
+
     // Dynamic import to avoid module loading issues
     const module = await import('../src/oauth/tiktok');
     TikTokOAuth = module.TikTokOAuth;
@@ -58,7 +60,7 @@ describe('TikTok OAuth', () => {
 
   it('should generate correct authorization URL', () => {
     const authUrl = tiktokOAuth.getAuthorizationUrl('test-state');
-    
+
     expect(authUrl).toContain('tiktok.com/auth/authorize');
     expect(authUrl).toContain('client_key=test-tiktok-client-id');
     expect(authUrl).toContain('scope=user.info.basic');
@@ -81,7 +83,7 @@ describe('TikTok OAuth', () => {
     });
 
     const result = await tiktokOAuth.exchangeCodeForToken('test-code');
-    
+
     expect(result).toEqual(mockTokenResponse);
     expect(global.fetch).toHaveBeenCalledWith(
       'https://open-api.tiktok.com/oauth/access_token/',
@@ -105,8 +107,9 @@ describe('TikTok OAuth', () => {
       json: jest.fn().mockResolvedValue(mockErrorResponse),
     });
 
-    await expect(tiktokOAuth.exchangeCodeForToken('invalid-code'))
-      .rejects.toThrow('TikTok OAuth error: Invalid authorization code');
+    await expect(
+      tiktokOAuth.exchangeCodeForToken('invalid-code')
+    ).rejects.toThrow('TikTok OAuth error: Invalid authorization code');
   });
 
   it('should get user info successfully', async () => {
@@ -133,7 +136,7 @@ describe('TikTok OAuth', () => {
     });
 
     const result = await tiktokOAuth.getUserInfo('test-access-token');
-    
+
     expect(result).toEqual(mockUserInfo.data.user);
     expect(global.fetch).toHaveBeenCalledWith(
       'https://open-api.tiktok.com/v2/user/info/',
@@ -161,7 +164,7 @@ describe('TikTok OAuth', () => {
     });
 
     const result = await tiktokOAuth.refreshAccessToken('test-refresh-token');
-    
+
     expect(result).toEqual(mockRefreshResponse);
     expect(global.fetch).toHaveBeenCalledWith(
       'https://open-api.tiktok.com/oauth/refresh_token/',
@@ -181,7 +184,7 @@ describe('Instagram OAuth', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    
+
     // Dynamic import to avoid module loading issues
     const module = await import('../src/oauth/instagram');
     InstagramOAuth = module.InstagramOAuth;
@@ -190,7 +193,7 @@ describe('Instagram OAuth', () => {
 
   it('should generate correct authorization URL', () => {
     const authUrl = instagramOAuth.getAuthorizationUrl('test-state');
-    
+
     expect(authUrl).toContain('api.instagram.com/oauth/authorize');
     expect(authUrl).toContain('client_id=test-instagram-client-id');
     expect(authUrl).toContain('scope=user_profile,user_media');
@@ -220,7 +223,7 @@ describe('Instagram OAuth', () => {
       });
 
     const result = await instagramOAuth.exchangeCodeForToken('test-code');
-    
+
     expect(result).toEqual(mockLongTokenResponse);
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
@@ -240,7 +243,7 @@ describe('Instagram OAuth', () => {
     });
 
     const result = await instagramOAuth.getUserInfo('test-access-token');
-    
+
     expect(result).toEqual(mockUserInfo);
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('graph.instagram.com/me'),
@@ -261,7 +264,7 @@ describe('Instagram OAuth', () => {
     });
 
     const result = await instagramOAuth.refreshAccessToken('test-access-token');
-    
+
     expect(result).toEqual(mockRefreshResponse);
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('graph.instagram.com/refresh_access_token'),
@@ -273,7 +276,7 @@ describe('Instagram OAuth', () => {
 describe('OAuth Integration', () => {
   it('should handle role-based access control correctly', () => {
     const roles = ['creator', 'promoter', 'admin'];
-    
+
     roles.forEach(role => {
       expect(['creator', 'promoter', 'admin']).toContain(role);
     });
@@ -281,7 +284,7 @@ describe('OAuth Integration', () => {
 
   it('should validate OAuth provider types', () => {
     const providers = ['tiktok', 'instagram'];
-    
+
     providers.forEach(provider => {
       expect(['tiktok', 'instagram']).toContain(provider);
     });
@@ -294,7 +297,7 @@ describe('OAuth Integration', () => {
       sameSite: 'lax' as const,
       maxAge: 60 * 60 * 24 * 7, // 7 days
     };
-    
+
     expect(tokenConfig.httpOnly).toBe(true);
     expect(tokenConfig.sameSite).toBe('lax');
     expect(tokenConfig.maxAge).toBe(604800); // 7 days

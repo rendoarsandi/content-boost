@@ -13,22 +13,32 @@ const CreateMaterialSchema = z.object({
 // Map frontend enum values to Prisma enum values
 const mapTypeToEnum = (type: string) => {
   switch (type) {
-    case 'google_drive': return 'GOOGLE_DRIVE';
-    case 'youtube': return 'YOUTUBE';
-    case 'image': return 'IMAGE';
-    case 'video': return 'VIDEO';
-    default: throw new Error(`Invalid material type: ${type}`);
+    case 'google_drive':
+      return 'GOOGLE_DRIVE';
+    case 'youtube':
+      return 'YOUTUBE';
+    case 'image':
+      return 'IMAGE';
+    case 'video':
+      return 'VIDEO';
+    default:
+      throw new Error(`Invalid material type: ${type}`);
   }
 };
 
 // Map Prisma enum values to frontend values
 const mapEnumToType = (enumValue: string) => {
   switch (enumValue) {
-    case 'GOOGLE_DRIVE': return 'google_drive';
-    case 'YOUTUBE': return 'youtube';
-    case 'IMAGE': return 'image';
-    case 'VIDEO': return 'video';
-    default: return enumValue.toLowerCase();
+    case 'GOOGLE_DRIVE':
+      return 'google_drive';
+    case 'YOUTUBE':
+      return 'youtube';
+    case 'IMAGE':
+      return 'image';
+    case 'VIDEO':
+      return 'video';
+    default:
+      return enumValue.toLowerCase();
   }
 };
 
@@ -41,12 +51,9 @@ export async function GET(
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id: campaignId } = await params;
@@ -56,9 +63,9 @@ export async function GET(
       where: { id: campaignId },
       include: {
         materials: {
-          orderBy: { createdAt: 'desc' }
-        }
-      }
+          orderBy: { createdAt: 'desc' },
+        },
+      },
     });
 
     if (!campaign) {
@@ -69,9 +76,14 @@ export async function GET(
     }
 
     // Check access permissions
-    if (session.user.role === 'creator' && campaign.creatorId !== session.user.id) {
+    if (
+      session.user.role === 'creator' &&
+      campaign.creatorId !== session.user.id
+    ) {
       return NextResponse.json(
-        { error: 'Forbidden - You can only access your own campaign materials' },
+        {
+          error: 'Forbidden - You can only access your own campaign materials',
+        },
         { status: 403 }
       );
     }
@@ -83,7 +95,7 @@ export async function GET(
       url: material.url,
       title: material.title,
       description: material.description,
-      createdAt: material.createdAt
+      createdAt: material.createdAt,
     }));
 
     return NextResponse.json({ materials });
@@ -103,12 +115,9 @@ export async function POST(
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only creators can add materials
@@ -127,8 +136,8 @@ export async function POST(
     const campaign = await db.campaign.findFirst({
       where: {
         id: campaignId,
-        creatorId: session.user.id
-      }
+        creatorId: session.user.id,
+      },
     });
 
     if (!campaign) {
@@ -139,12 +148,12 @@ export async function POST(
     }
 
     // Validate the URL based on type
-    const urlValidation = validateMaterialUrl(validatedData.type, validatedData.url);
+    const urlValidation = validateMaterialUrl(
+      validatedData.type,
+      validatedData.url
+    );
     if (!urlValidation.valid) {
-      return NextResponse.json(
-        { error: urlValidation.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: urlValidation.error }, { status: 400 });
     }
 
     // Create the material
@@ -154,8 +163,8 @@ export async function POST(
         type: mapTypeToEnum(validatedData.type) as any,
         url: validatedData.url,
         title: validatedData.title,
-        description: validatedData.description
-      }
+        description: validatedData.description,
+      },
     });
 
     // Return material in frontend format
@@ -165,22 +174,22 @@ export async function POST(
       url: material.url,
       title: material.title,
       description: material.description,
-      createdAt: material.createdAt
+      createdAt: material.createdAt,
     };
 
     return NextResponse.json(
       {
         material: formattedMaterial,
-        message: 'Material added successfully'
+        message: 'Material added successfully',
       },
       { status: 201 }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation error',
-          details: error.issues
+          details: error.issues,
         },
         { status: 400 }
       );
@@ -195,55 +204,98 @@ export async function POST(
 }
 
 // Helper function to validate material URLs
-function validateMaterialUrl(type: string, url: string): { valid: boolean; error?: string } {
+function validateMaterialUrl(
+  type: string,
+  url: string
+): { valid: boolean; error?: string } {
   try {
     const urlObj = new URL(url);
-    
+
     switch (type) {
       case 'google_drive':
-        if (!urlObj.hostname.includes('drive.google.com') && !urlObj.hostname.includes('docs.google.com')) {
-          return { valid: false, error: 'Google Drive URL must be from drive.google.com or docs.google.com' };
+        if (
+          !urlObj.hostname.includes('drive.google.com') &&
+          !urlObj.hostname.includes('docs.google.com')
+        ) {
+          return {
+            valid: false,
+            error:
+              'Google Drive URL must be from drive.google.com or docs.google.com',
+          };
         }
         break;
       case 'youtube':
-        if (!urlObj.hostname.includes('youtube.com') && !urlObj.hostname.includes('youtu.be')) {
-          return { valid: false, error: 'YouTube URL must be from youtube.com or youtu.be' };
+        if (
+          !urlObj.hostname.includes('youtube.com') &&
+          !urlObj.hostname.includes('youtu.be')
+        ) {
+          return {
+            valid: false,
+            error: 'YouTube URL must be from youtube.com or youtu.be',
+          };
         }
         break;
       case 'image':
         // Check for common image extensions or image hosting domains
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-        const imageHosts = ['imgur.com', 'cloudinary.com', 'unsplash.com', 'pexels.com'];
-        
-        const hasImageExtension = imageExtensions.some(ext => 
+        const imageExtensions = [
+          '.jpg',
+          '.jpeg',
+          '.png',
+          '.gif',
+          '.webp',
+          '.svg',
+        ];
+        const imageHosts = [
+          'imgur.com',
+          'cloudinary.com',
+          'unsplash.com',
+          'pexels.com',
+        ];
+
+        const hasImageExtension = imageExtensions.some(ext =>
           urlObj.pathname.toLowerCase().includes(ext)
         );
-        const isImageHost = imageHosts.some(host => 
+        const isImageHost = imageHosts.some(host =>
           urlObj.hostname.includes(host)
         );
-        
+
         if (!hasImageExtension && !isImageHost) {
-          return { valid: false, error: 'Image URL should point to an image file or known image hosting service' };
+          return {
+            valid: false,
+            error:
+              'Image URL should point to an image file or known image hosting service',
+          };
         }
         break;
       case 'video':
         // Check for common video extensions or video hosting domains
-        const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'];
+        const videoExtensions = [
+          '.mp4',
+          '.avi',
+          '.mov',
+          '.wmv',
+          '.flv',
+          '.webm',
+        ];
         const videoHosts = ['vimeo.com', 'dailymotion.com', 'twitch.tv'];
-        
-        const hasVideoExtension = videoExtensions.some(ext => 
+
+        const hasVideoExtension = videoExtensions.some(ext =>
           urlObj.pathname.toLowerCase().includes(ext)
         );
-        const isVideoHost = videoHosts.some(host => 
+        const isVideoHost = videoHosts.some(host =>
           urlObj.hostname.includes(host)
         );
-        
+
         if (!hasVideoExtension && !isVideoHost) {
-          return { valid: false, error: 'Video URL should point to a video file or known video hosting service' };
+          return {
+            valid: false,
+            error:
+              'Video URL should point to a video file or known video hosting service',
+          };
         }
         break;
     }
-    
+
     return { valid: true };
   } catch {
     return { valid: false, error: 'Invalid URL format' };

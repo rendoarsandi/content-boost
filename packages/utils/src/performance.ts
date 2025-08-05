@@ -1,4 +1,7 @@
-const { appLogger, LogLevel } = typeof window === 'undefined' ? require('./logging') : require('./logging.client');
+const { appLogger, LogLevel } =
+  typeof window === 'undefined'
+    ? require('./logging')
+    : require('./logging.client');
 
 // Use browser performance API or Node.js perf_hooks or fallback
 const getPerformance = () => {
@@ -6,7 +9,7 @@ const getPerformance = () => {
   if (typeof window !== 'undefined' && window.performance) {
     return window.performance;
   }
-  
+
   // Node.js environment (but not Edge Runtime)
   if (typeof process !== 'undefined' && typeof require !== 'undefined') {
     try {
@@ -19,7 +22,7 @@ const getPerformance = () => {
       // Fall through to fallback
     }
   }
-  
+
   // Fallback for Edge Runtime and other environments
   return { now: () => Date.now() };
 };
@@ -29,9 +32,11 @@ const performance = getPerformance();
 let Sentry: any = null;
 
 const initializeSentry = async () => {
-  if (typeof process !== 'undefined' &&
-      typeof window === 'undefined' && // Ensure it's a Node.js environment
-      process.env.NEXT_RUNTIME !== 'edge') {
+  if (
+    typeof process !== 'undefined' &&
+    typeof window === 'undefined' && // Ensure it's a Node.js environment
+    process.env.NEXT_RUNTIME !== 'edge'
+  ) {
     try {
       Sentry = await import('@sentry/node');
     } catch (e) {
@@ -48,7 +53,8 @@ initializeSentry();
  * Performance monitoring utility
  */
 export class PerformanceMonitor {
-  private metrics: Map<string, { start: number; measurements: number[] }> = new Map();
+  private metrics: Map<string, { start: number; measurements: number[] }> =
+    new Map();
   private thresholds: Map<string, number> = new Map();
 
   /**
@@ -96,7 +102,10 @@ export class PerformanceMonitor {
       // Send to Sentry if available
       if (Sentry) {
         try {
-          Sentry.captureMessage(`Performance threshold exceeded for ${name}`, 'warning');
+          Sentry.captureMessage(
+            `Performance threshold exceeded for ${name}`,
+            'warning'
+          );
           Sentry.setContext('performance', {
             operation: name,
             durationMs: duration.toFixed(2),
@@ -124,7 +133,9 @@ export class PerformanceMonitor {
    * Get statistics for a specific operation
    * @param name Operation name
    */
-  getStats(name: string): { avg: number; min: number; max: number; count: number } | null {
+  getStats(
+    name: string
+  ): { avg: number; min: number; max: number; count: number } | null {
     const metric = this.metrics.get(name);
     if (!metric || metric.measurements.length === 0) {
       return null;
@@ -132,7 +143,7 @@ export class PerformanceMonitor {
 
     const measurements = metric.measurements;
     const sum = measurements.reduce((a, b) => a + b, 0);
-    
+
     return {
       avg: sum / measurements.length,
       min: Math.min(...measurements),
@@ -174,23 +185,23 @@ export function measure(threshold?: number) {
 
     descriptor.value = function (...args: any[]) {
       const operationName = `${target.constructor.name}.${propertyKey}`;
-      
+
       if (threshold) {
         performanceMonitor.setThreshold(operationName, threshold);
       }
-      
+
       performanceMonitor.startMeasure(operationName);
-      
+
       try {
         const result = originalMethod.apply(this, args);
-        
+
         // Handle promises
         if (result instanceof Promise) {
           return result.finally(() => {
             performanceMonitor.endMeasure(operationName);
           });
         }
-        
+
         performanceMonitor.endMeasure(operationName);
         return result;
       } catch (error) {

@@ -8,7 +8,7 @@ import { desc } from 'drizzle-orm';
 // Mock Next.js auth
 vi.mock('@repo/auth/server-only', () => ({
   auth: vi.fn(),
-  getSession: vi.fn()
+  getSession: vi.fn(),
 }));
 
 // Mock database
@@ -17,13 +17,13 @@ vi.mock('@repo/database', () => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({
         orderBy: vi.fn(() => ({
-          limit: vi.fn(() => Promise.resolve([]))
-        }))
-      }))
+          limit: vi.fn(() => Promise.resolve([])),
+        })),
+      })),
     })),
   },
   payouts: {},
-  platformRevenue: {}
+  platformRevenue: {},
 }));
 
 describe('Payment API Integration Tests', () => {
@@ -41,7 +41,7 @@ describe('Payment API Integration Tests', () => {
           description: 'payout-1',
           status: 'completed',
           createdAt: new Date('2024-01-01'),
-          processedAt: new Date('2024-01-01')
+          processedAt: new Date('2024-01-01'),
         },
         {
           id: 'payout-2',
@@ -49,8 +49,8 @@ describe('Payment API Integration Tests', () => {
           description: 'payout-2',
           status: 'pending',
           createdAt: new Date('2024-01-02'),
-          processedAt: null
-        }
+          processedAt: null,
+        },
       ];
 
       // Mock revenue data
@@ -58,45 +58,47 @@ describe('Payment API Integration Tests', () => {
         {
           id: 'revenue-1',
           withdrawnAmount: 100,
-          createdAt: new Date('2024-01-03')
+          createdAt: new Date('2024-01-03'),
         },
         {
           id: 'revenue-2',
           withdrawnAmount: 0, // Should be filtered out
-          createdAt: new Date('2024-01-04')
-        }
+          createdAt: new Date('2024-01-04'),
+        },
       ];
 
       // Mock database responses
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           orderBy: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue(mockPayouts)
-          })
-        })
+            limit: vi.fn().mockResolvedValue(mockPayouts),
+          }),
+        }),
       } as any);
 
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           orderBy: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue(mockRevenue)
-          })
-        })
+            limit: vi.fn().mockResolvedValue(mockRevenue),
+          }),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/finances/transactions');
+      const request = new NextRequest(
+        'http://localhost/api/finances/transactions'
+      );
       const response = await getTransactions();
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      
+
       // Should have 3 transactions (2 payouts + 1 withdrawal with amount > 0)
       expect(data).toHaveLength(3);
-      
+
       // Check transaction types
       expect(data.filter(t => t.type === 'revenue')).toHaveLength(2);
       expect(data.filter(t => t.type === 'withdrawal')).toHaveLength(1);
-      
+
       // Check specific transaction
       expect(data).toEqual(
         expect.arrayContaining([
@@ -104,16 +106,16 @@ describe('Payment API Integration Tests', () => {
             id: 'payout-1',
             type: 'revenue',
             amount: 50,
-            status: 'completed'
+            status: 'completed',
           }),
           expect.objectContaining({
             id: 'revenue-1',
             type: 'withdrawal',
-            amount: 100
-          })
+            amount: 100,
+          }),
         ])
       );
-      
+
       // Should not include revenue with zero withdrawn amount
       expect(data.some(t => t.id === 'revenue-2')).toBe(false);
     });
@@ -124,13 +126,17 @@ describe('Payment API Integration Tests', () => {
         throw new Error('Database error');
       });
 
-      const request = new NextRequest('http://localhost/api/finances/transactions');
+      const request = new NextRequest(
+        'http://localhost/api/finances/transactions'
+      );
       const response = await getTransactions();
 
       expect(response.status).toBe(500);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        message: 'Failed to fetch transactions'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          message: 'Failed to fetch transactions',
+        })
+      );
     });
 
     test('should handle empty results', async () => {
@@ -138,20 +144,22 @@ describe('Payment API Integration Tests', () => {
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           orderBy: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([])
-          })
-        })
+            limit: vi.fn().mockResolvedValue([]),
+          }),
+        }),
       } as any);
 
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           orderBy: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([])
-          })
-        })
+            limit: vi.fn().mockResolvedValue([]),
+          }),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/finances/transactions');
+      const request = new NextRequest(
+        'http://localhost/api/finances/transactions'
+      );
       const response = await getTransactions();
 
       expect(response.status).toBe(200);

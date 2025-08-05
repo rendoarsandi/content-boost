@@ -12,8 +12,8 @@ export async function POST(
     // For now, just log the ban action
     console.log(`User ${userId} has been banned by admin`);
 
-    return NextResponse.json({ 
-      message: 'User ban acknowledged (stubbed)' 
+    return NextResponse.json({
+      message: 'User ban acknowledged (stubbed)',
     });
   } catch (error) {
     console.error('Ban user error:', error);

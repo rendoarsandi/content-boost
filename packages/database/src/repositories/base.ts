@@ -1,38 +1,38 @@
-import { PrismaClient } from '@prisma/client';
-import { getPrismaClient } from '../connection';
+import { Prisma, PrismaClient } from '@prisma/client';
 
-type TransactionalClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
-
-export abstract class BaseRepository<T, C, U> {
-  protected db: PrismaClient | TransactionalClient;
-
-  constructor(client?: TransactionalClient) {
-    this.db = client || getPrismaClient();
-  }
-
-  public withClient(client: TransactionalClient): this {
-    const newInstance = new (this.constructor as any)(client);
-    return newInstance;
-  }
-
-  abstract findById(id: string): Promise<T | null>;
-  abstract create(data: C): Promise<T>;
-  abstract update(id: string, data: U): Promise<T | null>;
-  abstract delete(id: string): Promise<boolean>;
-  abstract findAll(options?: { limit?: number; offset?: number }): Promise<T[]>;
-}
+export type TransactionClient = Omit<
+  PrismaClient,
+  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+>;
 
 export interface PaginationOptions {
   limit?: number;
   offset?: number;
   orderBy?: string;
-  orderDirection?: 'ASC' | 'DESC';
+  orderDirection?: 'asc' | 'desc';
 }
 
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  limit: number;
-  offset: number;
-  hasMore: boolean;
+export class BaseRepository {
+  protected readonly prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
+
+  protected getClient(
+    tx?: TransactionClient
+  ): PrismaClient | TransactionClient {
+    return tx || this.prisma;
+  }
+
+  async transaction<T>(
+    callback: (tx: TransactionClient) => Promise<T>,
+    options?: {
+      maxWait?: number;
+      timeout?: number;
+      isolationLevel?: Prisma.TransactionIsolationLevel;
+    }
+  ): Promise<T> {
+    return this.prisma.$transaction(callback, options);
+  }
 }

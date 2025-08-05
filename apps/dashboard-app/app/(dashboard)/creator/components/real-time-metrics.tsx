@@ -17,8 +17,13 @@ interface RealTimeMetricsProps {
   initialData?: MetricsData;
 }
 
-export function RealTimeMetrics({ campaignId, initialData }: RealTimeMetricsProps) {
-  const [metrics, setMetrics] = useState<MetricsData | null>(initialData || null);
+export function RealTimeMetrics({
+  campaignId,
+  initialData,
+}: RealTimeMetricsProps) {
+  const [metrics, setMetrics] = useState<MetricsData | null>(
+    initialData || null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -29,7 +34,7 @@ export function RealTimeMetrics({ campaignId, initialData }: RealTimeMetricsProp
 
     try {
       const response = await fetch(`/api/campaigns/${campaignId}/metrics`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch metrics');
       }
@@ -124,28 +129,28 @@ export function RealTimeMetrics({ campaignId, initialData }: RealTimeMetricsProp
             </p>
             <p className="text-sm text-gray-600">Total Views</p>
           </div>
-          
+
           <div className="text-center">
             <p className="text-2xl font-bold text-green-600">
               {metrics.legitimateViews.toLocaleString()}
             </p>
             <p className="text-sm text-gray-600">Legitimate Views</p>
           </div>
-          
+
           <div className="text-center">
             <p className="text-2xl font-bold text-red-600">
               {metrics.botViews.toLocaleString()}
             </p>
             <p className="text-sm text-gray-600">Bot Views</p>
           </div>
-          
+
           <div className="text-center">
             <p className="text-2xl font-bold text-purple-600">
               {metrics.activePromoters}
             </p>
             <p className="text-sm text-gray-600">Active Promoters</p>
           </div>
-          
+
           <div className="text-center">
             <p className="text-2xl font-bold text-orange-600">
               Rp {metrics.estimatedSpent.toLocaleString()}
@@ -153,12 +158,16 @@ export function RealTimeMetrics({ campaignId, initialData }: RealTimeMetricsProp
             <p className="text-sm text-gray-600">Estimated Spent</p>
           </div>
         </div>
-        
+
         <div className="mt-4 pt-4 border-t">
           <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>Last updated: {new Date(metrics.lastUpdated).toLocaleString()}</span>
+            <span>
+              Last updated: {new Date(metrics.lastUpdated).toLocaleString()}
+            </span>
             <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+              <div
+                className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500' : 'bg-gray-400'}`}
+              ></div>
               <span>{autoRefresh ? 'Live' : 'Manual'}</span>
             </div>
           </div>

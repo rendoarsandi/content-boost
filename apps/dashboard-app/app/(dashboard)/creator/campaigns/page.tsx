@@ -1,25 +1,33 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+} from '@repo/ui';
 import Link from 'next/link';
 
 async function getCreatorCampaigns(creatorId: string) {
   const campaignsWithStats = await db.campaign.findMany({
     where: {
-      creatorId
+      creatorId,
     },
     include: {
-      promotions: true,
+      applications: true,
       _count: {
         select: {
-          promotions: true
-        }
-      }
+          applications: true,
+        },
+      },
     },
     orderBy: {
-      createdAt: 'desc'
-    }
+      createdAt: 'desc',
+    },
   });
 
   return campaignsWithStats;
@@ -37,7 +45,9 @@ export default async function CampaignsPage() {
     redirect('/auth/login');
   }
 
-  const campaignsWithStats = await getCreatorCampaigns((session.user as any).id);
+  const campaignsWithStats = await getCreatorCampaigns(
+    (session.user as any).id
+  );
 
   return (
     <div className="space-y-8">
@@ -55,7 +65,9 @@ export default async function CampaignsPage() {
         <Card>
           <CardContent className="text-center py-12">
             <div className="text-6xl mb-4">🎯</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No campaigns yet</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No campaigns yet
+            </h3>
             <p className="text-gray-600 mb-6">
               Create your first campaign to start promoting your content
             </p>
@@ -66,21 +78,22 @@ export default async function CampaignsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {campaignsWithStats.map((campaign) => (
-            <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
+          {campaignsWithStats.map(campaign => (
+            <Card
+              key={campaign.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-lg line-clamp-2">
-                      {campaign.name}
+                      {campaign.title}
                     </CardTitle>
                     <CardDescription className="mt-2 line-clamp-2">
                       Campaign budget: ${campaign.budget}
                     </CardDescription>
                   </div>
-                  <Badge className={getStatusColor()}>
-                    Active
-                  </Badge>
+                  <Badge className={getStatusColor()}>Active</Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -96,17 +109,23 @@ export default async function CampaignsPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Promotions</span>
                   <span className="font-semibold text-blue-600">
-                    {campaign._count.promotions} promoters
+                    {campaign._count.applications} promoters
                   </span>
                 </div>
 
                 <div className="flex space-x-2">
-                  <Link href={`/creator/campaigns/${campaign.id}`} className="flex-1">
+                  <Link
+                    href={`/creator/campaigns/${campaign.id}`}
+                    className="flex-1"
+                  >
                     <Button variant="outline" className="w-full" size="sm">
                       View Details
                     </Button>
                   </Link>
-                  <Link href={`/creator/campaigns/${campaign.id}/edit`} className="flex-1">
+                  <Link
+                    href={`/creator/campaigns/${campaign.id}/edit`}
+                    className="flex-1"
+                  >
                     <Button className="w-full" size="sm">
                       Edit
                     </Button>

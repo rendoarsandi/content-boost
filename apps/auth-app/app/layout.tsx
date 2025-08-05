@@ -4,8 +4,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Authentication - Creator Promotion Platform',
-  description: 'Login dan registrasi untuk Creator Promotion Platform. Bergabunglah sebagai creator atau promoter untuk mulai menghasilkan income dari konten promosi.',
-  keywords: 'creator, promoter, social media, TikTok, Instagram, content promotion, influencer marketing',
+  description:
+    'Login dan registrasi untuk Creator Promotion Platform. Bergabunglah sebagai creator atau promoter untuk mulai menghasilkan income dari konten promosi.',
+  keywords:
+    'creator, promoter, social media, TikTok, Instagram, content promotion, influencer marketing',
   authors: [{ name: 'Creator Promotion Platform' }],
   robots: 'index, follow',
   openGraph: {
@@ -34,9 +36,7 @@ export default function RootLayout({
   return (
     <html lang="id" className="h-full">
       <body className="h-full antialiased bg-gray-50">
-        <div className="min-h-full">
-          {children}
-        </div>
+        <div className="min-h-full">{children}</div>
       </body>
     </html>
   );

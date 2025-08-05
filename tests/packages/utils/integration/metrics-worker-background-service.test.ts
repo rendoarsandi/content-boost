@@ -21,11 +21,11 @@ describe('MetricsBackgroundService', () => {
       get: jest.fn(),
       set: jest.fn(),
       del: jest.fn(),
-      keys: jest.fn()
+      keys: jest.fn(),
     } as any;
 
     mockApiManager = {
-      healthCheck: jest.fn().mockResolvedValue(new Map())
+      healthCheck: jest.fn().mockResolvedValue(new Map()),
     } as any;
 
     backgroundService = new MetricsBackgroundService(mockCache, mockApiManager);
@@ -38,7 +38,7 @@ describe('MetricsBackgroundService', () => {
   describe('initialization', () => {
     it('should initialize with default configuration', () => {
       const config = backgroundService.getConfig();
-      
+
       expect(config.enableCronJobs).toBe(true);
       expect(config.enableHealthChecks).toBe(true);
       expect(config.logLevel).toBe('info');
@@ -49,12 +49,16 @@ describe('MetricsBackgroundService', () => {
       const customConfig = {
         enableCronJobs: false,
         logLevel: 'debug' as const,
-        gracefulShutdownTimeout: 60000
+        gracefulShutdownTimeout: 60000,
       };
 
-      const service = new MetricsBackgroundService(mockCache, mockApiManager, customConfig);
+      const service = new MetricsBackgroundService(
+        mockCache,
+        mockApiManager,
+        customConfig
+      );
       const config = service.getConfig();
-      
+
       expect(config.enableCronJobs).toBe(false);
       expect(config.logLevel).toBe('debug');
       expect(config.gracefulShutdownTimeout).toBe(60000);
@@ -64,7 +68,7 @@ describe('MetricsBackgroundService', () => {
   describe('service lifecycle', () => {
     it('should start successfully', async () => {
       await backgroundService.start();
-      
+
       const status = await backgroundService.getStatus();
       expect(status.isRunning).toBe(true);
       expect(status.startTime).toBeDefined();
@@ -72,10 +76,10 @@ describe('MetricsBackgroundService', () => {
 
     it('should not start if already running', async () => {
       await backgroundService.start();
-      
+
       const consoleSpy = jest.spyOn(console, 'info').mockImplementation();
       await backgroundService.start();
-      
+
       // Should log warning about already running
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -84,7 +88,7 @@ describe('MetricsBackgroundService', () => {
     it('should stop successfully', async () => {
       await backgroundService.start();
       await backgroundService.stop();
-      
+
       const status = await backgroundService.getStatus();
       expect(status.isRunning).toBe(false);
     });
@@ -92,7 +96,7 @@ describe('MetricsBackgroundService', () => {
     it('should not stop if not running', async () => {
       const consoleSpy = jest.spyOn(console, 'info').mockImplementation();
       await backgroundService.stop();
-      
+
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -100,12 +104,14 @@ describe('MetricsBackgroundService', () => {
     it('should handle start errors gracefully', async () => {
       // Mock a component to fail during start
       const originalStart = backgroundService.start;
-      jest.spyOn(backgroundService as any, 'scheduler').mockImplementation(() => ({
-        start: jest.fn().mockRejectedValue(new Error('Start failed'))
-      }));
+      jest
+        .spyOn(backgroundService as any, 'scheduler')
+        .mockImplementation(() => ({
+          start: jest.fn().mockRejectedValue(new Error('Start failed')),
+        }));
 
       await expect(backgroundService.start()).rejects.toThrow('Start failed');
-      
+
       const status = await backgroundService.getStatus();
       expect(status.isRunning).toBe(false);
     });
@@ -122,40 +128,42 @@ describe('MetricsBackgroundService', () => {
 
     it('should complete graceful shutdown within timeout', async () => {
       await backgroundService.start();
-      
+
       const shutdownPromise = backgroundService.gracefulShutdown();
-      
+
       // Fast-forward time but not past timeout
       jest.advanceTimersByTime(10000); // 10 seconds
-      
+
       await shutdownPromise;
-      
+
       const status = await backgroundService.getStatus();
       expect(status.isRunning).toBe(false);
     });
 
     it('should force stop on timeout', async () => {
       await backgroundService.start();
-      
+
       // Mock stop to take longer than timeout
-      jest.spyOn(backgroundService, 'stop').mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 60000))
-      );
+      jest
+        .spyOn(backgroundService, 'stop')
+        .mockImplementation(
+          () => new Promise(resolve => setTimeout(resolve, 60000))
+        );
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const shutdownPromise = backgroundService.gracefulShutdown();
-      
+
       // Fast-forward past timeout
       jest.advanceTimersByTime(35000); // 35 seconds (past 30s timeout)
-      
+
       await shutdownPromise;
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Graceful shutdown failed'),
         expect.any(Error)
       );
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -163,7 +171,7 @@ describe('MetricsBackgroundService', () => {
   describe('health checks', () => {
     it('should report healthy status when all components are working', async () => {
       await backgroundService.start();
-      
+
       // Mock all components as healthy
       jest.spyOn(backgroundService as any, 'worker').mockImplementation(() => ({
         getWorkerStatus: jest.fn().mockResolvedValue({
@@ -171,28 +179,30 @@ describe('MetricsBackgroundService', () => {
           processedJobs: 100,
           failedJobs: 5,
           currentLoad: 2,
-          maxLoad: 10
-        })
+          maxLoad: 10,
+        }),
       }));
 
-      jest.spyOn(backgroundService as any, 'scheduler').mockImplementation(() => ({
-        getStatus: jest.fn().mockResolvedValue({
-          isRunning: true,
-          queueSize: 50,
-          processingRate: 10,
-          averageWaitTime: 1000
-        })
-      }));
+      jest
+        .spyOn(backgroundService as any, 'scheduler')
+        .mockImplementation(() => ({
+          getStatus: jest.fn().mockResolvedValue({
+            isRunning: true,
+            queueSize: 50,
+            processingRate: 10,
+            averageWaitTime: 1000,
+          }),
+        }));
 
       const health = await backgroundService.checkHealth();
-      
+
       expect(health.overall).toBe('healthy');
       expect(health.issues).toHaveLength(0);
     });
 
     it('should report degraded status with minor issues', async () => {
       await backgroundService.start();
-      
+
       // Mock one minor issue
       jest.spyOn(backgroundService as any, 'worker').mockImplementation(() => ({
         getWorkerStatus: jest.fn().mockResolvedValue({
@@ -200,21 +210,23 @@ describe('MetricsBackgroundService', () => {
           processedJobs: 100,
           failedJobs: 15, // High failure rate
           currentLoad: 2,
-          maxLoad: 10
-        })
+          maxLoad: 10,
+        }),
       }));
 
-      jest.spyOn(backgroundService as any, 'scheduler').mockImplementation(() => ({
-        getStatus: jest.fn().mockResolvedValue({
-          isRunning: true,
-          queueSize: 50,
-          processingRate: 10,
-          averageWaitTime: 1000
-        })
-      }));
+      jest
+        .spyOn(backgroundService as any, 'scheduler')
+        .mockImplementation(() => ({
+          getStatus: jest.fn().mockResolvedValue({
+            isRunning: true,
+            queueSize: 50,
+            processingRate: 10,
+            averageWaitTime: 1000,
+          }),
+        }));
 
       const health = await backgroundService.checkHealth();
-      
+
       expect(health.overall).toBe('degraded');
       expect(health.issues.length).toBeGreaterThan(0);
       expect(health.issues).toContain('High failure rate in worker jobs');
@@ -223,19 +235,19 @@ describe('MetricsBackgroundService', () => {
     it('should report unhealthy status with major issues', async () => {
       // Don't start the service
       const health = await backgroundService.checkHealth();
-      
+
       expect(health.overall).toBe('unhealthy');
       expect(health.issues).toContain('Service is not running');
     });
 
     it('should handle health check errors', async () => {
       await backgroundService.start();
-      
+
       // Mock cache to fail
       mockCache.ping.mockRejectedValue(new Error('Cache connection failed'));
-      
+
       const health = await backgroundService.checkHealth();
-      
+
       expect(health.overall).toBe('unhealthy');
       expect(health.issues).toContain('Cache connectivity issues');
     });
@@ -249,7 +261,7 @@ describe('MetricsBackgroundService', () => {
     it('should schedule metrics collection', async () => {
       const mockScheduleCollection = jest.fn().mockResolvedValue('job123');
       jest.spyOn(backgroundService as any, 'worker').mockImplementation(() => ({
-        scheduleCollection: mockScheduleCollection
+        scheduleCollection: mockScheduleCollection,
       }));
 
       const jobId = await backgroundService.scheduleMetricsCollection(
@@ -284,7 +296,7 @@ describe('MetricsBackgroundService', () => {
           normalizationApplied: [],
           qualityScore: 100,
           anomalyDetected: false,
-          processingTimestamp: new Date()
+          processingTimestamp: new Date(),
         },
         raw: {
           originalMetrics: {},
@@ -292,18 +304,18 @@ describe('MetricsBackgroundService', () => {
           collectionMetadata: {
             collectionTime: new Date(),
             processingTime: 1000,
-            retryCount: 0
-          }
-        }
+            retryCount: 0,
+          },
+        },
       };
 
       const mockCollectNow = jest.fn().mockResolvedValue({
         success: true,
-        metrics: mockMetrics
+        metrics: mockMetrics,
       });
 
       jest.spyOn(backgroundService as any, 'worker').mockImplementation(() => ({
-        collectMetricsNow: mockCollectNow
+        collectMetricsNow: mockCollectNow,
       }));
 
       const result = await backgroundService.collectMetricsNow(
@@ -325,11 +337,11 @@ describe('MetricsBackgroundService', () => {
     it('should return null when collection fails', async () => {
       const mockCollectNow = jest.fn().mockResolvedValue({
         success: false,
-        error: 'API Error'
+        error: 'API Error',
       });
 
       jest.spyOn(backgroundService as any, 'worker').mockImplementation(() => ({
-        collectMetricsNow: mockCollectNow
+        collectMetricsNow: mockCollectNow,
       }));
 
       const result = await backgroundService.collectMetricsNow(
@@ -350,7 +362,7 @@ describe('MetricsBackgroundService', () => {
       jest.spyOn(backgroundService as any, 'worker').mockImplementation(() => ({
         pauseJob: mockPauseJob,
         resumeJob: mockResumeJob,
-        updateJobPriority: mockUpdatePriority
+        updateJobPriority: mockUpdatePriority,
       }));
 
       await backgroundService.pauseJob('job123');
@@ -375,18 +387,20 @@ describe('MetricsBackgroundService', () => {
       const mockDisableCronJob = jest.fn().mockResolvedValue(true);
       const mockGetCronJobs = jest.fn().mockReturnValue([]);
 
-      jest.spyOn(backgroundService as any, 'cronScheduler').mockImplementation(() => ({
-        addCronJob: mockAddCronJob,
-        removeCronJob: mockRemoveCronJob,
-        enableCronJob: mockEnableCronJob,
-        disableCronJob: mockDisableCronJob,
-        getCronJobs: mockGetCronJobs
-      }));
+      jest
+        .spyOn(backgroundService as any, 'cronScheduler')
+        .mockImplementation(() => ({
+          addCronJob: mockAddCronJob,
+          removeCronJob: mockRemoveCronJob,
+          enableCronJob: mockEnableCronJob,
+          disableCronJob: mockDisableCronJob,
+          getCronJobs: mockGetCronJobs,
+        }));
 
       const cronConfig = {
         name: 'test_job',
         schedule: '*/10 * * * *',
-        enabled: true
+        enabled: true,
       };
 
       await backgroundService.addCronJob(cronConfig);
@@ -407,7 +421,7 @@ describe('MetricsBackgroundService', () => {
     it('should update configuration', () => {
       const newConfig = {
         logLevel: 'debug' as const,
-        gracefulShutdownTimeout: 60000
+        gracefulShutdownTimeout: 60000,
       };
 
       backgroundService.updateConfig(newConfig);
@@ -419,7 +433,7 @@ describe('MetricsBackgroundService', () => {
 
     it('should return current configuration', () => {
       const config = backgroundService.getConfig();
-      
+
       expect(config).toBeDefined();
       expect(config.enableCronJobs).toBeDefined();
       expect(config.logLevel).toBeDefined();
@@ -445,7 +459,7 @@ describe('MetricsBackgroundService', () => {
           normalizationApplied: [],
           qualityScore: 100,
           anomalyDetected: false,
-          processingTimestamp: new Date()
+          processingTimestamp: new Date(),
         },
         raw: {
           originalMetrics: {},
@@ -453,15 +467,19 @@ describe('MetricsBackgroundService', () => {
           collectionMetadata: {
             collectionTime: new Date(),
             processingTime: 1000,
-            retryCount: 0
-          }
-        }
+            retryCount: 0,
+          },
+        },
       };
 
-      const mockProcessMetrics = jest.fn().mockResolvedValue(mockProcessedMetrics);
-      jest.spyOn(backgroundService as any, 'dataPipeline').mockImplementation(() => ({
-        processMetrics: mockProcessMetrics
-      }));
+      const mockProcessMetrics = jest
+        .fn()
+        .mockResolvedValue(mockProcessedMetrics);
+      jest
+        .spyOn(backgroundService as any, 'dataPipeline')
+        .mockImplementation(() => ({
+          processMetrics: mockProcessMetrics,
+        }));
 
       const rawMetrics = { views: 1000, likes: 100 };
       const result = await backgroundService.processMetrics(rawMetrics);
@@ -472,23 +490,37 @@ describe('MetricsBackgroundService', () => {
 
     it('should get cached metrics', async () => {
       const mockCachedMetrics = { userId: 'user123', cached: true };
-      const mockGetCachedMetrics = jest.fn().mockResolvedValue(mockCachedMetrics);
-      
-      jest.spyOn(backgroundService as any, 'dataPipeline').mockImplementation(() => ({
-        getCachedMetrics: mockGetCachedMetrics
-      }));
+      const mockGetCachedMetrics = jest
+        .fn()
+        .mockResolvedValue(mockCachedMetrics);
 
-      const result = await backgroundService.getCachedMetrics('user123', 'campaign123', 'post123');
+      jest
+        .spyOn(backgroundService as any, 'dataPipeline')
+        .mockImplementation(() => ({
+          getCachedMetrics: mockGetCachedMetrics,
+        }));
+
+      const result = await backgroundService.getCachedMetrics(
+        'user123',
+        'campaign123',
+        'post123'
+      );
 
       expect(result).toEqual(mockCachedMetrics);
-      expect(mockGetCachedMetrics).toHaveBeenCalledWith('user123', 'campaign123', 'post123');
+      expect(mockGetCachedMetrics).toHaveBeenCalledWith(
+        'user123',
+        'campaign123',
+        'post123'
+      );
     });
 
     it('should clear cache', async () => {
       const mockClearCache = jest.fn();
-      jest.spyOn(backgroundService as any, 'dataPipeline').mockImplementation(() => ({
-        clearCache: mockClearCache
-      }));
+      jest
+        .spyOn(backgroundService as any, 'dataPipeline')
+        .mockImplementation(() => ({
+          clearCache: mockClearCache,
+        }));
 
       await backgroundService.clearCache('user123', 'campaign123');
 

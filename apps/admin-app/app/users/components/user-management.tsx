@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
   CardTitle,
   Input,
   Select,
@@ -96,26 +96,32 @@ export default function UserManagement() {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    
+    const matchesStatus =
+      statusFilter === 'all' || user.status === statusFilter;
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-purple-100 text-purple-800';
-      case 'creator': return 'bg-blue-100 text-blue-800';
-      case 'promoter': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'admin':
+        return 'bg-purple-100 text-purple-800';
+      case 'creator':
+        return 'bg-blue-100 text-blue-800';
+      case 'promoter':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusBadgeColor = (status: string) => {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800' 
+    return status === 'active'
+      ? 'bg-green-100 text-green-800'
       : 'bg-red-100 text-red-800';
   };
 
@@ -148,7 +154,7 @@ export default function UserManagement() {
                 <Input
                   placeholder="Search users..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -185,8 +191,11 @@ export default function UserManagement() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredUsers.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+            {filteredUsers.map(user => (
+              <div
+                key={user.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                     {user.name.charAt(0).toUpperCase()}
@@ -203,7 +212,8 @@ export default function UserManagement() {
                     </div>
                     <p className="text-sm text-gray-500">{user.email}</p>
                     <p className="text-xs text-gray-400">
-                      Joined {new Date(user.createdAt).toLocaleDateString('id-ID')}
+                      Joined{' '}
+                      {new Date(user.createdAt).toLocaleDateString('id-ID')}
                     </p>
                   </div>
                 </div>
@@ -230,37 +240,60 @@ export default function UserManagement() {
                         <div className="space-y-4">
                           <div>
                             <label className="text-sm font-medium">Name</label>
-                            <p className="text-sm text-gray-600">{selectedUser.name}</p>
+                            <p className="text-sm text-gray-600">
+                              {selectedUser.name}
+                            </p>
                           </div>
                           <div>
                             <label className="text-sm font-medium">Email</label>
-                            <p className="text-sm text-gray-600">{selectedUser.email}</p>
+                            <p className="text-sm text-gray-600">
+                              {selectedUser.email}
+                            </p>
                           </div>
                           <div>
                             <label className="text-sm font-medium">Role</label>
-                            <p className="text-sm text-gray-600">{selectedUser.role}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">Status</label>
-                            <p className="text-sm text-gray-600">{selectedUser.status}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">Joined</label>
                             <p className="text-sm text-gray-600">
-                              {new Date(selectedUser.createdAt).toLocaleDateString('id-ID')}
+                              {selectedUser.role}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">
+                              Status
+                            </label>
+                            <p className="text-sm text-gray-600">
+                              {selectedUser.status}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">
+                              Joined
+                            </label>
+                            <p className="text-sm text-gray-600">
+                              {new Date(
+                                selectedUser.createdAt
+                              ).toLocaleDateString('id-ID')}
                             </p>
                           </div>
                           {selectedUser.campaignsCount !== undefined && (
                             <div>
-                              <label className="text-sm font-medium">Campaigns</label>
-                              <p className="text-sm text-gray-600">{selectedUser.campaignsCount}</p>
+                              <label className="text-sm font-medium">
+                                Campaigns
+                              </label>
+                              <p className="text-sm text-gray-600">
+                                {selectedUser.campaignsCount}
+                              </p>
                             </div>
                           )}
                           {selectedUser.totalEarnings !== undefined && (
                             <div>
-                              <label className="text-sm font-medium">Total Earnings</label>
+                              <label className="text-sm font-medium">
+                                Total Earnings
+                              </label>
                               <p className="text-sm text-gray-600">
-                                Rp {selectedUser.totalEarnings.toLocaleString('id-ID')}
+                                Rp{' '}
+                                {selectedUser.totalEarnings.toLocaleString(
+                                  'id-ID'
+                                )}
                               </p>
                             </div>
                           )}
@@ -268,7 +301,7 @@ export default function UserManagement() {
                       )}
                     </DialogContent>
                   </Dialog>
-                  
+
                   {user.status === 'active' ? (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -285,7 +318,8 @@ export default function UserManagement() {
                         <DialogHeader>
                           <DialogTitle>Ban User</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to ban {user.name}? This will prevent them from accessing the platform.
+                            Are you sure you want to ban {user.name}? This will
+                            prevent them from accessing the platform.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
@@ -294,7 +328,9 @@ export default function UserManagement() {
                             onClick={() => handleBanUser(user.id)}
                             disabled={actionLoading === user.id}
                           >
-                            {actionLoading === user.id ? 'Banning...' : 'Ban User'}
+                            {actionLoading === user.id
+                              ? 'Banning...'
+                              : 'Ban User'}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
@@ -315,7 +351,8 @@ export default function UserManagement() {
                         <DialogHeader>
                           <DialogTitle>Unban User</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to unban {user.name}? This will restore their access to the platform.
+                            Are you sure you want to unban {user.name}? This
+                            will restore their access to the platform.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
@@ -323,7 +360,9 @@ export default function UserManagement() {
                             onClick={() => handleUnbanUser(user.id)}
                             disabled={actionLoading === user.id}
                           >
-                            {actionLoading === user.id ? 'Unbanning...' : 'Unban User'}
+                            {actionLoading === user.id
+                              ? 'Unbanning...'
+                              : 'Unban User'}
                           </Button>
                         </DialogFooter>
                       </DialogContent>

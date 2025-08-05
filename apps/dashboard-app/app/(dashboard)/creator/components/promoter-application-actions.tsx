@@ -9,30 +9,35 @@ interface PromoterApplicationActionsProps {
   currentStatus: string;
 }
 
-export function PromoterApplicationActions({ 
-  applicationId, 
-  currentStatus 
+export function PromoterApplicationActions({
+  applicationId,
+  currentStatus,
 }: PromoterApplicationActionsProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleStatusUpdate = async (newStatus: 'approved' | 'rejected') => {
+  const handleStatusUpdate = async (newStatus: 'APPROVED' | 'REJECTED') => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/applications/${applicationId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+      const response = await fetch(
+        `/api/applications/${applicationId}/status`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update application status');
+        throw new Error(
+          errorData.error || 'Failed to update application status'
+        );
       }
 
       // Refresh the page to show updated data
@@ -44,7 +49,7 @@ export function PromoterApplicationActions({
     }
   };
 
-  if (currentStatus !== 'pending') {
+  if (currentStatus !== 'PENDING') {
     return null;
   }
 
@@ -57,11 +62,11 @@ export function PromoterApplicationActions({
           </AlertDescription>
         </Alert>
       )}
-      
+
       <div className="flex space-x-2">
         <Button
           size="sm"
-          onClick={() => handleStatusUpdate('approved')}
+          onClick={() => handleStatusUpdate('APPROVED')}
           disabled={isLoading}
           className="bg-green-600 hover:bg-green-700"
         >
@@ -70,7 +75,7 @@ export function PromoterApplicationActions({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => handleStatusUpdate('rejected')}
+          onClick={() => handleStatusUpdate('REJECTED')}
           disabled={isLoading}
           className="border-red-300 text-red-600 hover:bg-red-50"
         >

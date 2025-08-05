@@ -70,7 +70,7 @@ export enum ErrorCodes {
   SERVICE_UNAVAILABLE = 'GEN_002',
   RATE_LIMIT_EXCEEDED = 'GEN_003',
   INVALID_REQUEST = 'GEN_004',
-  RESOURCE_NOT_FOUND = 'GEN_005'
+  RESOURCE_NOT_FOUND = 'GEN_005',
 }
 
 /**
@@ -91,7 +91,7 @@ export class AppError extends Error {
     details?: any
   ) {
     super(message);
-    
+
     this.name = this.constructor.name;
     this.code = code;
     this.statusCode = statusCode;
@@ -113,7 +113,7 @@ export class AppError extends Error {
       code: this.code,
       statusCode: this.statusCode,
       timestamp: this.timestamp,
-      details: this.details
+      details: this.details,
     };
   }
 }
@@ -122,7 +122,11 @@ export class AppError extends Error {
  * Authentication related errors
  */
 export class AuthenticationError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.AUTH_INVALID_CREDENTIALS, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.AUTH_INVALID_CREDENTIALS,
+    details?: any
+  ) {
     super(message, code, 401, true, details);
   }
 }
@@ -131,7 +135,11 @@ export class AuthenticationError extends AppError {
  * Authorization related errors
  */
 export class AuthorizationError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.AUTH_INSUFFICIENT_PERMISSIONS, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.AUTH_INSUFFICIENT_PERMISSIONS,
+    details?: any
+  ) {
     super(message, code, 403, true, details);
   }
 }
@@ -140,7 +148,11 @@ export class AuthorizationError extends AppError {
  * Validation related errors
  */
 export class ValidationError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.VALIDATION_FAILED, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.VALIDATION_FAILED,
+    details?: any
+  ) {
     super(message, code, 400, true, details);
   }
 }
@@ -149,7 +161,11 @@ export class ValidationError extends AppError {
  * Bot detection related errors
  */
 export class BotDetectionError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.BOT_DETECTED, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.BOT_DETECTED,
+    details?: any
+  ) {
     super(message, code, 422, true, details);
   }
 }
@@ -158,7 +174,11 @@ export class BotDetectionError extends AppError {
  * Payment related errors
  */
 export class PaymentError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.PAYMENT_PROCESSING_FAILED, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.PAYMENT_PROCESSING_FAILED,
+    details?: any
+  ) {
     super(message, code, 402, true, details);
   }
 }
@@ -167,7 +187,11 @@ export class PaymentError extends AppError {
  * External API related errors
  */
 export class ExternalAPIError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.SOCIAL_API_SERVER_ERROR, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.SOCIAL_API_SERVER_ERROR,
+    details?: any
+  ) {
     super(message, code, 502, true, details);
   }
 }
@@ -176,7 +200,11 @@ export class ExternalAPIError extends AppError {
  * Database related errors
  */
 export class DatabaseError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.DATABASE_QUERY_FAILED, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.DATABASE_QUERY_FAILED,
+    details?: any
+  ) {
     super(message, code, 500, true, details);
   }
 }
@@ -185,7 +213,11 @@ export class DatabaseError extends AppError {
  * Cache related errors
  */
 export class CacheError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.CACHE_OPERATION_FAILED, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.CACHE_OPERATION_FAILED,
+    details?: any
+  ) {
     super(message, code, 500, true, details);
   }
 }
@@ -194,7 +226,11 @@ export class CacheError extends AppError {
  * Resource not found errors
  */
 export class NotFoundError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.RESOURCE_NOT_FOUND, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.RESOURCE_NOT_FOUND,
+    details?: any
+  ) {
     super(message, code, 404, true, details);
   }
 }
@@ -203,7 +239,11 @@ export class NotFoundError extends AppError {
  * Rate limiting errors
  */
 export class RateLimitError extends AppError {
-  constructor(message: string, code: string = ErrorCodes.RATE_LIMIT_EXCEEDED, details?: any) {
+  constructor(
+    message: string,
+    code: string = ErrorCodes.RATE_LIMIT_EXCEEDED,
+    details?: any
+  ) {
     super(message, code, 429, true, details);
   }
 }
@@ -213,59 +253,123 @@ export class RateLimitError extends AppError {
  */
 export const ErrorFactory = {
   // Authentication errors
-  invalidCredentials: (details?: any) => 
-    new AuthenticationError('Invalid email or password', ErrorCodes.AUTH_INVALID_CREDENTIALS, details),
-  
-  tokenExpired: (details?: any) => 
-    new AuthenticationError('Authentication token has expired', ErrorCodes.AUTH_TOKEN_EXPIRED, details),
-  
-  insufficientPermissions: (details?: any) => 
-    new AuthorizationError('Insufficient permissions to access this resource', ErrorCodes.AUTH_INSUFFICIENT_PERMISSIONS, details),
+  invalidCredentials: (details?: any) =>
+    new AuthenticationError(
+      'Invalid email or password',
+      ErrorCodes.AUTH_INVALID_CREDENTIALS,
+      details
+    ),
+
+  tokenExpired: (details?: any) =>
+    new AuthenticationError(
+      'Authentication token has expired',
+      ErrorCodes.AUTH_TOKEN_EXPIRED,
+      details
+    ),
+
+  insufficientPermissions: (details?: any) =>
+    new AuthorizationError(
+      'Insufficient permissions to access this resource',
+      ErrorCodes.AUTH_INSUFFICIENT_PERMISSIONS,
+      details
+    ),
 
   // Campaign errors
-  campaignNotFound: (campaignId: string) => 
-    new NotFoundError(`Campaign with ID ${campaignId} not found`, ErrorCodes.CAMPAIGN_NOT_FOUND, { campaignId }),
-  
-  campaignBudgetExceeded: (campaignId: string, budget: number) => 
-    new ValidationError(`Campaign budget of ${budget} exceeded`, ErrorCodes.CAMPAIGN_BUDGET_EXCEEDED, { campaignId, budget }),
-  
-  campaignExpired: (campaignId: string, endDate: Date) => 
-    new ValidationError(`Campaign expired on ${endDate.toISOString()}`, ErrorCodes.CAMPAIGN_EXPIRED, { campaignId, endDate }),
+  campaignNotFound: (campaignId: string) =>
+    new NotFoundError(
+      `Campaign with ID ${campaignId} not found`,
+      ErrorCodes.CAMPAIGN_NOT_FOUND,
+      { campaignId }
+    ),
+
+  campaignBudgetExceeded: (campaignId: string, budget: number) =>
+    new ValidationError(
+      `Campaign budget of ${budget} exceeded`,
+      ErrorCodes.CAMPAIGN_BUDGET_EXCEEDED,
+      { campaignId, budget }
+    ),
+
+  campaignExpired: (campaignId: string, endDate: Date) =>
+    new ValidationError(
+      `Campaign expired on ${endDate.toISOString()}`,
+      ErrorCodes.CAMPAIGN_EXPIRED,
+      { campaignId, endDate }
+    ),
 
   // Bot detection errors
-  botDetected: (promoterId: string, campaignId: string, botScore: number) => 
-    new BotDetectionError(`Bot activity detected with confidence ${botScore}%`, ErrorCodes.BOT_DETECTED, { promoterId, campaignId, botScore }),
-  
-  suspiciousActivity: (promoterId: string, reason: string) => 
-    new BotDetectionError(`Suspicious activity detected: ${reason}`, ErrorCodes.SUSPICIOUS_ACTIVITY, { promoterId, reason }),
+  botDetected: (promoterId: string, campaignId: string, botScore: number) =>
+    new BotDetectionError(
+      `Bot activity detected with confidence ${botScore}%`,
+      ErrorCodes.BOT_DETECTED,
+      { promoterId, campaignId, botScore }
+    ),
+
+  suspiciousActivity: (promoterId: string, reason: string) =>
+    new BotDetectionError(
+      `Suspicious activity detected: ${reason}`,
+      ErrorCodes.SUSPICIOUS_ACTIVITY,
+      { promoterId, reason }
+    ),
 
   // Payment errors
-  insufficientBalance: (required: number, available: number) => 
-    new PaymentError(`Insufficient balance. Required: ${required}, Available: ${available}`, ErrorCodes.PAYMENT_INSUFFICIENT_BALANCE, { required, available }),
-  
-  paymentProcessingFailed: (payoutId: string, reason: string) => 
-    new PaymentError(`Payment processing failed: ${reason}`, ErrorCodes.PAYMENT_PROCESSING_FAILED, { payoutId, reason }),
+  insufficientBalance: (required: number, available: number) =>
+    new PaymentError(
+      `Insufficient balance. Required: ${required}, Available: ${available}`,
+      ErrorCodes.PAYMENT_INSUFFICIENT_BALANCE,
+      { required, available }
+    ),
+
+  paymentProcessingFailed: (payoutId: string, reason: string) =>
+    new PaymentError(
+      `Payment processing failed: ${reason}`,
+      ErrorCodes.PAYMENT_PROCESSING_FAILED,
+      { payoutId, reason }
+    ),
 
   // External API errors
-  socialAPIRateLimit: (platform: string, resetTime?: Date) => 
-    new ExternalAPIError(`${platform} API rate limit exceeded`, ErrorCodes.SOCIAL_API_RATE_LIMIT, { platform, resetTime }),
-  
-  socialAPIUnauthorized: (platform: string) => 
-    new ExternalAPIError(`${platform} API authentication failed`, ErrorCodes.SOCIAL_API_UNAUTHORIZED, { platform }),
+  socialAPIRateLimit: (platform: string, resetTime?: Date) =>
+    new ExternalAPIError(
+      `${platform} API rate limit exceeded`,
+      ErrorCodes.SOCIAL_API_RATE_LIMIT,
+      { platform, resetTime }
+    ),
+
+  socialAPIUnauthorized: (platform: string) =>
+    new ExternalAPIError(
+      `${platform} API authentication failed`,
+      ErrorCodes.SOCIAL_API_UNAUTHORIZED,
+      { platform }
+    ),
 
   // Validation errors
-  validationFailed: (errors: string[]) => 
-    new ValidationError(`Validation failed: ${errors.join(', ')}`, ErrorCodes.VALIDATION_FAILED, { errors }),
-  
-  requiredField: (fieldName: string) => 
-    new ValidationError(`Required field missing: ${fieldName}`, ErrorCodes.VALIDATION_REQUIRED_FIELD, { fieldName }),
+  validationFailed: (errors: string[]) =>
+    new ValidationError(
+      `Validation failed: ${errors.join(', ')}`,
+      ErrorCodes.VALIDATION_FAILED,
+      { errors }
+    ),
+
+  requiredField: (fieldName: string) =>
+    new ValidationError(
+      `Required field missing: ${fieldName}`,
+      ErrorCodes.VALIDATION_REQUIRED_FIELD,
+      { fieldName }
+    ),
 
   // User errors
-  userNotFound: (userId: string) => 
-    new NotFoundError(`User with ID ${userId} not found`, ErrorCodes.USER_NOT_FOUND, { userId }),
-  
-  userBanned: (userId: string, reason?: string) => 
-    new AuthorizationError(`User account is banned${reason ? `: ${reason}` : ''}`, ErrorCodes.USER_BANNED, { userId, reason })
+  userNotFound: (userId: string) =>
+    new NotFoundError(
+      `User with ID ${userId} not found`,
+      ErrorCodes.USER_NOT_FOUND,
+      { userId }
+    ),
+
+  userBanned: (userId: string, reason?: string) =>
+    new AuthorizationError(
+      `User account is banned${reason ? `: ${reason}` : ''}`,
+      ErrorCodes.USER_BANNED,
+      { userId, reason }
+    ),
 };
 
 /**
@@ -281,7 +385,7 @@ export function handleAsyncError<T extends any[], R>(
       if (error instanceof AppError) {
         throw error;
       }
-      
+
       // Convert unknown errors to AppError
       throw new AppError(
         error instanceof Error ? error.message : 'Unknown error occurred',
@@ -319,14 +423,14 @@ export function formatErrorForLogging(error: Error): {
     message: error.message,
     stack: error.stack,
     timestamp: new Date(),
-    isOperational: isOperationalError(error)
+    isOperational: isOperationalError(error),
   };
 
   if (error instanceof AppError) {
     return {
       ...baseInfo,
       code: error.code,
-      details: error.details
+      details: error.details,
     };
   }
 
@@ -351,9 +455,9 @@ export function createErrorResponse(error: Error): {
         message: error.message,
         code: error.code,
         timestamp: error.timestamp,
-        details: error.details
+        details: error.details,
       },
-      statusCode: error.statusCode
+      statusCode: error.statusCode,
     };
   }
 
@@ -362,9 +466,9 @@ export function createErrorResponse(error: Error): {
     error: {
       message: 'Internal server error',
       code: ErrorCodes.INTERNAL_SERVER_ERROR,
-      timestamp: new Date()
+      timestamp: new Date(),
     },
-    statusCode: 500
+    statusCode: 500,
   };
 }
 
@@ -379,13 +483,13 @@ export async function retryWithBackoff<T>(
   backoffMultiplier: number = 2
 ): Promise<T> {
   let lastError: Error;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
       lastError = error as Error;
-      
+
       // Don't retry for operational errors that shouldn't be retried
       if (error instanceof AppError && error.isOperational) {
         // Only retry for specific error codes
@@ -394,30 +498,30 @@ export async function retryWithBackoff<T>(
           ErrorCodes.SOCIAL_API_TIMEOUT,
           ErrorCodes.DATABASE_CONNECTION_FAILED,
           ErrorCodes.CACHE_CONNECTION_FAILED,
-          ErrorCodes.PAYMENT_PROCESSING_FAILED
+          ErrorCodes.PAYMENT_PROCESSING_FAILED,
         ];
-        
+
         if (!retryableErrors.includes(error.code)) {
           throw error;
         }
       }
-      
+
       if (attempt === maxRetries) {
         break;
       }
-      
+
       // Calculate delay with exponential backoff
       const delay = Math.min(
         baseDelayMs * Math.pow(backoffMultiplier, attempt - 1),
         maxDelayMs
       );
-      
+
       // Add jitter to prevent thundering herd
       const jitteredDelay = delay + Math.random() * 1000;
-      
+
       await new Promise(resolve => setTimeout(resolve, jitteredDelay));
     }
   }
-  
+
   throw lastError!;
 }

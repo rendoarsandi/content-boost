@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
     // For development/demo purposes, simulate social profile fetching
     // In production, this would validate session and fetch real profiles
-    
+
     // Mock profile data
     const profiles = [
       {
@@ -38,9 +38,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching social profiles:", error);
+    console.error('Error fetching social profiles:', error);
     return NextResponse.json(
-      { error: "Failed to fetch social profiles" },
+      { error: 'Failed to fetch social profiles' },
       { status: 500 }
     );
   }

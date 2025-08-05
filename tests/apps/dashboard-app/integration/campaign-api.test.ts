@@ -1,14 +1,29 @@
-import { describe, test, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest';
+import {
+  describe,
+  test,
+  expect,
+  beforeAll,
+  afterAll,
+  vi,
+  beforeEach,
+} from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { GET as getCampaigns, POST as createCampaign } from '../../../app/api/campaigns/route';
-import { GET as getCampaign, PUT as updateCampaign, DELETE as deleteCampaign } from '../../../app/api/campaigns/[id]/route';
+import {
+  GET as getCampaigns,
+  POST as createCampaign,
+} from '../../../app/api/campaigns/route';
+import {
+  GET as getCampaign,
+  PUT as updateCampaign,
+  DELETE as deleteCampaign,
+} from '../../../app/api/campaigns/[id]/route';
 import { db } from '@repo/database';
 import { campaigns, campaignMaterials } from '@repo/database';
 
 // Mock Next.js auth
 vi.mock('@repo/auth/server-only', () => ({
   auth: vi.fn(),
-  getSession: vi.fn()
+  getSession: vi.fn(),
 }));
 
 // Mock database
@@ -17,27 +32,29 @@ vi.mock('@repo/database', () => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({
         where: vi.fn(() => Promise.resolve([{ id: 'test-campaign-id' }])),
-        orderBy: vi.fn(() => Promise.resolve([{ id: 'test-campaign-id' }]))
-      }))
+        orderBy: vi.fn(() => Promise.resolve([{ id: 'test-campaign-id' }])),
+      })),
     })),
     insert: vi.fn(() => ({
       values: vi.fn(() => ({
-        returning: vi.fn(() => Promise.resolve([{ id: 'test-campaign-id' }]))
-      }))
+        returning: vi.fn(() => Promise.resolve([{ id: 'test-campaign-id' }])),
+      })),
     })),
     update: vi.fn(() => ({
       set: vi.fn(() => ({
         where: vi.fn(() => ({
-          returning: vi.fn(() => Promise.resolve([{ id: 'test-campaign-id', status: 'active' }]))
-        }))
-      }))
+          returning: vi.fn(() =>
+            Promise.resolve([{ id: 'test-campaign-id', status: 'active' }])
+          ),
+        })),
+      })),
     })),
     delete: vi.fn(() => ({
-      where: vi.fn(() => Promise.resolve())
-    }))
+      where: vi.fn(() => Promise.resolve()),
+    })),
   },
   campaigns: {},
-  campaignMaterials: {}
+  campaignMaterials: {},
 }));
 
 // Import auth mock to manipulate it
@@ -49,8 +66,8 @@ describe('Campaign API Integration Tests', () => {
       id: 'test-creator-id',
       role: 'creator',
       name: 'Test Creator',
-      email: 'creator@test.com'
-    }
+      email: 'creator@test.com',
+    },
   };
 
   const mockPromoterSession = {
@@ -58,8 +75,8 @@ describe('Campaign API Integration Tests', () => {
       id: 'test-promoter-id',
       role: 'promoter',
       name: 'Test Promoter',
-      email: 'promoter@test.com'
-    }
+      email: 'promoter@test.com',
+    },
   };
 
   const mockAdminSession = {
@@ -67,8 +84,8 @@ describe('Campaign API Integration Tests', () => {
       id: 'test-admin-id',
       role: 'admin',
       name: 'Test Admin',
-      email: 'admin@test.com'
-    }
+      email: 'admin@test.com',
+    },
   };
 
   const mockCampaign = {
@@ -81,7 +98,7 @@ describe('Campaign API Integration Tests', () => {
     status: 'draft',
     requirements: ['Test Requirement'],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 
   beforeEach(() => {
@@ -97,9 +114,11 @@ describe('Campaign API Integration Tests', () => {
       const response = await getCampaigns(request);
 
       expect(response.status).toBe(401);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Unauthorized'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Unauthorized',
+        })
+      );
     });
 
     test('should return 403 when user is not a creator', async () => {
@@ -110,9 +129,11 @@ describe('Campaign API Integration Tests', () => {
       const response = await getCampaigns(request);
 
       expect(response.status).toBe(403);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Forbidden - Only creators can access campaigns'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Forbidden - Only creators can access campaigns',
+        })
+      );
     });
 
     test('should return campaigns for authenticated creator', async () => {
@@ -123,9 +144,9 @@ describe('Campaign API Integration Tests', () => {
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
-            orderBy: vi.fn().mockResolvedValue([mockCampaign])
-          })
-        })
+            orderBy: vi.fn().mockResolvedValue([mockCampaign]),
+          }),
+        }),
       } as any);
 
       const request = new NextRequest('http://localhost/api/campaigns');
@@ -133,13 +154,15 @@ describe('Campaign API Integration Tests', () => {
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data).toEqual(expect.objectContaining({
-        campaigns: expect.arrayContaining([
-          expect.objectContaining({
-            id: 'test-campaign-id'
-          })
-        ])
-      }));
+      expect(data).toEqual(
+        expect.objectContaining({
+          campaigns: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'test-campaign-id',
+            }),
+          ]),
+        })
+      );
     });
   });
 
@@ -150,14 +173,16 @@ describe('Campaign API Integration Tests', () => {
 
       const request = new NextRequest('http://localhost/api/campaigns', {
         method: 'POST',
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
       const response = await createCampaign(request);
 
       expect(response.status).toBe(401);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Unauthorized'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Unauthorized',
+        })
+      );
     });
 
     test('should return 403 when user is not a creator', async () => {
@@ -166,14 +191,16 @@ describe('Campaign API Integration Tests', () => {
 
       const request = new NextRequest('http://localhost/api/campaigns', {
         method: 'POST',
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
       const response = await createCampaign(request);
 
       expect(response.status).toBe(403);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Forbidden - Only creators can create campaigns'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Forbidden - Only creators can create campaigns',
+        })
+      );
     });
 
     test('should return 400 when validation fails', async () => {
@@ -185,15 +212,17 @@ describe('Campaign API Integration Tests', () => {
         body: JSON.stringify({
           // Missing required fields
           title: '',
-          budget: -100
-        })
+          budget: -100,
+        }),
       });
       const response = await createCampaign(request);
 
       expect(response.status).toBe(400);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Validation error'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Validation error',
+        })
+      );
     });
 
     test('should return 400 when budget is too low for rate', async () => {
@@ -206,15 +235,17 @@ describe('Campaign API Integration Tests', () => {
           title: 'Test Campaign',
           description: 'Test Description',
           budget: 5,
-          ratePerView: 10 // Budget too low for rate
-        })
+          ratePerView: 10, // Budget too low for rate
+        }),
       });
       const response = await createCampaign(request);
 
       expect(response.status).toBe(400);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Budget too low for the specified rate per view'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Budget too low for the specified rate per view',
+        })
+      );
     });
 
     test('should create campaign successfully', async () => {
@@ -224,8 +255,8 @@ describe('Campaign API Integration Tests', () => {
       // Mock database insert
       vi.mocked(db.insert).mockReturnValueOnce({
         values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([mockCampaign])
-        })
+          returning: vi.fn().mockResolvedValue([mockCampaign]),
+        }),
       } as any);
 
       const request = new NextRequest('http://localhost/api/campaigns', {
@@ -235,18 +266,20 @@ describe('Campaign API Integration Tests', () => {
           description: 'Test Description',
           budget: 1000,
           ratePerView: 10,
-          requirements: ['Test Requirement']
-        })
+          requirements: ['Test Requirement'],
+        }),
       });
       const response = await createCampaign(request);
 
       expect(response.status).toBe(201);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        campaign: expect.objectContaining({
-          id: 'test-campaign-id'
-        }),
-        message: 'Campaign created successfully'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          campaign: expect.objectContaining({
+            id: 'test-campaign-id',
+          }),
+          message: 'Campaign created successfully',
+        })
+      );
     });
   });
 
@@ -255,13 +288,19 @@ describe('Campaign API Integration Tests', () => {
       // Mock unauthenticated session
       vi.mocked(auth).mockResolvedValueOnce(null);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id');
-      const response = await getCampaign(request, { params: { id: 'test-campaign-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id'
+      );
+      const response = await getCampaign(request, {
+        params: { id: 'test-campaign-id' },
+      });
 
       expect(response.status).toBe(401);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Unauthorized'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Unauthorized',
+        })
+      );
     });
 
     test('should return 404 when campaign not found', async () => {
@@ -271,40 +310,54 @@ describe('Campaign API Integration Tests', () => {
       // Mock empty database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([])
-        })
+          where: vi.fn().mockResolvedValue([]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/non-existent-id');
-      const response = await getCampaign(request, { params: { id: 'non-existent-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/non-existent-id'
+      );
+      const response = await getCampaign(request, {
+        params: { id: 'non-existent-id' },
+      });
 
       expect(response.status).toBe(404);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Campaign not found'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Campaign not found',
+        })
+      );
     });
 
-    test('should return 403 when creator tries to access another creator\'s campaign', async () => {
+    test("should return 403 when creator tries to access another creator's campaign", async () => {
       // Mock creator session
       vi.mocked(auth).mockResolvedValueOnce(mockCreatorSession);
 
       // Mock campaign with different creator ID
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            ...mockCampaign,
-            creatorId: 'different-creator-id'
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              ...mockCampaign,
+              creatorId: 'different-creator-id',
+            },
+          ]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id');
-      const response = await getCampaign(request, { params: { id: 'test-campaign-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id'
+      );
+      const response = await getCampaign(request, {
+        params: { id: 'test-campaign-id' },
+      });
 
       expect(response.status).toBe(403);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Forbidden - You can only access your own campaigns'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Forbidden - You can only access your own campaigns',
+        })
+      );
     });
 
     test('should return campaign with materials for creator', async () => {
@@ -314,8 +367,8 @@ describe('Campaign API Integration Tests', () => {
       // Mock campaign database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([mockCampaign])
-        })
+          where: vi.fn().mockResolvedValue([mockCampaign]),
+        }),
       } as any);
 
       // Mock materials database response
@@ -327,27 +380,33 @@ describe('Campaign API Integration Tests', () => {
               campaignId: 'test-campaign-id',
               type: 'youtube',
               url: 'https://youtube.com/test',
-              title: 'Test Material'
-            }
-          ])
-        })
+              title: 'Test Material',
+            },
+          ]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id');
-      const response = await getCampaign(request, { params: { id: 'test-campaign-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id'
+      );
+      const response = await getCampaign(request, {
+        params: { id: 'test-campaign-id' },
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data).toEqual(expect.objectContaining({
-        campaign: expect.objectContaining({
-          id: 'test-campaign-id',
-          materials: expect.arrayContaining([
-            expect.objectContaining({
-              id: 'test-material-id'
-            })
-          ])
+      expect(data).toEqual(
+        expect.objectContaining({
+          campaign: expect.objectContaining({
+            id: 'test-campaign-id',
+            materials: expect.arrayContaining([
+              expect.objectContaining({
+                id: 'test-material-id',
+              }),
+            ]),
+          }),
         })
-      }));
+      );
     });
   });
 
@@ -356,32 +415,46 @@ describe('Campaign API Integration Tests', () => {
       // Mock unauthenticated session
       vi.mocked(auth).mockResolvedValueOnce(null);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'PUT',
-        body: JSON.stringify({})
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'PUT',
+          body: JSON.stringify({}),
+        }
+      );
+      const response = await updateCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await updateCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(401);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Unauthorized'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Unauthorized',
+        })
+      );
     });
 
     test('should return 403 when user is not a creator', async () => {
       // Mock promoter session
       vi.mocked(auth).mockResolvedValueOnce(mockPromoterSession);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'PUT',
-        body: JSON.stringify({})
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'PUT',
+          body: JSON.stringify({}),
+        }
+      );
+      const response = await updateCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await updateCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(403);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Forbidden - Only creators can update campaigns'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Forbidden - Only creators can update campaigns',
+        })
+      );
     });
 
     test('should return 404 when campaign not found or not owned by creator', async () => {
@@ -391,22 +464,29 @@ describe('Campaign API Integration Tests', () => {
       // Mock empty database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([])
-        })
+          where: vi.fn().mockResolvedValue([]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'PUT',
-        body: JSON.stringify({
-          title: 'Updated Campaign'
-        })
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            title: 'Updated Campaign',
+          }),
+        }
+      );
+      const response = await updateCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await updateCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(404);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Campaign not found or access denied'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Campaign not found or access denied',
+        })
+      );
     });
 
     test('should return 400 when invalid status transition', async () => {
@@ -416,25 +496,34 @@ describe('Campaign API Integration Tests', () => {
       // Mock campaign database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            ...mockCampaign,
-            status: 'draft'
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              ...mockCampaign,
+              status: 'draft',
+            },
+          ]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'PUT',
-        body: JSON.stringify({
-          status: 'paused' // Invalid transition from draft to paused
-        })
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            status: 'paused', // Invalid transition from draft to paused
+          }),
+        }
+      );
+      const response = await updateCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await updateCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(400);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Invalid status transition from draft to paused'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Invalid status transition from draft to paused',
+        })
+      );
     });
 
     test('should update campaign successfully', async () => {
@@ -444,41 +533,50 @@ describe('Campaign API Integration Tests', () => {
       // Mock campaign database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([mockCampaign])
-        })
+          where: vi.fn().mockResolvedValue([mockCampaign]),
+        }),
       } as any);
 
       // Mock update response
       vi.mocked(db.update).mockReturnValueOnce({
         set: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnValue({
-            returning: vi.fn().mockResolvedValue([{
-              ...mockCampaign,
-              title: 'Updated Campaign',
-              status: 'active'
-            }])
-          })
-        })
+            returning: vi.fn().mockResolvedValue([
+              {
+                ...mockCampaign,
+                title: 'Updated Campaign',
+                status: 'active',
+              },
+            ]),
+          }),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'PUT',
-        body: JSON.stringify({
-          title: 'Updated Campaign',
-          status: 'active'
-        })
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            title: 'Updated Campaign',
+            status: 'active',
+          }),
+        }
+      );
+      const response = await updateCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await updateCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(200);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        campaign: expect.objectContaining({
-          id: 'test-campaign-id',
-          title: 'Updated Campaign',
-          status: 'active'
-        }),
-        message: 'Campaign updated successfully'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          campaign: expect.objectContaining({
+            id: 'test-campaign-id',
+            title: 'Updated Campaign',
+            status: 'active',
+          }),
+          message: 'Campaign updated successfully',
+        })
+      );
     });
   });
 
@@ -487,30 +585,44 @@ describe('Campaign API Integration Tests', () => {
       // Mock unauthenticated session
       vi.mocked(auth).mockResolvedValueOnce(null);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'DELETE'
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'DELETE',
+        }
+      );
+      const response = await deleteCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await deleteCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(401);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Unauthorized'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Unauthorized',
+        })
+      );
     });
 
     test('should return 403 when user is not a creator', async () => {
       // Mock promoter session
       vi.mocked(auth).mockResolvedValueOnce(mockPromoterSession);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'DELETE'
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'DELETE',
+        }
+      );
+      const response = await deleteCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await deleteCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(403);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Forbidden - Only creators can delete campaigns'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Forbidden - Only creators can delete campaigns',
+        })
+      );
     });
 
     test('should return 404 when campaign not found or not owned by creator', async () => {
@@ -520,19 +632,26 @@ describe('Campaign API Integration Tests', () => {
       // Mock empty database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([])
-        })
+          where: vi.fn().mockResolvedValue([]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'DELETE'
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'DELETE',
+        }
+      );
+      const response = await deleteCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await deleteCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(404);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Campaign not found or access denied'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Campaign not found or access denied',
+        })
+      );
     });
 
     test('should return 400 when trying to delete non-draft campaign', async () => {
@@ -542,22 +661,31 @@ describe('Campaign API Integration Tests', () => {
       // Mock campaign database response with active status
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            ...mockCampaign,
-            status: 'active'
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              ...mockCampaign,
+              status: 'active',
+            },
+          ]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'DELETE'
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'DELETE',
+        }
+      );
+      const response = await deleteCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await deleteCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(400);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Only draft campaigns can be deleted'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Only draft campaigns can be deleted',
+        })
+      );
     });
 
     test('should delete campaign successfully', async () => {
@@ -567,27 +695,36 @@ describe('Campaign API Integration Tests', () => {
       // Mock campaign database response with draft status
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            ...mockCampaign,
-            status: 'draft'
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              ...mockCampaign,
+              status: 'draft',
+            },
+          ]),
+        }),
       } as any);
 
       // Mock delete response
       vi.mocked(db.delete).mockReturnValueOnce({
-        where: vi.fn().mockResolvedValue(undefined)
+        where: vi.fn().mockResolvedValue(undefined),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id', {
-        method: 'DELETE'
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id',
+        {
+          method: 'DELETE',
+        }
+      );
+      const response = await deleteCampaign(request, {
+        params: { id: 'test-campaign-id' },
       });
-      const response = await deleteCampaign(request, { params: { id: 'test-campaign-id' } });
 
       expect(response.status).toBe(200);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        message: 'Campaign deleted successfully'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          message: 'Campaign deleted successfully',
+        })
+      );
     });
   });
 });

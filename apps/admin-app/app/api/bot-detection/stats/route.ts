@@ -5,7 +5,7 @@ export async function GET() {
   try {
     // TODO: Implement bot detection stats functionality
     // This is a stub implementation until ViewRecord model is added to Prisma schema
-    
+
     // Return stub data
     const stats = {
       totalDetections: 0,

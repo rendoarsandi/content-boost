@@ -1,4 +1,8 @@
-import { MetricsCollectionConfig, ValidationRule, NormalizationRule } from './types';
+import {
+  MetricsCollectionConfig,
+  ValidationRule,
+  NormalizationRule,
+} from './types';
 
 export const DEFAULT_COLLECTION_CONFIG: MetricsCollectionConfig = {
   collectionInterval: 60 * 1000, // 1 minute
@@ -8,21 +12,21 @@ export const DEFAULT_COLLECTION_CONFIG: MetricsCollectionConfig = {
     maxRetries: 3,
     baseDelay: 5000, // 5 seconds
     maxDelay: 60000, // 1 minute
-    backoffFactor: 2
+    backoffFactor: 2,
   },
   cacheConfig: {
     enabled: true,
     ttl: 60, // 1 minute
-    keyPrefix: 'metrics_collection'
+    keyPrefix: 'metrics_collection',
   },
   validationConfig: {
     enabled: true,
-    rules: [] // Will be populated with VALIDATION_RULES
+    rules: [], // Will be populated with VALIDATION_RULES
   },
   normalizationConfig: {
     enabled: true,
-    rules: [] // Will be populated with NORMALIZATION_RULES
-  }
+    rules: [], // Will be populated with NORMALIZATION_RULES
+  },
 };
 
 export const COLLECTION_INTERVALS = {
@@ -38,56 +42,56 @@ export const VALIDATION_RULES: ValidationRule[] = [
     field: 'metrics.views',
     validator: (value: number) => typeof value === 'number' && value >= 0,
     errorMessage: 'Views count must be a non-negative number',
-    severity: 'error'
+    severity: 'error',
   },
   {
     name: 'non_negative_likes',
     field: 'metrics.likes',
     validator: (value: number) => typeof value === 'number' && value >= 0,
     errorMessage: 'Likes count must be a non-negative number',
-    severity: 'error'
+    severity: 'error',
   },
   {
     name: 'non_negative_comments',
     field: 'metrics.comments',
     validator: (value: number) => typeof value === 'number' && value >= 0,
     errorMessage: 'Comments count must be a non-negative number',
-    severity: 'error'
+    severity: 'error',
   },
   {
     name: 'non_negative_shares',
     field: 'metrics.shares',
     validator: (value: number) => typeof value === 'number' && value >= 0,
     errorMessage: 'Shares count must be a non-negative number',
-    severity: 'error'
+    severity: 'error',
   },
   {
     name: 'valid_platform',
     field: 'platform',
     validator: (value: string) => ['tiktok', 'instagram'].includes(value),
     errorMessage: 'Platform must be either tiktok or instagram',
-    severity: 'error'
+    severity: 'error',
   },
   {
     name: 'valid_post_id',
     field: 'postId',
     validator: (value: string) => typeof value === 'string' && value.length > 0,
     errorMessage: 'Post ID must be a non-empty string',
-    severity: 'error'
+    severity: 'error',
   },
   {
     name: 'valid_user_id',
     field: 'userId',
     validator: (value: string) => typeof value === 'string' && value.length > 0,
     errorMessage: 'User ID must be a non-empty string',
-    severity: 'error'
+    severity: 'error',
   },
   {
     name: 'valid_campaign_id',
     field: 'campaignId',
     validator: (value: string) => typeof value === 'string' && value.length > 0,
     errorMessage: 'Campaign ID must be a non-empty string',
-    severity: 'error'
+    severity: 'error',
   },
   {
     name: 'reasonable_engagement_ratio',
@@ -98,14 +102,14 @@ export const VALIDATION_RULES: ValidationRule[] = [
       return engagementRate <= 1; // Engagement rate shouldn't exceed 100%
     },
     errorMessage: 'Engagement rate seems unreasonably high',
-    severity: 'warning'
+    severity: 'warning',
   },
   {
     name: 'likes_not_exceed_views',
     field: 'metrics',
     validator: (metrics: any) => metrics.likes <= metrics.views,
     errorMessage: 'Likes count should not exceed views count',
-    severity: 'warning'
+    severity: 'warning',
   },
   {
     name: 'comments_reasonable',
@@ -116,8 +120,8 @@ export const VALIDATION_RULES: ValidationRule[] = [
       return commentRate <= 0.1; // Comment rate shouldn't exceed 10%
     },
     errorMessage: 'Comment rate seems unusually high',
-    severity: 'warning'
-  }
+    severity: 'warning',
+  },
 ];
 
 export const NORMALIZATION_RULES: NormalizationRule[] = [
@@ -128,33 +132,33 @@ export const NORMALIZATION_RULES: NormalizationRule[] = [
       views: Math.floor(Number(metrics.views) || 0),
       likes: Math.floor(Number(metrics.likes) || 0),
       comments: Math.floor(Number(metrics.comments) || 0),
-      shares: Math.floor(Number(metrics.shares) || 0)
+      shares: Math.floor(Number(metrics.shares) || 0),
     }),
-    enabled: true
+    enabled: true,
   },
   {
     name: 'trim_string_fields',
     field: 'postId',
     normalizer: (value: string) => String(value).trim(),
-    enabled: true
+    enabled: true,
   },
   {
     name: 'trim_user_id',
     field: 'userId',
     normalizer: (value: string) => String(value).trim(),
-    enabled: true
+    enabled: true,
   },
   {
     name: 'trim_campaign_id',
     field: 'campaignId',
     normalizer: (value: string) => String(value).trim(),
-    enabled: true
+    enabled: true,
   },
   {
     name: 'normalize_platform',
     field: 'platform',
     normalizer: (value: string) => String(value).toLowerCase().trim(),
-    enabled: true
+    enabled: true,
   },
   {
     name: 'ensure_timestamp',
@@ -167,7 +171,7 @@ export const NORMALIZATION_RULES: NormalizationRule[] = [
       }
       return new Date();
     },
-    enabled: true
+    enabled: true,
   },
   {
     name: 'cap_extreme_values',
@@ -178,17 +182,17 @@ export const NORMALIZATION_RULES: NormalizationRule[] = [
         views: Math.min(metrics.views, MAX_REASONABLE_VALUE),
         likes: Math.min(metrics.likes, MAX_REASONABLE_VALUE),
         comments: Math.min(metrics.comments, MAX_REASONABLE_VALUE),
-        shares: Math.min(metrics.shares, MAX_REASONABLE_VALUE)
+        shares: Math.min(metrics.shares, MAX_REASONABLE_VALUE),
       };
     },
-    enabled: true
-  }
+    enabled: true,
+  },
 ];
 
 export const JOB_PRIORITIES = {
   HIGH: 'high' as const,
   MEDIUM: 'medium' as const,
-  LOW: 'low' as const
+  LOW: 'low' as const,
 };
 
 export const WORKER_STATES = {
@@ -196,7 +200,7 @@ export const WORKER_STATES = {
   RUNNING: 'running',
   PAUSED: 'paused',
   STOPPING: 'stopping',
-  ERROR: 'error'
+  ERROR: 'error',
 } as const;
 
 export const PIPELINE_STAGES = {
@@ -204,7 +208,7 @@ export const PIPELINE_STAGES = {
   VALIDATION: 'validation',
   NORMALIZATION: 'normalization',
   CACHING: 'caching',
-  STORAGE: 'storage'
+  STORAGE: 'storage',
 } as const;
 
 export const ERROR_TYPES = {
@@ -213,5 +217,5 @@ export const ERROR_TYPES = {
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   PROCESSING_ERROR: 'PROCESSING_ERROR',
   STORAGE_ERROR: 'STORAGE_ERROR',
-  TIMEOUT_ERROR: 'TIMEOUT_ERROR'
+  TIMEOUT_ERROR: 'TIMEOUT_ERROR',
 } as const;

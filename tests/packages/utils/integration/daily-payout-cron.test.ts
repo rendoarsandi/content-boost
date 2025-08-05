@@ -1,4 +1,8 @@
-import { DailyPayoutCron, createDailyPayoutCron, PayoutCronDependencies } from '../src/daily-payout-cron';
+import {
+  DailyPayoutCron,
+  createDailyPayoutCron,
+  PayoutCronDependencies,
+} from '../src/daily-payout-cron';
 import { PayoutBatch } from '../src/payout-engine';
 
 describe('DailyPayoutCron', () => {
@@ -100,7 +104,7 @@ describe('DailyPayoutCron', () => {
     it('should execute manual payout successfully', async () => {
       // Arrange
       const testDate = new Date('2024-01-15T00:00:00Z');
-      
+
       (mockDependencies.getActivePromotions as jest.Mock).mockResolvedValue([
         {
           promoterId: 'promoter-1',
@@ -110,11 +114,21 @@ describe('DailyPayoutCron', () => {
       ]);
 
       (mockDependencies.getViewRecords as jest.Mock).mockResolvedValue([
-        { viewCount: 100, isLegitimate: true, timestamp: new Date('2024-01-14T10:00:00Z') },
-        { viewCount: 50, isLegitimate: true, timestamp: new Date('2024-01-14T15:00:00Z') },
+        {
+          viewCount: 100,
+          isLegitimate: true,
+          timestamp: new Date('2024-01-14T10:00:00Z'),
+        },
+        {
+          viewCount: 50,
+          isLegitimate: true,
+          timestamp: new Date('2024-01-14T15:00:00Z'),
+        },
       ]);
 
-      (mockDependencies.savePayoutBatch as jest.Mock).mockResolvedValue(undefined);
+      (mockDependencies.savePayoutBatch as jest.Mock).mockResolvedValue(
+        undefined
+      );
 
       // Act
       const batch = await dailyPayoutCron.executeManualPayout(testDate);
@@ -124,7 +138,7 @@ describe('DailyPayoutCron', () => {
       expect(batch.totalJobs).toBe(1);
       expect(batch.completedJobs).toBe(1);
       expect(batch.status).toBe('completed');
-      
+
       // Verify dependencies were called
       expect(mockDependencies.getActivePromotions).toHaveBeenCalledTimes(1);
       expect(mockDependencies.getViewRecords).toHaveBeenCalledTimes(1);
@@ -192,7 +206,7 @@ describe('DailyPayoutCron', () => {
     it('should call all required dependencies during payout execution', async () => {
       // Arrange
       const testDate = new Date('2024-01-15T00:00:00Z');
-      
+
       (mockDependencies.getActivePromotions as jest.Mock).mockResolvedValue([
         {
           promoterId: 'promoter-1',
@@ -207,21 +221,35 @@ describe('DailyPayoutCron', () => {
         },
       ]);
 
-      (mockDependencies.getViewRecords as jest.Mock).mockImplementation((promoterId: string) => {
-        if (promoterId === 'promoter-1') {
-          return Promise.resolve([
-            { viewCount: 100, isLegitimate: true, timestamp: new Date('2024-01-14T10:00:00Z') },
-          ]);
-        } else {
-          return Promise.resolve([
-            { viewCount: 200, isLegitimate: true, timestamp: new Date('2024-01-14T12:00:00Z') },
-          ]);
+      (mockDependencies.getViewRecords as jest.Mock).mockImplementation(
+        (promoterId: string) => {
+          if (promoterId === 'promoter-1') {
+            return Promise.resolve([
+              {
+                viewCount: 100,
+                isLegitimate: true,
+                timestamp: new Date('2024-01-14T10:00:00Z'),
+              },
+            ]);
+          } else {
+            return Promise.resolve([
+              {
+                viewCount: 200,
+                isLegitimate: true,
+                timestamp: new Date('2024-01-14T12:00:00Z'),
+              },
+            ]);
+          }
         }
-      });
+      );
 
-      (mockDependencies.savePayoutBatch as jest.Mock).mockResolvedValue(undefined);
+      (mockDependencies.savePayoutBatch as jest.Mock).mockResolvedValue(
+        undefined
+      );
       (mockDependencies.savePayouts as jest.Mock).mockResolvedValue(undefined);
-      (mockDependencies.updatePlatformRevenue as jest.Mock).mockResolvedValue(undefined);
+      (mockDependencies.updatePlatformRevenue as jest.Mock).mockResolvedValue(
+        undefined
+      );
 
       // Act
       const batch = await dailyPayoutCron.executeManualPayout(testDate);
@@ -230,10 +258,11 @@ describe('DailyPayoutCron', () => {
       expect(mockDependencies.getActivePromotions).toHaveBeenCalledTimes(1);
       expect(mockDependencies.getViewRecords).toHaveBeenCalledTimes(2);
       expect(mockDependencies.savePayoutBatch).toHaveBeenCalledWith(batch);
-      
+
       // Check savePayouts was called with correct data
       expect(mockDependencies.savePayouts).toHaveBeenCalledTimes(1);
-      const savedPayouts = (mockDependencies.savePayouts as jest.Mock).mock.calls[0][0];
+      const savedPayouts = (mockDependencies.savePayouts as jest.Mock).mock
+        .calls[0][0];
       expect(savedPayouts).toHaveLength(2);
       expect(savedPayouts[0]).toMatchObject({
         promoterId: 'promoter-1',
@@ -249,7 +278,9 @@ describe('DailyPayoutCron', () => {
 
       // Check platform revenue was updated
       expect(mockDependencies.updatePlatformRevenue).toHaveBeenCalledTimes(1);
-      const [period, totalFees] = (mockDependencies.updatePlatformRevenue as jest.Mock).mock.calls[0];
+      const [period, totalFees] = (
+        mockDependencies.updatePlatformRevenue as jest.Mock
+      ).mock.calls[0];
       expect(period).toHaveProperty('start');
       expect(period).toHaveProperty('end');
       expect(totalFees).toBeGreaterThan(0);
@@ -258,7 +289,7 @@ describe('DailyPayoutCron', () => {
     it('should handle partial failures gracefully', async () => {
       // Arrange
       const testDate = new Date('2024-01-15T00:00:00Z');
-      
+
       (mockDependencies.getActivePromotions as jest.Mock).mockResolvedValue([
         {
           promoterId: 'promoter-1',
@@ -273,19 +304,29 @@ describe('DailyPayoutCron', () => {
       ]);
 
       // First promoter succeeds, second fails
-      (mockDependencies.getViewRecords as jest.Mock).mockImplementation((promoterId: string) => {
-        if (promoterId === 'promoter-1') {
-          return Promise.resolve([
-            { viewCount: 100, isLegitimate: true, timestamp: new Date('2024-01-14T10:00:00Z') },
-          ]);
-        } else {
-          return Promise.reject(new Error('Database timeout'));
+      (mockDependencies.getViewRecords as jest.Mock).mockImplementation(
+        (promoterId: string) => {
+          if (promoterId === 'promoter-1') {
+            return Promise.resolve([
+              {
+                viewCount: 100,
+                isLegitimate: true,
+                timestamp: new Date('2024-01-14T10:00:00Z'),
+              },
+            ]);
+          } else {
+            return Promise.reject(new Error('Database timeout'));
+          }
         }
-      });
+      );
 
-      (mockDependencies.savePayoutBatch as jest.Mock).mockResolvedValue(undefined);
+      (mockDependencies.savePayoutBatch as jest.Mock).mockResolvedValue(
+        undefined
+      );
       (mockDependencies.savePayouts as jest.Mock).mockResolvedValue(undefined);
-      (mockDependencies.updatePlatformRevenue as jest.Mock).mockResolvedValue(undefined);
+      (mockDependencies.updatePlatformRevenue as jest.Mock).mockResolvedValue(
+        undefined
+      );
 
       // Act
       const batch = await dailyPayoutCron.executeManualPayout(testDate);
@@ -297,15 +338,18 @@ describe('DailyPayoutCron', () => {
       expect(batch.status).toBe('failed');
 
       // Check that both successful and failed payouts were saved
-      const savedPayouts = (mockDependencies.savePayouts as jest.Mock).mock.calls[0][0];
+      const savedPayouts = (mockDependencies.savePayouts as jest.Mock).mock
+        .calls[0][0];
       expect(savedPayouts).toHaveLength(2);
-      
-      const successfulPayout = savedPayouts.find((p: any) => p.status === 'completed');
+
+      const successfulPayout = savedPayouts.find(
+        (p: any) => p.status === 'completed'
+      );
       const failedPayout = savedPayouts.find((p: any) => p.status === 'failed');
-      
+
       expect(successfulPayout).toBeDefined();
       expect(successfulPayout.promoterId).toBe('promoter-1');
-      
+
       expect(failedPayout).toBeDefined();
       expect(failedPayout.promoterId).toBe('promoter-2');
       expect(failedPayout.failureReason).toContain('Database timeout');

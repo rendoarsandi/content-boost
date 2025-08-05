@@ -19,36 +19,42 @@ Authentication package for the Creator Promotion Platform using BetterAuth with 
 ### 🔧 Core Components
 
 #### 1. BetterAuth Configuration (`src/config.ts`)
+
 - JWT strategy with 7-day expiration
 - Secure session management with cookie caching
 - Email/password authentication support
 - Database adapter with Drizzle ORM
 
 #### 2. OAuth Providers
+
 - **TikTok OAuth** (`src/oauth/tiktok.ts`): Complete OAuth 2.0 flow
 - **Instagram OAuth** (`src/oauth/instagram.ts`): Long-lived token management
 - Automatic token refresh with expiration handling
 - User profile data extraction and storage
 
 #### 3. Server Utilities (`src/server.ts`)
+
 - Session management functions
 - Role-based authentication guards
 - Social account management
 - Token refresh utilities
 
 #### 4. Client Utilities (`src/client.ts`)
+
 - React hooks for authentication
 - Social account connection/disconnection
 - Token refresh helpers
 - Authentication state management
 
 #### 5. Middleware (`src/middleware.ts`)
+
 - Route protection
 - Role-based access control
 - Rate limiting
 - CSRF protection
 
 #### 6. API Handlers (`src/handlers/oauth.ts`)
+
 - OAuth callback handlers
 - Account linking/unlinking
 - Social account management
@@ -59,13 +65,13 @@ Authentication package for the Creator Promotion Platform using BetterAuth with 
 ### Basic Setup
 
 ```typescript
-import { auth } from "@repo/auth";
+import { auth } from '@repo/auth';
 
 // Server-side session check
 const session = await auth.api.getSession({ headers });
 
 // Client-side authentication
-import { useSession, signIn, signOut } from "@repo/auth";
+import { useSession, signIn, signOut } from '@repo/auth';
 
 const { data: session, status } = useSession();
 ```
@@ -73,7 +79,7 @@ const { data: session, status } = useSession();
 ### OAuth Integration
 
 ```typescript
-import { tiktokOAuth, instagramOAuth } from "@repo/auth";
+import { tiktokOAuth, instagramOAuth } from '@repo/auth';
 
 // TikTok OAuth flow
 const authUrl = tiktokOAuth.getAuthorizationUrl();
@@ -89,10 +95,10 @@ const userInfo = await instagramOAuth.getUserInfo(tokens.access_token);
 ### Role-based Access Control
 
 ```typescript
-import { requireRole, requireAdmin, requireCreator } from "@repo/auth";
+import { requireRole, requireAdmin, requireCreator } from '@repo/auth';
 
 // Require specific role
-const session = await requireRole("admin");
+const session = await requireRole('admin');
 
 // Require admin access
 const adminSession = await requireAdmin();
@@ -105,12 +111,12 @@ const creatorSession = await requireCreator();
 
 ```typescript
 // middleware.ts in Next.js app
-import { createAuthMiddleware } from "@repo/auth";
+import { createAuthMiddleware } from '@repo/auth';
 
 export const middleware = createAuthMiddleware();
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|public/).*)"],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|public/).*)'],
 };
 ```
 
@@ -132,7 +138,7 @@ export const config = {
 
 ```typescript
 // app/api/auth/oauth/tiktok/route.ts
-import { handleTikTokAuth } from "@repo/auth";
+import { handleTikTokAuth } from '@repo/auth';
 
 export async function GET(request: NextRequest) {
   return await handleTikTokAuth(request);
@@ -190,12 +196,14 @@ CREATE TABLE social_accounts (
 ## OAuth Scopes
 
 ### TikTok Scopes
+
 - `user.info.basic` - Basic user information
 - `user.info.profile` - Profile information
 - `user.info.stats` - User statistics
 - `video.list` - Access to user's videos
 
 ### Instagram Scopes
+
 - `user_profile` - Basic profile information
 - `user_media` - Access to user's media
 
@@ -226,21 +234,25 @@ npm test -- --coverage
 This implementation fulfills the following task requirements:
 
 ✅ **Setup BetterAuth dengan TikTok dan Instagram OAuth providers**
+
 - Complete BetterAuth configuration with custom OAuth providers
 - TikTok OAuth 2.0 flow with proper scopes
 - Instagram OAuth with long-lived token management
 
 ✅ **Konfigurasi JWT strategy dengan proper session management**
+
 - JWT-based authentication strategy
 - 7-day token expiration with daily refresh
 - Secure session management with cookie caching
 
 ✅ **Implementasi role-based access control (creator, promoter, admin)**
+
 - Three-tier role system implementation
 - Role-based middleware and guards
 - Granular permission checking utilities
 
 ✅ **Setup secure token storage dengan refresh token rotation**
+
 - Automatic token refresh before expiration
 - Secure token storage in database
 - Refresh token rotation for enhanced security
@@ -261,11 +273,12 @@ To complete the authentication system:
 - `better-auth`: ^0.5.0 - Modern authentication library
 - `drizzle-orm`: ^0.29.0 - Type-safe ORM
 - `zod`: ^3.22.0 - Schema validation
-- `@repo/database`: * - Database package with schemas
+- `@repo/database`: \* - Database package with schemas
 
 ## Support
 
 For issues or questions regarding the authentication system, please refer to:
+
 - BetterAuth documentation: https://better-auth.com
 - TikTok for Developers: https://developers.tiktok.com
 - Instagram Basic Display API: https://developers.facebook.com/docs/instagram-basic-display-api

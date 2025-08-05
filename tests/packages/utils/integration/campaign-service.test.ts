@@ -1,4 +1,8 @@
-import { CampaignService, CampaignError, InsufficientBudgetError } from '../src/campaign-service';
+import {
+  CampaignService,
+  CampaignError,
+  InsufficientBudgetError,
+} from '../src/campaign-service';
 
 describe('CampaignService', () => {
   describe('calculateMaxViews', () => {
@@ -43,18 +47,36 @@ describe('CampaignService', () => {
 
   describe('validateStatusTransition', () => {
     test('should allow valid status transitions', () => {
-      expect(CampaignService.validateStatusTransition('draft', 'active').valid).toBe(true);
-      expect(CampaignService.validateStatusTransition('active', 'paused').valid).toBe(true);
-      expect(CampaignService.validateStatusTransition('active', 'completed').valid).toBe(true);
-      expect(CampaignService.validateStatusTransition('paused', 'active').valid).toBe(true);
-      expect(CampaignService.validateStatusTransition('paused', 'completed').valid).toBe(true);
+      expect(
+        CampaignService.validateStatusTransition('draft', 'active').valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateStatusTransition('active', 'paused').valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateStatusTransition('active', 'completed').valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateStatusTransition('paused', 'active').valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateStatusTransition('paused', 'completed').valid
+      ).toBe(true);
     });
 
     test('should reject invalid status transitions', () => {
-      expect(CampaignService.validateStatusTransition('draft', 'paused').valid).toBe(false);
-      expect(CampaignService.validateStatusTransition('draft', 'completed').valid).toBe(false);
-      expect(CampaignService.validateStatusTransition('completed', 'active').valid).toBe(false);
-      expect(CampaignService.validateStatusTransition('completed', 'paused').valid).toBe(false);
+      expect(
+        CampaignService.validateStatusTransition('draft', 'paused').valid
+      ).toBe(false);
+      expect(
+        CampaignService.validateStatusTransition('draft', 'completed').valid
+      ).toBe(false);
+      expect(
+        CampaignService.validateStatusTransition('completed', 'active').valid
+      ).toBe(false);
+      expect(
+        CampaignService.validateStatusTransition('completed', 'paused').valid
+      ).toBe(false);
     });
   });
 
@@ -110,7 +132,7 @@ describe('CampaignService', () => {
     test('should return false for campaign not yet started', () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      
+
       const campaign = { status: 'active', startDate: tomorrow, endDate: null };
       expect(CampaignService.isCampaignActive(campaign)).toBe(false);
     });
@@ -118,26 +140,39 @@ describe('CampaignService', () => {
     test('should return false for expired campaign', () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      
-      const campaign = { status: 'active', startDate: null, endDate: yesterday };
+
+      const campaign = {
+        status: 'active',
+        startDate: null,
+        endDate: yesterday,
+      };
       expect(CampaignService.isCampaignActive(campaign)).toBe(false);
     });
   });
 
   describe('generateTrackingLink', () => {
     test('should generate unique tracking links', () => {
-      const link1 = CampaignService.generateTrackingLink('campaign1', 'promoter1');
-      const link2 = CampaignService.generateTrackingLink('campaign1', 'promoter1');
-      
+      const link1 = CampaignService.generateTrackingLink(
+        'campaign1',
+        'promoter1'
+      );
+      const link2 = CampaignService.generateTrackingLink(
+        'campaign1',
+        'promoter1'
+      );
+
       expect(link1).toMatch(/^https:\/\/track\.domain\.com\//);
       expect(link2).toMatch(/^https:\/\/track\.domain\.com\//);
       expect(link1).not.toBe(link2); // Should be unique due to timestamp
     });
 
     test('should include campaign and promoter information', () => {
-      const link = CampaignService.generateTrackingLink('test-campaign', 'test-promoter');
+      const link = CampaignService.generateTrackingLink(
+        'test-campaign',
+        'test-promoter'
+      );
       expect(link).toContain('track.domain.com');
-      
+
       // Decode the link to verify it contains the IDs
       const encodedPart = link.split('/').pop();
       const decoded = Buffer.from(encodedPart!, 'base64url').toString();
@@ -148,32 +183,88 @@ describe('CampaignService', () => {
 
   describe('validateMaterialUrl', () => {
     test('should validate Google Drive URLs', () => {
-      expect(CampaignService.validateMaterialUrl('google_drive', 'https://drive.google.com/file/d/123').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('google_drive', 'https://docs.google.com/document/d/123').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('google_drive', 'https://example.com/file').valid).toBe(false);
+      expect(
+        CampaignService.validateMaterialUrl(
+          'google_drive',
+          'https://drive.google.com/file/d/123'
+        ).valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateMaterialUrl(
+          'google_drive',
+          'https://docs.google.com/document/d/123'
+        ).valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateMaterialUrl(
+          'google_drive',
+          'https://example.com/file'
+        ).valid
+      ).toBe(false);
     });
 
     test('should validate YouTube URLs', () => {
-      expect(CampaignService.validateMaterialUrl('youtube', 'https://youtube.com/watch?v=123').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('youtube', 'https://youtu.be/123').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('youtube', 'https://vimeo.com/123').valid).toBe(false);
+      expect(
+        CampaignService.validateMaterialUrl(
+          'youtube',
+          'https://youtube.com/watch?v=123'
+        ).valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateMaterialUrl('youtube', 'https://youtu.be/123')
+          .valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateMaterialUrl('youtube', 'https://vimeo.com/123')
+          .valid
+      ).toBe(false);
     });
 
     test('should validate image URLs', () => {
-      expect(CampaignService.validateMaterialUrl('image', 'https://example.com/image.jpg').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('image', 'https://imgur.com/abc123').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('image', 'https://example.com/document.pdf').valid).toBe(false);
+      expect(
+        CampaignService.validateMaterialUrl(
+          'image',
+          'https://example.com/image.jpg'
+        ).valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateMaterialUrl('image', 'https://imgur.com/abc123')
+          .valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateMaterialUrl(
+          'image',
+          'https://example.com/document.pdf'
+        ).valid
+      ).toBe(false);
     });
 
     test('should validate video URLs', () => {
-      expect(CampaignService.validateMaterialUrl('video', 'https://example.com/video.mp4').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('video', 'https://vimeo.com/123456').valid).toBe(true);
-      expect(CampaignService.validateMaterialUrl('video', 'https://example.com/audio.mp3').valid).toBe(false);
+      expect(
+        CampaignService.validateMaterialUrl(
+          'video',
+          'https://example.com/video.mp4'
+        ).valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateMaterialUrl('video', 'https://vimeo.com/123456')
+          .valid
+      ).toBe(true);
+      expect(
+        CampaignService.validateMaterialUrl(
+          'video',
+          'https://example.com/audio.mp3'
+        ).valid
+      ).toBe(false);
     });
 
     test('should reject invalid URLs', () => {
-      expect(CampaignService.validateMaterialUrl('youtube', 'not-a-url').valid).toBe(false);
-      expect(CampaignService.validateMaterialUrl('image', '').valid).toBe(false);
+      expect(
+        CampaignService.validateMaterialUrl('youtube', 'not-a-url').valid
+      ).toBe(false);
+      expect(CampaignService.validateMaterialUrl('image', '').valid).toBe(
+        false
+      );
     });
   });
 

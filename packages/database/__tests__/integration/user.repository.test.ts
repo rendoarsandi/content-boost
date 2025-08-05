@@ -24,9 +24,11 @@ describe('UserRepository', () => {
     };
 
     // Mock the withClient method
-    (userRepository as any).withClient = jest.fn().mockImplementation(async (callback) => {
-      return callback(mockClient);
-    });
+    (userRepository as any).withClient = jest
+      .fn()
+      .mockImplementation(async callback => {
+        return callback(mockClient);
+      });
   });
 
   describe('findById', () => {
@@ -154,7 +156,9 @@ describe('UserRepository', () => {
     it('should return null when user not found', async () => {
       mockClient.query.mockResolvedValue({ rows: [] });
 
-      const result = await userRepository.update('nonexistent-id', { name: 'New Name' });
+      const result = await userRepository.update('nonexistent-id', {
+        name: 'New Name',
+      });
 
       expect(result).toBeNull();
     });
@@ -164,7 +168,9 @@ describe('UserRepository', () => {
     it('should return true when user deleted successfully', async () => {
       mockClient.query.mockResolvedValue({ rowCount: 1 });
 
-      const result = await userRepository.delete('123e4567-e89b-12d3-a456-426614174000');
+      const result = await userRepository.delete(
+        '123e4567-e89b-12d3-a456-426614174000'
+      );
 
       expect(result).toBe(true);
     });

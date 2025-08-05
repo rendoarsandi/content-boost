@@ -5,11 +5,7 @@ module.exports = {
   transform: {
     '^.+\.ts$': 'ts-jest',
   },
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/index.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/index.ts'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
@@ -21,6 +17,6 @@ module.exports = {
     '^@repo/config(.*)$': '<rootDir>/../config/src$1',
     '^@repo/database(.*)$': '<rootDir>/../database/src$1',
     '^@repo/ui(.*)$': '<rootDir>/../ui/src$1',
-    '^@repo/utils(.*)$': '<rootDir>/../utils/src$1'
+    '^@repo/utils(.*)$': '<rootDir>/../utils/src$1',
   },
 };

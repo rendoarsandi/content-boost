@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
@@ -6,12 +6,9 @@ export async function POST(
 ) {
   try {
     const { provider } = await params;
-    
-    if (!["tiktok", "instagram"].includes(provider)) {
-      return NextResponse.json(
-        { error: "Invalid provider" },
-        { status: 400 }
-      );
+
+    if (!['tiktok', 'instagram'].includes(provider)) {
+      return NextResponse.json({ error: 'Invalid provider' }, { status: 400 });
     }
 
     // For development/demo purposes, simulate social account disconnection
@@ -22,9 +19,9 @@ export async function POST(
 
     console.log(`Mock disconnect: ${provider} account disconnected`);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: `${provider} account disconnected successfully` 
+      message: `${provider} account disconnected successfully`,
     });
   } catch (error) {
     console.error(`Error disconnecting account:`, error);

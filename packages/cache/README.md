@@ -86,7 +86,7 @@ CACHE_HEALTH_INTERVAL=30000                         # 30 seconds
 await cache.setSession('session-123', {
   userId: 'user-456',
   role: 'creator',
-  loginTime: new Date()
+  loginTime: new Date(),
 });
 
 // Get session data
@@ -105,7 +105,7 @@ await cache.setViewTracking('promoter-123', 'campaign-456', {
   likes: 150,
   comments: 25,
   shares: 10,
-  timestamp: new Date()
+  timestamp: new Date(),
 });
 
 // Get view tracking data
@@ -120,7 +120,7 @@ await cache.setBotAnalysis('promoter-123', 'campaign-456', {
   score: 25,
   action: 'monitor',
   reason: 'Slightly elevated view:like ratio',
-  analysisTime: new Date()
+  analysisTime: new Date(),
 });
 
 // Get bot analysis data
@@ -152,7 +152,7 @@ await cache.setDailyPayout(today, {
   totalAmount: 50000,
   processedPayouts: 25,
   pendingPayouts: 5,
-  processedAt: new Date()
+  processedAt: new Date(),
 });
 
 // Get daily payout data
@@ -166,9 +166,9 @@ const payoutData = await cache.getDailyPayout(today);
 ```typescript
 // Set multiple keys at once
 const batchData = {
-  'key1': { data: 'value1' },
-  'key2': { data: 'value2' },
-  'key3': { data: 'value3' }
+  key1: { data: 'value1' },
+  key2: { data: 'value2' },
+  key3: { data: 'value3' },
 };
 await cache.mset(batchData, 300); // 5 minutes TTL
 
@@ -228,11 +228,11 @@ const cache = new RedisCache({
   cluster: {
     enableOfflineQueue: true,
     redisOptions: {
-      password: 'your-cluster-password'
+      password: 'your-cluster-password',
     },
     slotsRefreshTimeout: 10000,
-    slotsRefreshInterval: 5000
-  }
+    slotsRefreshInterval: 5000,
+  },
 });
 ```
 
@@ -248,7 +248,7 @@ console.log('Cache stats:', {
   hits: stats.hits,
   misses: stats.misses,
   keys: stats.keys,
-  memory: stats.memory
+  memory: stats.memory,
 });
 
 // Hit rate calculation
@@ -292,26 +292,31 @@ npm test
 ## Key Features for Creator Promotion Platform
 
 ### Session Management
+
 - Secure session storage with automatic expiration
 - Support for user roles (creator, promoter, admin)
 - Session cleanup and management
 
 ### View Tracking Cache
+
 - Real-time view metrics caching
 - Short TTL for fresh data (1 minute)
 - Efficient batch updates for high-frequency data
 
 ### Bot Detection Cache
+
 - Bot analysis results caching
 - Medium TTL for analysis stability (5 minutes)
 - Quick access for real-time bot scoring
 
 ### Rate Limiting
+
 - API rate limiting per platform and user
 - Automatic TTL management
 - Efficient increment operations
 
 ### Daily Payout Cache
+
 - Daily payout calculation caching
 - Long TTL for stable financial data (24 hours)
 - Batch payout processing support

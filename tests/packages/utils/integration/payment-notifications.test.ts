@@ -1,10 +1,10 @@
-import { 
-  PaymentNotificationSystem, 
+import {
+  PaymentNotificationSystem,
   createPaymentNotificationSystem,
   createPaymentCompletedNotification,
   createPaymentFailedNotification,
   NotificationTemplate,
-  NotificationRequest
+  NotificationRequest,
 } from '../src/payment-notifications';
 
 describe('PaymentNotificationSystem', () => {
@@ -12,7 +12,7 @@ describe('PaymentNotificationSystem', () => {
 
   beforeEach(() => {
     notificationSystem = createPaymentNotificationSystem();
-    
+
     // Mock console methods to avoid noise in tests
     jest.spyOn(console, 'info').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -127,7 +127,9 @@ describe('PaymentNotificationSystem', () => {
       expect(notification.templateId).toBe('payment_failed');
       expect(notification.priority).toBe('high');
       expect(notification.variables.failureReason).toBe('Insufficient funds');
-      expect(notification.variables.retryMessage).toContain('automatically retry');
+      expect(notification.variables.retryMessage).toContain(
+        'automatically retry'
+      );
     });
 
     it('should send payment processing notification', async () => {
@@ -141,7 +143,9 @@ describe('PaymentNotificationSystem', () => {
         promoterName: 'Bob Johnson',
         amount: 'Rp75.000',
         campaignTitle: 'Processing Campaign',
-        startedAt: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }),
+        startedAt: new Date().toLocaleString('id-ID', {
+          timeZone: 'Asia/Jakarta',
+        }),
       };
 
       // Act
@@ -171,7 +175,9 @@ describe('PaymentNotificationSystem', () => {
         campaignTitle: 'Retry Campaign',
         retryCount: '2',
         maxRetries: '3',
-        nextAttempt: new Date(Date.now() + 60000).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }),
+        nextAttempt: new Date(Date.now() + 60000).toLocaleString('id-ID', {
+          timeZone: 'Asia/Jakarta',
+        }),
       };
 
       // Act
@@ -203,7 +209,9 @@ describe('PaymentNotificationSystem', () => {
           'unknown_template' as any,
           {}
         )
-      ).rejects.toThrow('Notification template not found for type: unknown_template');
+      ).rejects.toThrow(
+        'Notification template not found for type: unknown_template'
+      );
     });
 
     it('should validate notification request', async () => {
@@ -256,7 +264,9 @@ describe('PaymentNotificationSystem', () => {
       );
 
       // Act
-      const retrievedNotification = await notificationSystem.getNotification(sentNotification.id);
+      const retrievedNotification = await notificationSystem.getNotification(
+        sentNotification.id
+      );
 
       // Assert
       expect(retrievedNotification).toEqual(sentNotification);
@@ -285,14 +295,25 @@ describe('PaymentNotificationSystem', () => {
         recipientId,
         recipientInfo,
         'payment_completed',
-        createPaymentCompletedNotification('Recipient User', 'Rp40.000', 'Campaign 1', 'TXN1')
+        createPaymentCompletedNotification(
+          'Recipient User',
+          'Rp40.000',
+          'Campaign 1',
+          'TXN1'
+        )
       );
 
       await notificationSystem.sendPaymentNotification(
         recipientId,
         recipientInfo,
         'payment_failed',
-        createPaymentFailedNotification('Recipient User', 'Rp20.000', 'Campaign 2', 'Error', false)
+        createPaymentFailedNotification(
+          'Recipient User',
+          'Rp20.000',
+          'Campaign 2',
+          'Error',
+          false
+        )
       );
 
       // Send notification for different recipient
@@ -300,17 +321,27 @@ describe('PaymentNotificationSystem', () => {
         'other-promoter',
         { name: 'Other User', email: 'other@example.com' },
         'payment_completed',
-        createPaymentCompletedNotification('Other User', 'Rp10.000', 'Other Campaign', 'TXN2')
+        createPaymentCompletedNotification(
+          'Other User',
+          'Rp10.000',
+          'Other Campaign',
+          'TXN2'
+        )
       );
 
       // Act
-      const notifications = await notificationSystem.getNotificationsForRecipient(recipientId);
+      const notifications =
+        await notificationSystem.getNotificationsForRecipient(recipientId);
 
       // Assert
       expect(notifications).toHaveLength(2);
-      expect(notifications.every(n => n.recipientId === recipientId)).toBe(true);
+      expect(notifications.every(n => n.recipientId === recipientId)).toBe(
+        true
+      );
       // Should be sorted by creation date (newest first)
-      expect(notifications[0].createdAt.getTime()).toBeGreaterThanOrEqual(notifications[1].createdAt.getTime());
+      expect(notifications[0].createdAt.getTime()).toBeGreaterThanOrEqual(
+        notifications[1].createdAt.getTime()
+      );
     });
 
     it('should filter notifications by template type', async () => {
@@ -325,20 +356,32 @@ describe('PaymentNotificationSystem', () => {
         recipientId,
         recipientInfo,
         'payment_completed',
-        createPaymentCompletedNotification('Filter User', 'Rp15.000', 'Completed Campaign', 'TXN3')
+        createPaymentCompletedNotification(
+          'Filter User',
+          'Rp15.000',
+          'Completed Campaign',
+          'TXN3'
+        )
       );
 
       await notificationSystem.sendPaymentNotification(
         recipientId,
         recipientInfo,
         'payment_failed',
-        createPaymentFailedNotification('Filter User', 'Rp25.000', 'Failed Campaign', 'Error', true)
+        createPaymentFailedNotification(
+          'Filter User',
+          'Rp25.000',
+          'Failed Campaign',
+          'Error',
+          true
+        )
       );
 
       // Act
-      const completedNotifications = await notificationSystem.getNotificationsForRecipient(recipientId, {
-        templateType: 'payment_completed',
-      });
+      const completedNotifications =
+        await notificationSystem.getNotificationsForRecipient(recipientId, {
+          templateType: 'payment_completed',
+        });
 
       // Assert
       expect(completedNotifications).toHaveLength(1);
@@ -359,14 +402,20 @@ describe('PaymentNotificationSystem', () => {
           recipientId,
           recipientInfo,
           'payment_completed',
-          createPaymentCompletedNotification('Limit User', `Rp${(i + 1) * 10000}`, `Campaign ${i + 1}`, `TXN${i + 1}`)
+          createPaymentCompletedNotification(
+            'Limit User',
+            `Rp${(i + 1) * 10000}`,
+            `Campaign ${i + 1}`,
+            `TXN${i + 1}`
+          )
         );
       }
 
       // Act
-      const limitedNotifications = await notificationSystem.getNotificationsForRecipient(recipientId, {
-        limit: 2,
-      });
+      const limitedNotifications =
+        await notificationSystem.getNotificationsForRecipient(recipientId, {
+          limit: 2,
+        });
 
       // Assert
       expect(limitedNotifications).toHaveLength(2);
@@ -385,17 +434,24 @@ describe('PaymentNotificationSystem', () => {
         'promoter-delivery',
         recipientInfo,
         'payment_completed',
-        createPaymentCompletedNotification('Delivery User', 'Rp35.000', 'Delivery Campaign', 'TXN4')
+        createPaymentCompletedNotification(
+          'Delivery User',
+          'Rp35.000',
+          'Delivery Campaign',
+          'TXN4'
+        )
       );
 
       // Act
-      const deliveryStatus = await notificationSystem.getDeliveryStatus(notification.id);
+      const deliveryStatus = await notificationSystem.getDeliveryStatus(
+        notification.id
+      );
 
       // Assert
       expect(deliveryStatus).toBeDefined();
       expect(Array.isArray(deliveryStatus)).toBe(true);
       expect(deliveryStatus.length).toBeGreaterThan(0);
-      
+
       // Check delivery properties
       deliveryStatus.forEach(delivery => {
         expect(delivery).toHaveProperty('id');
@@ -412,7 +468,7 @@ describe('PaymentNotificationSystem', () => {
       // Arrange
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
-      
+
       const recipientInfo = {
         name: 'Stats User',
         email: 'stats@example.com',
@@ -423,14 +479,25 @@ describe('PaymentNotificationSystem', () => {
         'promoter-stats-1',
         recipientInfo,
         'payment_completed',
-        createPaymentCompletedNotification('Stats User', 'Rp45.000', 'Stats Campaign 1', 'TXN5')
+        createPaymentCompletedNotification(
+          'Stats User',
+          'Rp45.000',
+          'Stats Campaign 1',
+          'TXN5'
+        )
       );
 
       await notificationSystem.sendPaymentNotification(
         'promoter-stats-2',
         recipientInfo,
         'payment_failed',
-        createPaymentFailedNotification('Stats User', 'Rp55.000', 'Stats Campaign 2', 'Network error', true)
+        createPaymentFailedNotification(
+          'Stats User',
+          'Rp55.000',
+          'Stats Campaign 2',
+          'Network error',
+          true
+        )
       );
 
       // Act
@@ -454,7 +521,7 @@ describe('PaymentNotificationSystem', () => {
       // Arrange
       const startDate = new Date('2024-01-01');
       const endDate = new Date('2024-12-31');
-      
+
       const recipientInfo = {
         name: 'Filter Stats User',
         email: 'filterstats@example.com',
@@ -464,7 +531,12 @@ describe('PaymentNotificationSystem', () => {
         'promoter-filter-stats',
         recipientInfo,
         'payment_completed',
-        createPaymentCompletedNotification('Filter Stats User', 'Rp65.000', 'Filter Stats Campaign', 'TXN6')
+        createPaymentCompletedNotification(
+          'Filter Stats User',
+          'Rp65.000',
+          'Filter Stats Campaign',
+          'TXN6'
+        )
       );
 
       // Act
@@ -489,22 +561,29 @@ describe('PaymentNotificationSystem', () => {
       // Mock email sending to fail initially
       const originalSendEmail = (notificationSystem as any).sendEmail;
       let emailCallCount = 0;
-      
-      (notificationSystem as any).sendEmail = jest.fn().mockImplementation(async () => {
-        emailCallCount++;
-        if (emailCallCount === 1) {
-          throw new Error('Email service unavailable');
-        }
-        // Succeed on retry
-        return Promise.resolve();
-      });
+
+      (notificationSystem as any).sendEmail = jest
+        .fn()
+        .mockImplementation(async () => {
+          emailCallCount++;
+          if (emailCallCount === 1) {
+            throw new Error('Email service unavailable');
+          }
+          // Succeed on retry
+          return Promise.resolve();
+        });
 
       // Send notification (will fail initially)
       const notification = await notificationSystem.sendPaymentNotification(
         'promoter-retry-test',
         recipientInfo,
         'payment_completed',
-        createPaymentCompletedNotification('Retry User', 'Rp75.000', 'Retry Campaign', 'TXN7')
+        createPaymentCompletedNotification(
+          'Retry User',
+          'Rp75.000',
+          'Retry Campaign',
+          'TXN7'
+        )
       );
 
       // Act
@@ -512,7 +591,7 @@ describe('PaymentNotificationSystem', () => {
 
       // Assert
       expect(retriedCount).toBeGreaterThanOrEqual(0);
-      
+
       // Restore original method
       (notificationSystem as any).sendEmail = originalSendEmail;
     });
@@ -530,7 +609,12 @@ describe('PaymentNotificationSystem', () => {
         'promoter-system-stats',
         recipientInfo,
         'payment_completed',
-        createPaymentCompletedNotification('System Stats User', 'Rp85.000', 'System Stats Campaign', 'TXN8')
+        createPaymentCompletedNotification(
+          'System Stats User',
+          'Rp85.000',
+          'System Stats Campaign',
+          'TXN8'
+        )
       );
 
       // Act
@@ -591,7 +675,8 @@ describe('Helper Functions', () => {
         campaignTitle: 'Failed Campaign',
         failureReason: 'Insufficient funds',
         attemptedAt: expect.any(String),
-        retryMessage: 'We will automatically retry this payment. You will be notified of the outcome. (Maximum 3 attempts)',
+        retryMessage:
+          'We will automatically retry this payment. You will be notified of the outcome. (Maximum 3 attempts)',
       });
     });
 

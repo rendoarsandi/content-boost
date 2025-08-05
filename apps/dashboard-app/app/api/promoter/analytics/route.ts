@@ -6,7 +6,7 @@ import { getSession } from '@repo/auth/server-only';
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session?.user || (session.user as any).role !== 'promoter') {
       return NextResponse.json(
         { error: 'Unauthorized - Only promoters can access analytics' },
@@ -24,22 +24,31 @@ export async function GET(request: NextRequest) {
     startDate.setDate(startDate.getDate() - parseInt(period));
 
     // Get promoter's promotions with basic analytics
-    const promotions = await db.promotion.findMany({
+    const promotions = await db.campaignApplication.findMany({
       where: {
         promoterId,
-        createdAt: {
-          gte: startDate
+        appliedAt: {
+          gte: startDate,
         },
-        ...(campaignId && { campaignId })
+        ...(campaignId && { campaignId }),
       },
       include: {
-        campaign: true
-      }
+        campaign: true,
+        viewRecords: true,
+        payouts: true,
+      },
     });
 
     // Calculate basic analytics from promotions
-    const totalViews = promotions.reduce((sum, p) => sum + p.views, 0);
-    const totalEarnings = promotions.reduce((sum, p) => sum + p.earnings, 0);
+    const totalViews = promotions.reduce((sum, p) => {
+      const legitimateViews = p.viewRecords.reduce((viewSum, record) => 
+        viewSum + (record.isLegitimate ? record.viewCount : 0), 0);
+      return sum + legitimateViews;
+    }, 0);
+    const totalEarnings = promotions.reduce((sum, p) => {
+      const earnings = p.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0);
+      return sum + earnings;
+    }, 0);
     const campaignCount = new Set(promotions.map(p => p.campaignId)).size;
 
     return NextResponse.json({
@@ -50,16 +59,22 @@ export async function GET(request: NextRequest) {
         campaignCount,
         promotionsCount: promotions.length,
       },
-      promotions: promotions.map(promotion => ({
-        id: promotion.id,
-        campaignId: promotion.campaignId,
-        campaignName: promotion.campaign.name,
-        campaignBudget: promotion.campaign.budget,
-        views: promotion.views,
-        earnings: promotion.earnings,
-        contentUrl: promotion.contentUrl,
-        createdAt: promotion.createdAt,
-      })),
+      applications: promotions.map(promotion => {
+        const legitimateViews = promotion.viewRecords.reduce((viewSum, record) => 
+          viewSum + (record.isLegitimate ? record.viewCount : 0), 0);
+        const earnings = promotion.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0);
+        
+        return {
+          id: promotion.id,
+          campaignId: promotion.campaignId,
+          campaignName: promotion.campaign.title,
+          campaignBudget: promotion.campaign.budget,
+          views: legitimateViews,
+          earnings: earnings,
+          contentUrl: promotion.submittedContent,
+          createdAt: promotion.appliedAt,
+        };
+      }),
       earnings: {
         total: totalEarnings,
         pending: 0, // Would need a payout tracking system

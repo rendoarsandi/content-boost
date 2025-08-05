@@ -3,13 +3,13 @@ import { BotDetectionAlerting } from '../bot-detection-alerting';
 
 /**
  * Bot Detection Alerting System Demo
- * 
+ *
  * This example demonstrates the complete bot detection monitoring and alerting system
  * that implements the requirements for task 8.2:
- * 
+ *
  * Requirements covered:
  * - 5.5: Warning system untuk suspicious activity
- * - 5.6: Notification system untuk promoters dan admins  
+ * - 5.6: Notification system untuk promoters dan admins
  * - 5.7: Logging dan audit trail untuk bot detection decisions
  * - 10.3: Summary files di reports/bot-detection/
  * - 10.4: Audit trail logging di logs/bot-detection/
@@ -42,13 +42,13 @@ export class BotDetectionAlertingPipeline {
         viewLikeRatio: 10,
         viewCommentRatio: 100,
         spikePercentage: 500,
-        spikeTimeWindow: 5 * 60 * 1000 // 5 minutes
+        spikeTimeWindow: 5 * 60 * 1000, // 5 minutes
       },
       confidence: {
         ban: 90,
         warning: 50,
-        monitor: 20
-      }
+        monitor: 20,
+      },
     });
 
     // Initialize alerting system
@@ -59,13 +59,13 @@ export class BotDetectionAlertingPipeline {
       thresholds: {
         critical: 90,
         warning: 50,
-        monitor: 20
+        monitor: 20,
       },
       notifications: {
         email: true,
         dashboard: true,
-        webhook: true
-      }
+        webhook: true,
+      },
     });
   }
 
@@ -81,7 +81,9 @@ export class BotDetectionAlertingPipeline {
     alertGenerated: boolean;
     actionTaken: string;
   }> {
-    console.log(`🔍 Processing ${viewRecords.length} view records for promoter ${promoterId}, campaign ${campaignId}`);
+    console.log(
+      `🔍 Processing ${viewRecords.length} view records for promoter ${promoterId}, campaign ${campaignId}`
+    );
 
     try {
       // Step 1: Analyze views for bot detection
@@ -97,14 +99,17 @@ export class BotDetectionAlertingPipeline {
       console.log(`   Reason: ${analysis.reason}`);
 
       // Step 2: Process through alerting system
-      await this.alertingSystem.processAnalysis(promoterId, campaignId, analysis);
+      await this.alertingSystem.processAnalysis(
+        promoterId,
+        campaignId,
+        analysis
+      );
 
       return {
         analysis,
         alertGenerated: analysis.botScore >= 20, // Monitor threshold
-        actionTaken: analysis.action
+        actionTaken: analysis.action,
       };
-
     } catch (error) {
       console.error(`❌ Error processing view records:`, error);
       throw error;
@@ -116,9 +121,9 @@ export class BotDetectionAlertingPipeline {
    */
   async generateDailySummary(): Promise<any> {
     console.log(`📋 Generating daily summary report...`);
-    
+
     const summary = await this.alertingSystem.generateDailySummary();
-    
+
     console.log(`📊 Daily Summary:`);
     console.log(`   Total Analyses: ${summary.totalAnalyses}`);
     console.log(`   Bot Detections: ${JSON.stringify(summary.botDetections)}`);
@@ -157,7 +162,7 @@ export async function demonstrateBotDetectionAlerting(): Promise<void> {
       likeCount: 15,
       commentCount: 3,
       shareCount: 2,
-      timestamp: new Date(Date.now() - 5 * 60 * 1000)
+      timestamp: new Date(Date.now() - 5 * 60 * 1000),
     },
     {
       id: '2',
@@ -169,12 +174,18 @@ export async function demonstrateBotDetectionAlerting(): Promise<void> {
       likeCount: 22,
       commentCount: 5,
       shareCount: 3,
-      timestamp: new Date(Date.now() - 3 * 60 * 1000)
-    }
+      timestamp: new Date(Date.now() - 3 * 60 * 1000),
+    },
   ];
 
-  const result1 = await pipeline.processViewRecords('promoter_normal', 'campaign_001', normalViewRecords);
-  console.log(`Result: Alert Generated = ${result1.alertGenerated}, Action = ${result1.actionTaken}`);
+  const result1 = await pipeline.processViewRecords(
+    'promoter_normal',
+    'campaign_001',
+    normalViewRecords
+  );
+  console.log(
+    `Result: Alert Generated = ${result1.alertGenerated}, Action = ${result1.actionTaken}`
+  );
 
   // Example 2: Suspicious activity (should trigger warning)
   console.log(`\n=== Example 2: Suspicious Activity ===`);
@@ -189,7 +200,7 @@ export async function demonstrateBotDetectionAlerting(): Promise<void> {
       likeCount: 10,
       commentCount: 1,
       shareCount: 0,
-      timestamp: new Date(Date.now() - 8 * 60 * 1000)
+      timestamp: new Date(Date.now() - 8 * 60 * 1000),
     },
     {
       id: '4',
@@ -201,12 +212,18 @@ export async function demonstrateBotDetectionAlerting(): Promise<void> {
       likeCount: 15,
       commentCount: 1,
       shareCount: 0,
-      timestamp: new Date(Date.now() - 6 * 60 * 1000)
-    }
+      timestamp: new Date(Date.now() - 6 * 60 * 1000),
+    },
   ];
 
-  const result2 = await pipeline.processViewRecords('promoter_suspicious', 'campaign_002', suspiciousViewRecords);
-  console.log(`Result: Alert Generated = ${result2.alertGenerated}, Action = ${result2.actionTaken}`);
+  const result2 = await pipeline.processViewRecords(
+    'promoter_suspicious',
+    'campaign_002',
+    suspiciousViewRecords
+  );
+  console.log(
+    `Result: Alert Generated = ${result2.alertGenerated}, Action = ${result2.actionTaken}`
+  );
 
   // Example 3: Bot activity (should trigger ban)
   console.log(`\n=== Example 3: Bot Activity ===`);
@@ -221,7 +238,7 @@ export async function demonstrateBotDetectionAlerting(): Promise<void> {
       likeCount: 5,
       commentCount: 0,
       shareCount: 0,
-      timestamp: new Date(Date.now() - 10 * 60 * 1000)
+      timestamp: new Date(Date.now() - 10 * 60 * 1000),
     },
     {
       id: '6',
@@ -233,12 +250,18 @@ export async function demonstrateBotDetectionAlerting(): Promise<void> {
       likeCount: 8,
       commentCount: 0,
       shareCount: 0,
-      timestamp: new Date(Date.now() - 8 * 60 * 1000)
-    }
+      timestamp: new Date(Date.now() - 8 * 60 * 1000),
+    },
   ];
 
-  const result3 = await pipeline.processViewRecords('promoter_bot', 'campaign_003', botViewRecords);
-  console.log(`Result: Alert Generated = ${result3.alertGenerated}, Action = ${result3.actionTaken}`);
+  const result3 = await pipeline.processViewRecords(
+    'promoter_bot',
+    'campaign_003',
+    botViewRecords
+  );
+  console.log(
+    `Result: Alert Generated = ${result3.alertGenerated}, Action = ${result3.actionTaken}`
+  );
 
   // Example 4: Generate daily summary
   console.log(`\n=== Example 4: Daily Summary Report ===`);
@@ -261,9 +284,15 @@ export async function demonstrateBotDetectionAlerting(): Promise<void> {
   console.log(`   • analysis-YYYY-MM-DD.log - Bot analysis audit trail`);
   console.log(`   • notifications-YYYY-MM-DD.log - Notification delivery log`);
   console.log(`   • channel-email-YYYY-MM-DD.log - Email channel activity`);
-  console.log(`   • channel-dashboard-YYYY-MM-DD.log - Dashboard channel activity`);
-  console.log(`   • daily-summary-YYYY-MM-DD.json - Daily summary report (JSON)`);
-  console.log(`   • daily-summary-YYYY-MM-DD.html - Daily summary report (HTML)`);
+  console.log(
+    `   • channel-dashboard-YYYY-MM-DD.log - Dashboard channel activity`
+  );
+  console.log(
+    `   • daily-summary-YYYY-MM-DD.json - Daily summary report (JSON)`
+  );
+  console.log(
+    `   • daily-summary-YYYY-MM-DD.html - Daily summary report (HTML)`
+  );
 }
 
 /**
@@ -279,11 +308,11 @@ export async function demonstrateBatchAlerting(): Promise<void> {
   // Simulate processing large batches
   for (let batch = 0; batch < totalRecords / batchSize; batch++) {
     const batchRecords: ViewRecord[] = [];
-    
+
     for (let i = 0; i < batchSize; i++) {
       const recordId = batch * batchSize + i;
       const botScore = Math.random() * 100; // Random bot score for demo
-      
+
       batchRecords.push({
         id: `batch_${recordId}`,
         promoterId: `promoter_${recordId % 3}`, // 3 different promoters
@@ -294,14 +323,18 @@ export async function demonstrateBatchAlerting(): Promise<void> {
         likeCount: Math.floor(Math.random() * (botScore > 70 ? 10 : 100)) + 5, // Lower likes for higher bot scores
         commentCount: Math.floor(Math.random() * (botScore > 70 ? 2 : 20)) + 1, // Lower comments for higher bot scores
         shareCount: Math.floor(Math.random() * 5),
-        timestamp: new Date(Date.now() - Math.random() * 60 * 60 * 1000) // Random time within last hour
+        timestamp: new Date(Date.now() - Math.random() * 60 * 60 * 1000), // Random time within last hour
       });
     }
 
-    console.log(`📦 Processing batch ${batch + 1}/${totalRecords / batchSize} (${batchSize} records)`);
-    
+    console.log(
+      `📦 Processing batch ${batch + 1}/${totalRecords / batchSize} (${batchSize} records)`
+    );
+
     for (const record of batchRecords) {
-      await pipeline.processViewRecords(record.promoterId, record.campaignId, [record]);
+      await pipeline.processViewRecords(record.promoterId, record.campaignId, [
+        record,
+      ]);
     }
   }
 
@@ -309,7 +342,7 @@ export async function demonstrateBatchAlerting(): Promise<void> {
   console.log(`\n📊 Generating final batch processing summary...`);
   const summary = await pipeline.generateDailySummary();
   const stats = pipeline.getSystemStats();
-  
+
   console.log(`✅ Batch processing complete!`);
   console.log(`   Processed: ${totalRecords} records`);
   console.log(`   Total Analyses: ${summary.totalAnalyses}`);

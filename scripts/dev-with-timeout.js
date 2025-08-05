@@ -11,15 +11,21 @@ let startTime = Date.now();
 let warningShown = false;
 
 function showWarning() {
-  console.log('\n⚠️  WARNING: Development server has been running for 30+ seconds');
-  console.log('   This might indicate the server is stuck or taking too long to start.');
+  console.log(
+    '\n⚠️  WARNING: Development server has been running for 30+ seconds'
+  );
+  console.log(
+    '   This might indicate the server is stuck or taking too long to start.'
+  );
   console.log('   Press Ctrl+C to terminate if needed.\n');
 }
 
 function showMaxTimeout() {
-  console.log('\n❌ TIMEOUT: Development server exceeded maximum timeout (5 minutes)');
+  console.log(
+    '\n❌ TIMEOUT: Development server exceeded maximum timeout (5 minutes)'
+  );
   console.log('   Terminating process to prevent hanging...\n');
-  
+
   if (devProcess) {
     devProcess.kill('SIGTERM');
     setTimeout(() => {
@@ -33,16 +39,16 @@ function showMaxTimeout() {
 
 function startDevServer() {
   console.log('🚀 Starting development server with timeout monitoring...\n');
-  
+
   // Start the development server
   devProcess = spawn('turbo', ['run', 'dev'], {
     stdio: 'inherit',
     shell: true,
-    cwd: process.cwd()
+    cwd: process.cwd(),
   });
 
   // Handle process events
-  devProcess.on('error', (error) => {
+  devProcess.on('error', error => {
     console.error('❌ Failed to start development server:', error.message);
     process.exit(1);
   });
@@ -61,13 +67,13 @@ function startDevServer() {
   // Start timeout monitoring
   const timeoutInterval = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    
+
     // Show warning at 30 seconds
     if (elapsed >= DEV_TIMEOUT && !warningShown) {
       showWarning();
       warningShown = true;
     }
-    
+
     // Force terminate at 5 minutes
     if (elapsed >= MAX_TIMEOUT) {
       clearInterval(timeoutInterval);
@@ -77,9 +83,11 @@ function startDevServer() {
 
   // Handle Ctrl+C gracefully
   process.on('SIGINT', () => {
-    console.log('\n🛑 Received interrupt signal, stopping development server...');
+    console.log(
+      '\n🛑 Received interrupt signal, stopping development server...'
+    );
     clearInterval(timeoutInterval);
-    
+
     if (devProcess) {
       devProcess.kill('SIGTERM');
       setTimeout(() => {

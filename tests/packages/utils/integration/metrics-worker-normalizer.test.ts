@@ -19,8 +19,8 @@ describe('MetricsNormalizer', () => {
           views: 1000.7,
           likes: 100.3,
           comments: 10.9,
-          shares: 5.1
-        }
+          shares: 5.1,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -42,8 +42,8 @@ describe('MetricsNormalizer', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -66,8 +66,8 @@ describe('MetricsNormalizer', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -87,8 +87,8 @@ describe('MetricsNormalizer', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -107,8 +107,8 @@ describe('MetricsNormalizer', () => {
           views: 2000000000, // 2 billion - exceeds reasonable limit
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -129,8 +129,8 @@ describe('MetricsNormalizer', () => {
           views: 1000.7,
           likes: 100.3,
           comments: 10.9,
-          shares: 5.1
-        }
+          shares: 5.1,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -147,8 +147,8 @@ describe('MetricsNormalizer', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -164,12 +164,17 @@ describe('MetricsNormalizer', () => {
       const metricsList = [
         {
           platform: '  TIKTOK  ',
-          metrics: { views: 1000.7, likes: 100.3, comments: 10.9, shares: 5.1 }
+          metrics: { views: 1000.7, likes: 100.3, comments: 10.9, shares: 5.1 },
         },
         {
           platform: '  INSTAGRAM  ',
-          metrics: { views: 2000.2, likes: 200.8, comments: 20.1, shares: 10.9 }
-        }
+          metrics: {
+            views: 2000.2,
+            likes: 200.8,
+            comments: 20.1,
+            shares: 10.9,
+          },
+        },
       ];
 
       const results = await normalizer.normalizeMetricsBatch(metricsList);
@@ -191,8 +196,8 @@ describe('MetricsNormalizer', () => {
           views: 1000.7,
           likes: 100.3,
           comments: 10.9,
-          shares: 5.1
-        }
+          shares: 5.1,
+        },
       };
 
       const preview = await normalizer.previewNormalization(metrics);
@@ -200,7 +205,7 @@ describe('MetricsNormalizer', () => {
       expect(preview.original.platform).toBe('  TIKTOK  ');
       expect(preview.normalized.platform).toBe('tiktok');
       expect(preview.changes.length).toBeGreaterThan(0);
-      
+
       const platformChange = preview.changes.find(c => c.field === 'platform');
       expect(platformChange).toBeDefined();
       expect(platformChange?.originalValue).toBe('  TIKTOK  ');
@@ -214,7 +219,7 @@ describe('MetricsNormalizer', () => {
         name: 'custom_uppercase',
         field: 'customField',
         normalizer: (value: any) => String(value).toUpperCase(),
-        enabled: true
+        enabled: true,
       };
 
       normalizer.addCustomRule(customRule);
@@ -226,8 +231,8 @@ describe('MetricsNormalizer', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -245,8 +250,8 @@ describe('MetricsNormalizer', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
-        }
+          shares: 5,
+        },
       };
 
       const result = await normalizer.normalizeMetrics(metrics);
@@ -271,9 +276,15 @@ describe('MetricsNormalizer', () => {
       expect(MetricsNormalizer.normalizers.ensureInteger(10.7)).toBe(10);
       expect(MetricsNormalizer.normalizers.ensurePositive(-5)).toBe(0);
       expect(MetricsNormalizer.normalizers.capValue(100)(150)).toBe(100);
-      expect(MetricsNormalizer.normalizers.roundToDecimals(2)(10.567)).toBe(10.57);
-      expect(MetricsNormalizer.normalizers.ensureArray('single')).toEqual(['single']);
-      expect(MetricsNormalizer.normalizers.ensureArray(['already', 'array'])).toEqual(['already', 'array']);
+      expect(MetricsNormalizer.normalizers.roundToDecimals(2)(10.567)).toBe(
+        10.57
+      );
+      expect(MetricsNormalizer.normalizers.ensureArray('single')).toEqual([
+        'single',
+      ]);
+      expect(
+        MetricsNormalizer.normalizers.ensureArray(['already', 'array'])
+      ).toEqual(['already', 'array']);
     });
 
     it('should handle date normalization', () => {
@@ -281,15 +292,27 @@ describe('MetricsNormalizer', () => {
       const stringDate = '2023-01-01';
       const invalidDate = 'invalid';
 
-      expect(MetricsNormalizer.normalizers.ensureDate(validDate)).toEqual(validDate);
-      expect(MetricsNormalizer.normalizers.ensureDate(stringDate)).toEqual(new Date(stringDate));
-      expect(MetricsNormalizer.normalizers.ensureDate(invalidDate)).toBeInstanceOf(Date);
+      expect(MetricsNormalizer.normalizers.ensureDate(validDate)).toEqual(
+        validDate
+      );
+      expect(MetricsNormalizer.normalizers.ensureDate(stringDate)).toEqual(
+        new Date(stringDate)
+      );
+      expect(
+        MetricsNormalizer.normalizers.ensureDate(invalidDate)
+      ).toBeInstanceOf(Date);
     });
 
     it('should normalize URLs', () => {
-      expect(MetricsNormalizer.normalizers.normalizeUrl('example.com')).toBe('https://example.com');
-      expect(MetricsNormalizer.normalizers.normalizeUrl('http://example.com')).toBe('http://example.com');
-      expect(MetricsNormalizer.normalizers.normalizeUrl('https://example.com')).toBe('https://example.com');
+      expect(MetricsNormalizer.normalizers.normalizeUrl('example.com')).toBe(
+        'https://example.com'
+      );
+      expect(
+        MetricsNormalizer.normalizers.normalizeUrl('http://example.com')
+      ).toBe('http://example.com');
+      expect(
+        MetricsNormalizer.normalizers.normalizeUrl('https://example.com')
+      ).toBe('https://example.com');
     });
   });
 });

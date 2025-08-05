@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@repo/ui', '@repo/config', '@repo/database', '@repo/cache'],
+  transpilePackages: [
+    '@repo/ui',
+    '@repo/config',
+    '@repo/database',
+    '@repo/cache',
+  ],
   experimental: {
     turbo: {
       rules: {
@@ -14,6 +19,6 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

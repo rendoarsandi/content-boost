@@ -9,15 +9,17 @@ interface CampaignStatusActionsProps {
   currentStatus: string;
 }
 
-export function CampaignStatusActions({ 
-  campaignId, 
-  currentStatus 
+export function CampaignStatusActions({
+  campaignId,
+  currentStatus,
 }: CampaignStatusActionsProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleStatusUpdate = async (newStatus: 'active' | 'paused' | 'completed') => {
+  const handleStatusUpdate = async (
+    newStatus: 'active' | 'paused' | 'completed'
+  ) => {
     setIsLoading(true);
     setError(null);
 
@@ -48,17 +50,42 @@ export function CampaignStatusActions({
     switch (currentStatus) {
       case 'draft':
         return [
-          { action: 'active', label: 'Launch Campaign', variant: 'default' as const, color: 'bg-green-600 hover:bg-green-700' }
+          {
+            action: 'active',
+            label: 'Launch Campaign',
+            variant: 'default' as const,
+            color: 'bg-green-600 hover:bg-green-700',
+          },
         ];
       case 'active':
         return [
-          { action: 'paused', label: 'Pause Campaign', variant: 'outline' as const, color: 'border-yellow-300 text-yellow-600 hover:bg-yellow-50' },
-          { action: 'completed', label: 'Complete Campaign', variant: 'outline' as const, color: 'border-blue-300 text-blue-600 hover:bg-blue-50' }
+          {
+            action: 'paused',
+            label: 'Pause Campaign',
+            variant: 'outline' as const,
+            color: 'border-yellow-300 text-yellow-600 hover:bg-yellow-50',
+          },
+          {
+            action: 'completed',
+            label: 'Complete Campaign',
+            variant: 'outline' as const,
+            color: 'border-blue-300 text-blue-600 hover:bg-blue-50',
+          },
         ];
       case 'paused':
         return [
-          { action: 'active', label: 'Resume Campaign', variant: 'default' as const, color: 'bg-green-600 hover:bg-green-700' },
-          { action: 'completed', label: 'Complete Campaign', variant: 'outline' as const, color: 'border-blue-300 text-blue-600 hover:bg-blue-50' }
+          {
+            action: 'active',
+            label: 'Resume Campaign',
+            variant: 'default' as const,
+            color: 'bg-green-600 hover:bg-green-700',
+          },
+          {
+            action: 'completed',
+            label: 'Complete Campaign',
+            variant: 'outline' as const,
+            color: 'border-blue-300 text-blue-600 hover:bg-blue-50',
+          },
         ];
       default:
         return [];
@@ -80,7 +107,7 @@ export function CampaignStatusActions({
           </AlertDescription>
         </Alert>
       )}
-      
+
       <div className="flex space-x-2">
         {availableActions.map(({ action, label, variant, color }) => (
           <Button

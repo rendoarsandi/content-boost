@@ -15,7 +15,7 @@ export default defineConfig({
       'tests/apps/**',
       'tests/packages/utils/integration/**',
       'tests/packages/utils/performance/**',
-      '**/*.spec.ts'
+      '**/*.spec.ts',
     ],
     alias: {
       '@repo/ui': path.resolve(__dirname, 'packages/ui/src'),

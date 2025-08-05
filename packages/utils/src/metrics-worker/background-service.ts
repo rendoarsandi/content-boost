@@ -6,14 +6,14 @@ import { MetricsCronScheduler } from './cron-scheduler';
 import { MetricsDataPipeline } from './data-pipeline';
 import { MetricsValidator } from './validator';
 import { MetricsNormalizer } from './normalizer';
-import { 
+import {
   MetricsCollectionConfig,
   WorkerStatus,
   SchedulerStatus,
   MetricsCollectionStats,
   CronJobConfig,
   CronJobResult,
-  ProcessedMetrics
+  ProcessedMetrics,
 } from './types';
 import { DEFAULT_COLLECTION_CONFIG } from './constants';
 
@@ -61,14 +61,14 @@ export class MetricsBackgroundService {
   ) {
     this.cache = cache;
     this.apiManager = apiManager;
-    
+
     this.config = {
       ...DEFAULT_COLLECTION_CONFIG,
       enableCronJobs: true,
       enableHealthChecks: true,
       logLevel: 'info',
       gracefulShutdownTimeout: 30000, // 30 seconds
-      ...config
+      ...config,
     };
 
     this.initializeComponents();
@@ -105,7 +105,6 @@ export class MetricsBackgroundService {
         const status = await this.getStatus();
         this.log('debug', 'Initial service status:', status);
       }
-
     } catch (error) {
       this.log('error', 'Failed to start background service:', error);
       this.isRunning = false;
@@ -136,7 +135,6 @@ export class MetricsBackgroundService {
       this.log('info', 'Scheduler stopped');
 
       this.log('info', 'Metrics background service stopped successfully');
-
     } catch (error) {
       this.log('error', 'Error during service shutdown:', error);
       throw error;
@@ -173,18 +171,23 @@ export class MetricsBackgroundService {
     return {
       isRunning: this.isRunning,
       startTime: this.startTime,
-      uptime: this.startTime ? Date.now() - this.startTime.getTime() : undefined,
+      uptime: this.startTime
+        ? Date.now() - this.startTime.getTime()
+        : undefined,
       components: {
         worker: workerStatus,
         scheduler: schedulerStatus,
-        cronJobs
+        cronJobs,
       },
       stats,
-      health
+      health,
     };
   }
 
-  async checkHealth(): Promise<{ overall: 'healthy' | 'degraded' | 'unhealthy'; issues: string[] }> {
+  async checkHealth(): Promise<{
+    overall: 'healthy' | 'degraded' | 'unhealthy';
+    issues: string[];
+  }> {
     const issues: string[] = [];
 
     try {
@@ -215,9 +218,10 @@ export class MetricsBackgroundService {
 
       // Check API manager health
       const apiHealth = await this.apiManager.healthCheck();
-      const unhealthyClients = Object.entries(apiHealth)
-        .filter(([_, isHealthy]) => !isHealthy);
-      
+      const unhealthyClients = Object.entries(apiHealth).filter(
+        ([_, isHealthy]) => !isHealthy
+      );
+
       if (unhealthyClients.length > 0) {
         issues.push(`${unhealthyClients.length} API clients are unhealthy`);
       }
@@ -240,12 +244,11 @@ export class MetricsBackgroundService {
       }
 
       return { overall, issues };
-
     } catch (error) {
       this.log('error', 'Health check failed:', error);
       return {
         overall: 'unhealthy',
-        issues: ['Health check failed', ...(issues.length > 0 ? issues : [])]
+        issues: ['Health check failed', ...(issues.length > 0 ? issues : [])],
       };
     }
   }
@@ -261,7 +264,13 @@ export class MetricsBackgroundService {
       maxRetries?: number;
     }
   ): Promise<string> {
-    return await this.worker.scheduleCollection(userId, platform, postId, campaignId, options);
+    return await this.worker.scheduleCollection(
+      userId,
+      platform,
+      postId,
+      campaignId,
+      options
+    );
   }
 
   async collectMetricsNow(
@@ -270,7 +279,12 @@ export class MetricsBackgroundService {
     postId: string,
     campaignId: string
   ): Promise<ProcessedMetrics | null> {
-    const result = await this.worker.collectMetricsNow(userId, platform, postId, campaignId);
+    const result = await this.worker.collectMetricsNow(
+      userId,
+      platform,
+      postId,
+      campaignId
+    );
     return result.success ? result.metrics || null : null;
   }
 
@@ -290,12 +304,17 @@ export class MetricsBackgroundService {
     return await this.worker.resumeJob(jobId);
   }
 
-  async updateJobPriority(jobId: string, priority: 'low' | 'medium' | 'high'): Promise<boolean> {
+  async updateJobPriority(
+    jobId: string,
+    priority: 'low' | 'medium' | 'high'
+  ): Promise<boolean> {
     return await this.worker.updateJobPriority(jobId, priority);
   }
 
   // Cron job management
-  async addCronJob(config: Omit<CronJobConfig, 'runCount' | 'errorCount'>): Promise<void> {
+  async addCronJob(
+    config: Omit<CronJobConfig, 'runCount' | 'errorCount'>
+  ): Promise<void> {
     return await this.cronScheduler.addCronJob(config);
   }
 
@@ -316,11 +335,21 @@ export class MetricsBackgroundService {
   }
 
   // Data pipeline access
-  async processMetrics(rawMetrics: any, originalApiResponse?: any): Promise<ProcessedMetrics> {
-    return await this.dataPipeline.processMetrics(rawMetrics, originalApiResponse);
+  async processMetrics(
+    rawMetrics: any,
+    originalApiResponse?: any
+  ): Promise<ProcessedMetrics> {
+    return await this.dataPipeline.processMetrics(
+      rawMetrics,
+      originalApiResponse
+    );
   }
 
-  async getCachedMetrics(userId: string, campaignId: string, postId: string): Promise<ProcessedMetrics | null> {
+  async getCachedMetrics(
+    userId: string,
+    campaignId: string,
+    postId: string
+  ): Promise<ProcessedMetrics | null> {
     return await this.dataPipeline.getCachedMetrics(userId, campaignId, postId);
   }
 
@@ -341,16 +370,29 @@ export class MetricsBackgroundService {
   private initializeComponents(): void {
     this.validator = new MetricsValidator();
     this.normalizer = new MetricsNormalizer();
-    this.dataPipeline = new MetricsDataPipeline(this.cache, undefined, this.validator, this.normalizer);
+    this.dataPipeline = new MetricsDataPipeline(
+      this.cache,
+      undefined,
+      this.validator,
+      this.normalizer
+    );
     this.scheduler = new MetricsCollectionScheduler(this.cache, this.config);
-    this.worker = new MetricsCollectionWorker(this.cache, this.apiManager, this.config);
-    this.cronScheduler = new MetricsCronScheduler(this.cache, this.worker, this.scheduler);
+    this.worker = new MetricsCollectionWorker(
+      this.cache,
+      this.apiManager,
+      this.config
+    );
+    this.cronScheduler = new MetricsCronScheduler(
+      this.cache,
+      this.worker,
+      this.scheduler
+    );
   }
 
   private setupShutdownHandlers(): void {
     // Handle process termination signals
     const signals = ['SIGTERM', 'SIGINT', 'SIGUSR2'];
-    
+
     signals.forEach(signal => {
       process.on(signal, async () => {
         this.log('info', `Received ${signal}, initiating graceful shutdown...`);
@@ -360,7 +402,7 @@ export class MetricsBackgroundService {
     });
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', async (error) => {
+    process.on('uncaughtException', async error => {
       this.log('error', 'Uncaught exception:', error);
       await this.gracefulShutdown();
       process.exit(1);
@@ -374,7 +416,11 @@ export class MetricsBackgroundService {
     });
   }
 
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    ...args: any[]
+  ): void {
     const levels = { debug: 0, info: 1, warn: 2, error: 3 };
     const configLevel = levels[this.config.logLevel];
     const messageLevel = levels[level];
@@ -382,7 +428,7 @@ export class MetricsBackgroundService {
     if (messageLevel >= configLevel) {
       const timestamp = new Date().toISOString();
       const prefix = `[${timestamp}] [${level.toUpperCase()}] [MetricsBackgroundService]`;
-      
+
       switch (level) {
         case 'debug':
           console.debug(prefix, message, ...args);

@@ -33,16 +33,16 @@ export default function PerformancePanel() {
   const [metrics, setMetrics] = useState<PerformanceMetric[]>([]);
   const [timeRange, setTimeRange] = useState('1h');
   const [service, setService] = useState('all');
-  
+
   useEffect(() => {
     // In a real app, this would fetch from an API
     // For now, we'll simulate with mock data
     fetchPerformanceData();
   }, [timeRange, service]);
-  
+
   const fetchPerformanceData = () => {
     setIsLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       setMetrics([
@@ -85,7 +85,7 @@ export default function PerformancePanel() {
       setIsLoading(false);
     }, 1000);
   };
-  
+
   return (
     <Card>
       <CardHeader>
@@ -93,13 +93,10 @@ export default function PerformancePanel() {
         <CardDescription>
           Monitor API performance and resource usage
         </CardDescription>
-        
+
         <div className="flex flex-wrap gap-4 mt-4">
           <div className="w-48">
-            <Select
-              value={service}
-              onValueChange={setService}
-            >
+            <Select value={service} onValueChange={setService}>
               <SelectTrigger>
                 <SelectValue placeholder="Select service" />
               </SelectTrigger>
@@ -112,12 +109,9 @@ export default function PerformancePanel() {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="w-48">
-            <Select
-              value={timeRange}
-              onValueChange={setTimeRange}
-            >
+            <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger>
                 <SelectValue placeholder="Time range" />
               </SelectTrigger>
@@ -132,7 +126,7 @@ export default function PerformancePanel() {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         <Tabs defaultValue="endpoints">
           <TabsList className="grid w-full grid-cols-3">
@@ -140,7 +134,7 @@ export default function PerformancePanel() {
             <TabsTrigger value="resources">Resource Usage</TabsTrigger>
             <TabsTrigger value="database">Database</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="endpoints" className="mt-4">
             {isLoading ? (
               <div className="flex justify-center py-8">
@@ -159,13 +153,23 @@ export default function PerformancePanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {metrics.map((metric) => (
+                    {metrics.map(metric => (
                       <tr key={metric.endpoint} className="border-t">
-                        <td className="px-4 py-3 font-medium">{metric.endpoint}</td>
-                        <td className="px-4 py-3 text-right">{metric.avgResponseTime}ms</td>
-                        <td className="px-4 py-3 text-right">{metric.p95ResponseTime}ms</td>
-                        <td className="px-4 py-3 text-right">{metric.requestsPerMinute}</td>
-                        <td className="px-4 py-3 text-right">{metric.errorRate}%</td>
+                        <td className="px-4 py-3 font-medium">
+                          {metric.endpoint}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {metric.avgResponseTime}ms
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {metric.p95ResponseTime}ms
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {metric.requestsPerMinute}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {metric.errorRate}%
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -173,13 +177,13 @@ export default function PerformancePanel() {
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="resources" className="mt-4">
             <div className="text-center py-8 text-gray-500">
               Resource usage metrics will be displayed here
             </div>
           </TabsContent>
-          
+
           <TabsContent value="database" className="mt-4">
             <div className="text-center py-8 text-gray-500">
               Database performance metrics will be displayed here
@@ -187,7 +191,7 @@ export default function PerformancePanel() {
           </TabsContent>
         </Tabs>
       </CardContent>
-      
+
       <CardFooter>
         <Button onClick={fetchPerformanceData} disabled={isLoading}>
           {isLoading ? 'Refreshing...' : 'Refresh Metrics'}

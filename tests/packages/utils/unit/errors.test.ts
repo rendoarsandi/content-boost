@@ -17,7 +17,7 @@ import {
   isOperationalError,
   formatErrorForLogging,
   createErrorResponse,
-  retryWithBackoff
+  retryWithBackoff,
 } from '@repo/utils/errors';
 
 describe('Error Handling Utilities', () => {
@@ -41,7 +41,11 @@ describe('Error Handling Utilities', () => {
     });
 
     it('should convert to JSON correctly', () => {
-      const error = new AppError('Test error', ErrorCodes.VALIDATION_FAILED, 400);
+      const error = new AppError(
+        'Test error',
+        ErrorCodes.VALIDATION_FAILED,
+        400
+      );
       const json = error.toJSON();
 
       expect(json.name).toBe('AppError');
@@ -145,7 +149,9 @@ describe('Error Handling Utilities', () => {
       const error = ErrorFactory.botDetected(promoterId, campaignId, botScore);
 
       expect(error).toBeInstanceOf(BotDetectionError);
-      expect(error.message).toBe(`Bot activity detected with confidence ${botScore}%`);
+      expect(error.message).toBe(
+        `Bot activity detected with confidence ${botScore}%`
+      );
       expect(error.code).toBe(ErrorCodes.BOT_DETECTED);
       expect(error.details).toEqual({ promoterId, campaignId, botScore });
     });
@@ -166,7 +172,9 @@ describe('Error Handling Utilities', () => {
       const error = ErrorFactory.validationFailed(errors);
 
       expect(error).toBeInstanceOf(ValidationError);
-      expect(error.message).toBe('Validation failed: Field is required, Invalid format');
+      expect(error.message).toBe(
+        'Validation failed: Field is required, Invalid format'
+      );
       expect(error.details).toEqual({ errors });
     });
   });
@@ -191,7 +199,7 @@ describe('Error Handling Utilities', () => {
         message: 'Regular error',
         code: ErrorCodes.INTERNAL_SERVER_ERROR,
         statusCode: 500,
-        isOperational: false
+        isOperational: false,
       });
     });
 
@@ -207,12 +215,22 @@ describe('Error Handling Utilities', () => {
 
   describe('isOperationalError', () => {
     it('should return true for AppError with isOperational=true', () => {
-      const error = new AppError('Test', ErrorCodes.VALIDATION_FAILED, 400, true);
+      const error = new AppError(
+        'Test',
+        ErrorCodes.VALIDATION_FAILED,
+        400,
+        true
+      );
       expect(isOperationalError(error)).toBe(true);
     });
 
     it('should return false for AppError with isOperational=false', () => {
-      const error = new AppError('Test', ErrorCodes.INTERNAL_SERVER_ERROR, 500, false);
+      const error = new AppError(
+        'Test',
+        ErrorCodes.INTERNAL_SERVER_ERROR,
+        500,
+        false
+      );
       expect(isOperationalError(error)).toBe(false);
     });
 
@@ -224,7 +242,13 @@ describe('Error Handling Utilities', () => {
 
   describe('formatErrorForLogging', () => {
     it('should format AppError correctly', () => {
-      const error = new AppError('Test error', ErrorCodes.VALIDATION_FAILED, 400, true, { extra: 'data' });
+      const error = new AppError(
+        'Test error',
+        ErrorCodes.VALIDATION_FAILED,
+        400,
+        true,
+        { extra: 'data' }
+      );
       const formatted = formatErrorForLogging(error);
 
       expect(formatted.message).toBe('Test error');
@@ -249,7 +273,13 @@ describe('Error Handling Utilities', () => {
 
   describe('createErrorResponse', () => {
     it('should create response for AppError', () => {
-      const error = new AppError('Test error', ErrorCodes.VALIDATION_FAILED, 400, true, { field: 'email' });
+      const error = new AppError(
+        'Test error',
+        ErrorCodes.VALIDATION_FAILED,
+        400,
+        true,
+        { field: 'email' }
+      );
       const response = createErrorResponse(error);
 
       expect(response.statusCode).toBe(400);
@@ -273,47 +303,54 @@ describe('Error Handling Utilities', () => {
   describe('retryWithBackoff', () => {
     it('should succeed on first attempt', async () => {
       const operation = vi.fn().mockResolvedValue('success');
-      
+
       const result = await retryWithBackoff(operation);
-      
+
       expect(result).toBe('success');
       expect(operation).toHaveBeenCalledTimes(1);
     });
 
     it('should retry on retryable errors', async () => {
-      const operation = vi.fn()
-        .mockRejectedValueOnce(new AppError('Rate limit', ErrorCodes.SOCIAL_API_RATE_LIMIT))
+      const operation = vi
+        .fn()
+        .mockRejectedValueOnce(
+          new AppError('Rate limit', ErrorCodes.SOCIAL_API_RATE_LIMIT)
+        )
         .mockResolvedValue('success');
-      
+
       const result = await retryWithBackoff(operation, 3, 100);
-      
+
       expect(result).toBe('success');
       expect(operation).toHaveBeenCalledTimes(2);
     });
 
     it('should not retry non-retryable errors', async () => {
-      const operation = vi.fn()
+      const operation = vi
+        .fn()
         .mockRejectedValue(new ValidationError('Invalid input'));
-      
-      await expect(retryWithBackoff(operation, 3, 100)).rejects.toBeInstanceOf(ValidationError);
+
+      await expect(retryWithBackoff(operation, 3, 100)).rejects.toBeInstanceOf(
+        ValidationError
+      );
       expect(operation).toHaveBeenCalledTimes(1);
     });
 
     it('should exhaust retries and throw last error', async () => {
       const error = new AppError('Timeout', ErrorCodes.SOCIAL_API_TIMEOUT);
       const operation = vi.fn().mockRejectedValue(error);
-      
+
       await expect(retryWithBackoff(operation, 2, 100)).rejects.toBe(error);
       expect(operation).toHaveBeenCalledTimes(2);
     });
 
     it('should retry regular errors', async () => {
-      const operation = vi.fn()
+      const operation = vi
+        .fn()
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValue('success');
-      
+
       const result = await retryWithBackoff(operation, 3, 100);
-      
+
       expect(result).toBe('success');
       expect(operation).toHaveBeenCalledTimes(2);
     });

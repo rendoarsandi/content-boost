@@ -35,18 +35,24 @@ interface AlertsPanelProps {
   onResolve: (alertId: string) => void;
 }
 
-export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPanelProps) {
+export default function AlertsPanel({
+  alerts,
+  isLoading,
+  onResolve,
+}: AlertsPanelProps) {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [showResolved, setShowResolved] = useState(false);
-  
-  const filteredAlerts = alerts.filter((alert) => {
+
+  const filteredAlerts = alerts.filter(alert => {
     if (!showResolved && alert.resolved) return false;
-    if (categoryFilter !== 'all' && alert.category !== categoryFilter) return false;
-    if (severityFilter !== 'all' && alert.severity !== severityFilter) return false;
+    if (categoryFilter !== 'all' && alert.category !== categoryFilter)
+      return false;
+    if (severityFilter !== 'all' && alert.severity !== severityFilter)
+      return false;
     return true;
   });
-  
+
   const getSeverityColor = (severity: AlertSeverity) => {
     switch (severity) {
       case AlertSeverity.CRITICAL:
@@ -61,7 +67,7 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
         return 'bg-gray-500 text-white';
     }
   };
-  
+
   const getCategoryLabel = (category: AlertCategory) => {
     switch (category) {
       case AlertCategory.BOT_DETECTION:
@@ -80,7 +86,7 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
         return category;
     }
   };
-  
+
   return (
     <Card>
       <CardHeader>
@@ -88,19 +94,18 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
         <CardDescription>
           Monitor and manage system alerts across all services
         </CardDescription>
-        
+
         <div className="flex flex-wrap gap-4 mt-4">
           <div className="w-48">
-            <Select
-              value={categoryFilter}
-              onValueChange={setCategoryFilter}
-            >
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value={AlertCategory.BOT_DETECTION}>Bot Detection</SelectItem>
+                <SelectItem value={AlertCategory.BOT_DETECTION}>
+                  Bot Detection
+                </SelectItem>
                 <SelectItem value={AlertCategory.PAYMENT}>Payment</SelectItem>
                 <SelectItem value={AlertCategory.API}>API</SelectItem>
                 <SelectItem value={AlertCategory.DATABASE}>Database</SelectItem>
@@ -109,12 +114,9 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="w-48">
-            <Select
-              value={severityFilter}
-              onValueChange={setSeverityFilter}
-            >
+            <Select value={severityFilter} onValueChange={setSeverityFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by severity" />
               </SelectTrigger>
@@ -127,7 +129,7 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
               </SelectContent>
             </Select>
           </div>
-          
+
           <Button
             variant="outline"
             onClick={() => setShowResolved(!showResolved)}
@@ -136,7 +138,7 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center py-8">
@@ -148,11 +150,8 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredAlerts.map((alert) => (
-              <div
-                key={alert.id}
-                className="border rounded-lg p-4 relative"
-              >
+            {filteredAlerts.map(alert => (
+              <div key={alert.id} className="border rounded-lg p-4 relative">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge className={getSeverityColor(alert.severity)}>
@@ -171,9 +170,9 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
                     {new Date(alert.timestamp).toLocaleString()}
                   </div>
                 </div>
-                
+
                 <div className="mt-2 text-lg font-medium">{alert.message}</div>
-                
+
                 {alert.details && (
                   <div className="mt-2 text-sm text-gray-600">
                     <pre className="whitespace-pre-wrap bg-gray-50 p-2 rounded">
@@ -181,18 +180,15 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
                     </pre>
                   </div>
                 )}
-                
+
                 {!alert.resolved && (
                   <div className="mt-4 flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={() => onResolve(alert.id)}
-                    >
+                    <Button size="sm" onClick={() => onResolve(alert.id)}>
                       Resolve Alert
                     </Button>
                   </div>
                 )}
-                
+
                 {alert.resolved && alert.resolvedAt && (
                   <div className="mt-2 text-sm text-gray-500">
                     Resolved at: {new Date(alert.resolvedAt).toLocaleString()}
@@ -203,7 +199,7 @@ export default function AlertsPanel({ alerts, isLoading, onResolve }: AlertsPane
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter className="flex justify-between">
         <div className="text-sm text-gray-500">
           Showing {filteredAlerts.length} of {alerts.length} alerts

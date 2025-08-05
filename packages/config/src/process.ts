@@ -70,7 +70,7 @@ export class ProcessManager {
       } = options;
 
       console.log(`🚀 Running: ${command} ${args.join(' ')}`);
-      
+
       const child = spawn(command, args, {
         cwd,
         env: { ...process.env, ...env },
@@ -84,8 +84,10 @@ export class ProcessManager {
       const warningTimeout = setTimeout(() => {
         if (!isResolved && showWarning && !warningShown) {
           warningShown = true;
-          console.warn(`⚠️  Process running longer than expected (${timeoutMs / 1000}s)`);
-          
+          console.warn(
+            `⚠️  Process running longer than expected (${timeoutMs / 1000}s)`
+          );
+
           if (allowContinue) {
             console.log('Press Ctrl+C to terminate or let it continue...');
           }
@@ -95,17 +97,19 @@ export class ProcessManager {
       // Kill timeout (if not allowing continue)
       const killTimeout = setTimeout(() => {
         if (!isResolved && !allowContinue) {
-          console.error(`❌ Process timed out after ${timeoutMs / 1000}s, terminating...`);
+          console.error(
+            `❌ Process timed out after ${timeoutMs / 1000}s, terminating...`
+          );
           child.kill(killSignal);
         }
       }, timeoutMs * 2);
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         if (!isResolved) {
           isResolved = true;
           clearTimeout(warningTimeout);
           clearTimeout(killTimeout);
-          
+
           if (code === 0) {
             console.log('✅ Process completed successfully');
             resolve({} as T);
@@ -115,7 +119,7 @@ export class ProcessManager {
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         if (!isResolved) {
           isResolved = true;
           clearTimeout(warningTimeout);
@@ -153,28 +157,32 @@ export class ProcessManager {
 
     const startProcess = () => {
       console.log(`🔄 Starting background process: ${id}`);
-      
+
       const child = spawn(command, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
         detached: false,
       });
 
       // Log output to file
-      const logStream = require('fs').createWriteStream(logPath, { flags: 'a' });
+      const logStream = require('fs').createWriteStream(logPath, {
+        flags: 'a',
+      });
       child.stdout?.pipe(logStream);
       child.stderr?.pipe(logStream);
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         console.log(`📝 Background process ${id} exited with code ${code}`);
-        
+
         if (autoRestart && restartCount < maxRestarts && code !== 0) {
           restartCount++;
-          console.log(`🔄 Restarting ${id} (attempt ${restartCount}/${maxRestarts})`);
+          console.log(
+            `🔄 Restarting ${id} (attempt ${restartCount}/${maxRestarts})`
+          );
           setTimeout(startProcess, 5000); // Wait 5 seconds before restart
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         console.error(`❌ Background process ${id} error:`, error);
       });
 

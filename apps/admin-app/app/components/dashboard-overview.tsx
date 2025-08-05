@@ -1,8 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@repo/ui';
-import { Users, Megaphone, Shield, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@repo/ui';
+import {
+  Users,
+  Megaphone,
+  Shield,
+  DollarSign,
+  TrendingUp,
+  AlertTriangle,
+} from 'lucide-react';
 
 interface DashboardStats {
   totalUsers: number;

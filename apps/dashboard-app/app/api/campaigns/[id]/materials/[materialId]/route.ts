@@ -15,14 +15,14 @@ export async function GET(
 ) {
   try {
     const { id: campaignId, materialId } = await params;
-    
+
     return NextResponse.json({
       materialId,
       campaignId,
       type: 'IMAGE',
       title: 'Sample Material',
       url: 'https://example.com/sample.jpg',
-      description: 'Sample material description'
+      description: 'Sample material description',
     });
   } catch (error) {
     console.error('Error fetching material:', error);
@@ -47,7 +47,7 @@ export async function PUT(
       materialId,
       campaignId,
       ...validatedData,
-      message: 'Material updated successfully'
+      message: 'Material updated successfully',
     });
   } catch (error) {
     console.error('Error updating material:', error);
@@ -69,7 +69,7 @@ export async function DELETE(
     return NextResponse.json({
       materialId,
       campaignId,
-      message: 'Material deleted successfully'
+      message: 'Material deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting material:', error);

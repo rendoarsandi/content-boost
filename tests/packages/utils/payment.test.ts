@@ -37,34 +37,53 @@ describe('Payment Processing Workflow', () => {
   };
 
   it('should process a successful payment', async () => {
-    mockProcessPayment.mockResolvedValue({ status: 'completed', transactionId: 'txn-123' });
+    mockProcessPayment.mockResolvedValue({
+      status: 'completed',
+      transactionId: 'txn-123',
+    });
 
     const processor = createPaymentProcessor(null);
     const notifier = createPaymentNotificationSystem();
     const history = createPaymentHistoryManager();
 
     await processor.processPayment(paymentRequest);
-    await history.recordPayment({ ...paymentRequest, status: 'completed', gatewayTransactionId: 'txn-123', processedAt: new Date() });
+    await history.recordPayment({
+      ...paymentRequest,
+      status: 'completed',
+      gatewayTransactionId: 'txn-123',
+      processedAt: new Date(),
+    });
     await notifier.sendNotification({}); // Simplified for test
 
     expect(mockProcessPayment).toHaveBeenCalledWith(paymentRequest);
-    expect(mockRecordPayment).toHaveBeenCalledWith(expect.objectContaining({ status: 'completed' }));
+    expect(mockRecordPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'completed' })
+    );
     expect(mockSendNotification).toHaveBeenCalled();
   });
 
   it('should handle a failed payment', async () => {
-    mockProcessPayment.mockResolvedValue({ status: 'failed', error: 'Insufficient funds' });
+    mockProcessPayment.mockResolvedValue({
+      status: 'failed',
+      error: 'Insufficient funds',
+    });
 
     const processor = createPaymentProcessor(null);
     const notifier = createPaymentNotificationSystem();
     const history = createPaymentHistoryManager();
 
     await processor.processPayment(paymentRequest);
-    await history.recordPayment({ ...paymentRequest, status: 'failed', processedAt: new Date() });
+    await history.recordPayment({
+      ...paymentRequest,
+      status: 'failed',
+      processedAt: new Date(),
+    });
     await notifier.sendNotification({}); // Simplified for test
 
     expect(mockProcessPayment).toHaveBeenCalledWith(paymentRequest);
-    expect(mockRecordPayment).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
+    expect(mockRecordPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'failed' })
+    );
     expect(mockSendNotification).toHaveBeenCalled();
   });
 });

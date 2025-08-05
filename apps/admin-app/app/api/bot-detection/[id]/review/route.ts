@@ -10,17 +10,14 @@ export async function POST(
     const { action } = await request.json();
 
     if (!['approve', 'dismiss'].includes(action)) {
-      return NextResponse.json(
-        { message: 'Invalid action' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Invalid action' }, { status: 400 });
     }
 
     // TODO: Implement bot detection review functionality
     // This is a stub implementation until ViewRecord model is added to Prisma schema
-    
-    return NextResponse.json({ 
-      message: `Detection ${action === 'approve' ? 'approved' : 'dismissed'} successfully` 
+
+    return NextResponse.json({
+      message: `Detection ${action === 'approve' ? 'approved' : 'dismissed'} successfully`,
     });
   } catch (error) {
     console.error('Review detection error:', error);

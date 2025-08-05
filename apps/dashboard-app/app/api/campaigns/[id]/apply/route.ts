@@ -7,15 +7,25 @@ import { auth } from '@repo/auth/server-only';
 import { ApplicationService, ApplicationValidationSchema } from '@repo/utils';
 
 const EnhancedApplicationSchema = z.object({
-  submittedContent: z.string().min(10, 'Content description must be at least 10 characters').optional(),
+  submittedContent: z
+    .string()
+    .min(10, 'Content description must be at least 10 characters')
+    .optional(),
   message: z.string().max(500, 'Message too long').optional(),
-  proposedContent: z.object({
-    platform: z.enum(['tiktok', 'instagram']),
-    contentType: z.enum(['video', 'image', 'story', 'reel']),
-    description: z.string().min(20, 'Content description must be at least 20 characters'),
-    hashtags: z.array(z.string()).max(30, 'Maximum 30 hashtags allowed').optional(),
-    estimatedReach: z.number().positive().optional(),
-  }).optional(),
+  proposedContent: z
+    .object({
+      platform: z.enum(['tiktok', 'instagram']),
+      contentType: z.enum(['video', 'image', 'story', 'reel']),
+      description: z
+        .string()
+        .min(20, 'Content description must be at least 20 characters'),
+      hashtags: z
+        .array(z.string())
+        .max(30, 'Maximum 30 hashtags allowed')
+        .optional(),
+      estimatedReach: z.number().positive().optional(),
+    })
+    .optional(),
 });
 
 // POST /api/campaigns/[id]/apply - Apply to a campaign
@@ -25,12 +35,9 @@ export async function POST(
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only promoters can apply to campaigns
@@ -47,7 +54,7 @@ export async function POST(
 
     // Check if campaign exists and is active
     const campaign = await db.campaign.findFirst({
-      where: { id: campaignId }
+      where: { id: campaignId },
     });
 
     if (!campaign) {
@@ -58,11 +65,11 @@ export async function POST(
     }
 
     // Check if promoter has already applied (using promotions as applications)
-    const existingApplication = await db.promotion.findFirst({
+    const existingApplication = await db.campaignApplication.findFirst({
       where: {
         campaignId: campaignId,
-        promoterId: (session.user as any).id
-      }
+        promoterId: (session.user as any).id,
+      },
     });
 
     // Validate application eligibility
@@ -71,9 +78,9 @@ export async function POST(
       {
         status: 'active', // Default status since Campaign model doesn't have status
         startDate: campaign.createdAt, // Use createdAt as startDate
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // Default 30 days from now
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default 30 days from now
       },
-      existingApplication ? { status: 'approved' } : null // Map promotion to application with status
+      existingApplication ? { status: 'APPROVED' } : null // Map promotion to application with status
     );
 
     if (!eligibilityCheck.valid) {
@@ -94,36 +101,39 @@ export async function POST(
     const mockPromoterProfile = {
       socialAccounts: [
         { platform: 'tiktok', verified: true },
-        { platform: 'instagram', verified: true }
+        { platform: 'instagram', verified: true },
       ],
       followerCount: 5000,
-      engagementRate: 3.5
+      engagementRate: 3.5,
     };
 
-    const requirementValidation = ApplicationService.validatePromoterRequirements(
-      [], // Empty requirements since Campaign model doesn't have requirements field
-      mockPromoterProfile
-    );
+    const requirementValidation =
+      ApplicationService.validatePromoterRequirements(
+        [], // Empty requirements since Campaign model doesn't have requirements field
+        mockPromoterProfile
+      );
 
     if (!requirementValidation.valid) {
       return NextResponse.json(
-        { 
+        {
           error: 'You do not meet the campaign requirements',
-          missingRequirements: requirementValidation.missingRequirements
+          missingRequirements: requirementValidation.missingRequirements,
         },
         { status: 400 }
       );
     }
 
     // Generate enhanced tracking link with metadata
-    const trackingMetadata = validatedData.proposedContent ? {
-      platform: validatedData.proposedContent.platform,
-      contentType: validatedData.proposedContent.contentType,
-      expectedReach: validatedData.proposedContent.estimatedReach
-    } : undefined;
+    const trackingMetadata = validatedData.proposedContent
+      ? {
+          platform: validatedData.proposedContent.platform,
+          contentType: validatedData.proposedContent.contentType,
+          expectedReach: validatedData.proposedContent.estimatedReach,
+        }
+      : undefined;
 
     const trackingLink = ApplicationService.generateEnhancedTrackingLink(
-      campaignId, 
+      campaignId,
       session.user.id,
       trackingMetadata
     );
@@ -135,16 +145,16 @@ export async function POST(
         followerCount: mockPromoterProfile.followerCount,
         engagementRate: mockPromoterProfile.engagementRate,
         previousCampaigns: 0, // Would come from database
-        successRate: 0 // Would come from database
+        successRate: 0, // Would come from database
       },
-      campaignRequirements: [] // Campaign model doesn't have requirements field
+      campaignRequirements: [], // Campaign model doesn't have requirements field
     });
 
     // Create application with enhanced data
     const applicationData = {
       campaignId,
       promoterId: session.user.id,
-      status: 'pending' as const,
+      status: 'PENDING' as const,
       submittedContent: validatedData.submittedContent,
       trackingLink,
       appliedAt: new Date(),
@@ -153,19 +163,21 @@ export async function POST(
         proposedContent: validatedData.proposedContent,
         applicationScore: applicationScore.score,
         scoreBreakdown: applicationScore.breakdown,
-        message: validatedData.message
-      }
+        message: validatedData.message,
+      },
     };
 
     // Create new promotion (using promotion as application)
-    const newApplication = await db.promotion.create({
+    const newApplication = await db.campaignApplication.create({
       data: {
         campaignId: campaignId,
         promoterId: (session.user as any).id,
-        contentUrl: typeof validatedData.proposedContent === 'string' ? validatedData.proposedContent : JSON.stringify(validatedData.proposedContent || ''), // Convert to string
-        views: 0,
-        earnings: 0
-      }
+        submittedContent:
+          typeof validatedData.proposedContent === 'string'
+            ? validatedData.proposedContent
+            : JSON.stringify(validatedData.proposedContent || ''), // Convert to string
+        trackingLink: `https://track.example.com/${campaignId}/${(session.user as any).id}/${Date.now()}`,
+      },
     });
 
     // Get campaign details with creator info for response and notification
@@ -176,10 +188,10 @@ export async function POST(
           select: {
             id: true,
             name: true,
-            email: true
-          }
-        }
-      }
+            email: true,
+          },
+        },
+      },
     });
 
     // Get promoter info separately
@@ -188,17 +200,17 @@ export async function POST(
       select: {
         id: true,
         name: true,
-        email: true
-      }
+        email: true,
+      },
     });
 
     // Generate notification for creator
     const notification = ApplicationService.generateComprehensiveNotification(
       'application_submitted',
       {
-        campaignTitle: campaign.name, // Campaign.name not title
+        campaignTitle: campaign.title, // Campaign.name not title
         promoterName: session.user.name || 'Unknown Promoter',
-        creatorName: campaignWithCreator?.creator.name || 'Unknown Creator'
+        creatorName: campaignWithCreator?.creator.name || 'Unknown Creator',
       }
     );
 
@@ -207,7 +219,7 @@ export async function POST(
       recipientId: campaign.creatorId,
       title: notification.title,
       message: notification.message,
-      type: 'application_submitted'
+      type: 'application_submitted',
     });
 
     // Prepare response with enhanced information
@@ -215,31 +227,32 @@ export async function POST(
       application: {
         ...newApplication,
         score: applicationScore.score,
-        recommendations: applicationScore.recommendations
+        recommendations: applicationScore.recommendations,
       },
       campaign: {
         id: campaign.id,
-        title: campaign.name, // Campaign.name not title
+        title: campaign.title, // Campaign.name not title
         description: 'No description available', // Campaign model doesn't have description
-        ratePerView: 1000 // Default rate per view
+        ratePerView: 1000, // Default rate per view
       },
       creator: campaignWithCreator?.creator,
-      message: 'Application submitted successfully. You will be notified when the creator reviews your application.',
+      message:
+        'Application submitted successfully. You will be notified when the creator reviews your application.',
       nextSteps: [
         'Wait for creator review (typically within 24-48 hours)',
         'If approved, you will receive access to campaign materials',
         'Use your tracking link when promoting the content',
-        'Monitor your performance in the dashboard'
-      ]
+        'Monitor your performance in the dashboard',
+      ],
     };
 
     return NextResponse.json(responseData, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation error',
-          details: error.issues
+          details: error.issues,
         },
         { status: 400 }
       );
@@ -260,21 +273,18 @@ export async function GET(
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id: campaignId } = await params;
 
     // Get application if exists (using promotion as application)
-    const application = await db.promotion.findFirst({
+    const application = await db.campaignApplication.findFirst({
       where: {
         campaignId: campaignId,
-        promoterId: session.user.id
+        promoterId: session.user.id,
       },
       include: {
         campaign: {
@@ -282,12 +292,12 @@ export async function GET(
             creator: {
               select: {
                 id: true,
-                name: true
-              }
-            }
-          }
-        }
-      }
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!application) {
@@ -297,12 +307,12 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       application: {
         application: application,
         campaign: application.campaign,
-        creator: application.campaign.creator
-      }
+        creator: application.campaign.creator,
+      },
     });
   } catch (error) {
     console.error('Error fetching application:', error);

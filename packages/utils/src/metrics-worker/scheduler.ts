@@ -1,9 +1,9 @@
 import { RedisCache } from '@repo/cache';
-import { 
-  MetricsCollectionJob, 
-  CollectionSchedule, 
+import {
+  MetricsCollectionJob,
+  CollectionSchedule,
   SchedulerStatus,
-  MetricsCollectionConfig 
+  MetricsCollectionConfig,
 } from './types';
 import { DEFAULT_COLLECTION_CONFIG, JOB_PRIORITIES } from './constants';
 
@@ -18,7 +18,7 @@ export class MetricsCollectionScheduler {
     totalScheduled: 0,
     totalProcessed: 0,
     totalFailed: 0,
-    startTime: new Date()
+    startTime: new Date(),
   };
 
   constructor(cache: RedisCache, config?: Partial<MetricsCollectionConfig>) {
@@ -34,19 +34,21 @@ export class MetricsCollectionScheduler {
 
     this.isRunning = true;
     this.stats.startTime = new Date();
-    
+
     console.log('Starting metrics collection scheduler...');
-    
+
     // Load existing jobs from cache
     await this.loadJobsFromCache();
-    
+
     // Start the scheduler loop
     this.schedulerInterval = setInterval(
       () => this.processScheduledJobs(),
       this.config.collectionInterval
     );
 
-    console.log(`Scheduler started with ${this.config.collectionInterval}ms interval`);
+    console.log(
+      `Scheduler started with ${this.config.collectionInterval}ms interval`
+    );
   }
 
   async stop(): Promise<void> {
@@ -56,9 +58,9 @@ export class MetricsCollectionScheduler {
     }
 
     console.log('Stopping metrics collection scheduler...');
-    
+
     this.isRunning = false;
-    
+
     if (this.schedulerInterval) {
       clearInterval(this.schedulerInterval);
       this.schedulerInterval = undefined;
@@ -71,27 +73,36 @@ export class MetricsCollectionScheduler {
 
     // Save jobs to cache
     await this.saveJobsToCache();
-    
+
     console.log('Scheduler stopped');
   }
 
-  async scheduleJob(job: Omit<MetricsCollectionJob, 'id' | 'nextCollectionTime'>): Promise<string> {
-    const jobId = this.generateJobId(job.userId, job.platform, job.postId, job.campaignId);
-    
+  async scheduleJob(
+    job: Omit<MetricsCollectionJob, 'id' | 'nextCollectionTime'>
+  ): Promise<string> {
+    const jobId = this.generateJobId(
+      job.userId,
+      job.platform,
+      job.postId,
+      job.campaignId
+    );
+
     const fullJob: MetricsCollectionJob = {
       ...job,
       id: jobId,
-      nextCollectionTime: this.calculateNextCollectionTime(job.priority)
+      nextCollectionTime: this.calculateNextCollectionTime(job.priority),
     };
 
     this.jobQueue.set(jobId, fullJob);
     this.stats.totalScheduled++;
-    
+
     // Save to cache for persistence
     await this.saveJobToCache(fullJob);
-    
-    console.log(`Scheduled job ${jobId} for ${fullJob.nextCollectionTime.toISOString()}`);
-    
+
+    console.log(
+      `Scheduled job ${jobId} for ${fullJob.nextCollectionTime.toISOString()}`
+    );
+
     return jobId;
   }
 
@@ -103,30 +114,35 @@ export class MetricsCollectionScheduler {
 
     this.jobQueue.delete(jobId);
     this.processingQueue.delete(jobId);
-    
+
     // Remove from cache
     await this.removeJobFromCache(jobId);
-    
+
     console.log(`Unscheduled job ${jobId}`);
     return true;
   }
 
-  async updateJob(jobId: string, updates: Partial<MetricsCollectionJob>): Promise<boolean> {
+  async updateJob(
+    jobId: string,
+    updates: Partial<MetricsCollectionJob>
+  ): Promise<boolean> {
     const job = this.jobQueue.get(jobId);
     if (!job) {
       return false;
     }
 
     const updatedJob = { ...job, ...updates };
-    
+
     // Recalculate next collection time if priority changed
     if (updates.priority && updates.priority !== job.priority) {
-      updatedJob.nextCollectionTime = this.calculateNextCollectionTime(updates.priority);
+      updatedJob.nextCollectionTime = this.calculateNextCollectionTime(
+        updates.priority
+      );
     }
 
     this.jobQueue.set(jobId, updatedJob);
     await this.saveJobToCache(updatedJob);
-    
+
     return true;
   }
 
@@ -139,54 +155,69 @@ export class MetricsCollectionScheduler {
   }
 
   async getJobsByUser(userId: string): Promise<MetricsCollectionJob[]> {
-    return Array.from(this.jobQueue.values()).filter(job => job.userId === userId);
+    return Array.from(this.jobQueue.values()).filter(
+      job => job.userId === userId
+    );
   }
 
   async getJobsByCampaign(campaignId: string): Promise<MetricsCollectionJob[]> {
-    return Array.from(this.jobQueue.values()).filter(job => job.campaignId === campaignId);
+    return Array.from(this.jobQueue.values()).filter(
+      job => job.campaignId === campaignId
+    );
   }
 
   async getScheduledJobs(limit: number = 10): Promise<CollectionSchedule[]> {
     const now = new Date();
-    
+
     return Array.from(this.jobQueue.values())
       .filter(job => job.isActive && job.nextCollectionTime > now)
-      .sort((a, b) => a.nextCollectionTime.getTime() - b.nextCollectionTime.getTime())
+      .sort(
+        (a, b) =>
+          a.nextCollectionTime.getTime() - b.nextCollectionTime.getTime()
+      )
       .slice(0, limit)
       .map(job => ({
         jobId: job.id,
         scheduledTime: job.nextCollectionTime,
         priority: job.priority,
-        estimatedDuration: this.estimateJobDuration(job)
+        estimatedDuration: this.estimateJobDuration(job),
       }));
   }
 
   async getDueJobs(): Promise<MetricsCollectionJob[]> {
     const now = new Date();
-    
+
     return Array.from(this.jobQueue.values())
-      .filter(job => 
-        job.isActive && 
-        job.nextCollectionTime <= now &&
-        !this.processingQueue.has(job.id)
+      .filter(
+        job =>
+          job.isActive &&
+          job.nextCollectionTime <= now &&
+          !this.processingQueue.has(job.id)
       )
-      .sort((a, b) => this.getPriorityWeight(a.priority) - this.getPriorityWeight(b.priority));
+      .sort(
+        (a, b) =>
+          this.getPriorityWeight(a.priority) -
+          this.getPriorityWeight(b.priority)
+      );
   }
 
   async getStatus(): Promise<SchedulerStatus> {
     const dueJobs = await this.getDueJobs();
     const scheduledJobs = await this.getScheduledJobs(1);
-    
+
     const totalJobs = this.jobQueue.size;
     const processingTime = Date.now() - this.stats.startTime.getTime();
-    const processingRate = processingTime > 0 ? (this.stats.totalProcessed / (processingTime / 60000)) : 0;
-    
+    const processingRate =
+      processingTime > 0
+        ? this.stats.totalProcessed / (processingTime / 60000)
+        : 0;
+
     return {
       isRunning: this.isRunning,
       nextScheduledJob: scheduledJobs[0],
       queueSize: totalJobs,
       processingRate,
-      averageWaitTime: this.calculateAverageWaitTime()
+      averageWaitTime: this.calculateAverageWaitTime(),
     };
   }
 
@@ -195,30 +226,29 @@ export class MetricsCollectionScheduler {
 
     try {
       const dueJobs = await this.getDueJobs();
-      
+
       if (dueJobs.length === 0) {
         return;
       }
 
       console.log(`Processing ${dueJobs.length} due jobs`);
-      
+
       // Process jobs in batches to respect concurrency limits
       const batchSize = Math.min(
         this.config.maxConcurrentJobs - this.processingQueue.size,
         this.config.batchSize
       );
-      
+
       const jobsToProcess = dueJobs.slice(0, batchSize);
-      
+
       for (const job of jobsToProcess) {
         this.processingQueue.add(job.id);
-        
+
         // Process job asynchronously
         this.processJob(job).finally(() => {
           this.processingQueue.delete(job.id);
         });
       }
-      
     } catch (error) {
       console.error('Error processing scheduled jobs:', error);
     }
@@ -226,45 +256,49 @@ export class MetricsCollectionScheduler {
 
   private async processJob(job: MetricsCollectionJob): Promise<void> {
     try {
-      console.log(`Processing job ${job.id} for user ${job.userId}, post ${job.postId}`);
-      
+      console.log(
+        `Processing job ${job.id} for user ${job.userId}, post ${job.postId}`
+      );
+
       // Update job status
       job.lastCollected = new Date();
       job.nextCollectionTime = this.calculateNextCollectionTime(job.priority);
-      
+
       // Save updated job
       await this.saveJobToCache(job);
-      
+
       this.stats.totalProcessed++;
-      
     } catch (error) {
       console.error(`Job ${job.id} processing failed:`, error);
-      
+
       // Handle retry logic
       job.retryCount++;
-      
+
       if (job.retryCount >= job.maxRetries) {
         console.error(`Job ${job.id} exceeded max retries, deactivating`);
         job.isActive = false;
       } else {
         // Schedule retry with exponential backoff
         const retryDelay = Math.min(
-          this.config.retryConfig.baseDelay * Math.pow(this.config.retryConfig.backoffFactor, job.retryCount),
+          this.config.retryConfig.baseDelay *
+            Math.pow(this.config.retryConfig.backoffFactor, job.retryCount),
           this.config.retryConfig.maxDelay
         );
-        
+
         job.nextCollectionTime = new Date(Date.now() + retryDelay);
         console.log(`Job ${job.id} scheduled for retry in ${retryDelay}ms`);
       }
-      
+
       await this.saveJobToCache(job);
       this.stats.totalFailed++;
     }
   }
 
-  private calculateNextCollectionTime(priority: 'low' | 'medium' | 'high'): Date {
+  private calculateNextCollectionTime(
+    priority: 'low' | 'medium' | 'high'
+  ): Date {
     let interval = this.config.collectionInterval;
-    
+
     // Adjust interval based on priority
     switch (priority) {
       case 'high':
@@ -277,16 +311,20 @@ export class MetricsCollectionScheduler {
         interval = interval * 2; // Less frequent for low priority
         break;
     }
-    
+
     return new Date(Date.now() + interval);
   }
 
   private getPriorityWeight(priority: 'low' | 'medium' | 'high'): number {
     switch (priority) {
-      case 'high': return 1;
-      case 'medium': return 2;
-      case 'low': return 3;
-      default: return 2;
+      case 'high':
+        return 1;
+      case 'medium':
+        return 2;
+      case 'low':
+        return 3;
+      default:
+        return 2;
     }
   }
 
@@ -299,26 +337,34 @@ export class MetricsCollectionScheduler {
     // Calculate based on queue size and processing rate
     const queueSize = this.jobQueue.size;
     const processingTime = Date.now() - this.stats.startTime.getTime();
-    const processingRate = processingTime > 0 ? (this.stats.totalProcessed / (processingTime / 1000)) : 0;
-    
+    const processingRate =
+      processingTime > 0
+        ? this.stats.totalProcessed / (processingTime / 1000)
+        : 0;
+
     return processingRate > 0 ? (queueSize / processingRate) * 1000 : 0;
   }
 
-  private generateJobId(userId: string, platform: string, postId: string, campaignId: string): string {
+  private generateJobId(
+    userId: string,
+    platform: string,
+    postId: string,
+    campaignId: string
+  ): string {
     return `${userId}:${platform}:${postId}:${campaignId}`;
   }
 
   private async loadJobsFromCache(): Promise<void> {
     try {
       const jobKeys = await this.cache.keys('metrics_job:*');
-      
+
       for (const key of jobKeys) {
         const job = await this.cache.get<MetricsCollectionJob>(key);
         if (job) {
           this.jobQueue.set(job.id, job);
         }
       }
-      
+
       console.log(`Loaded ${this.jobQueue.size} jobs from cache`);
     } catch (error) {
       console.error('Failed to load jobs from cache:', error);

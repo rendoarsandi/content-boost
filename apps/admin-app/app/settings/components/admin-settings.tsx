@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
   CardTitle,
   Input,
   Label,
@@ -149,7 +149,9 @@ export default function AdminSettings() {
               id="platform-fee"
               type="number"
               value={settings.platformFeeRate}
-              onChange={(e) => updateSettings('platformFeeRate', parseFloat(e.target.value))}
+              onChange={e =>
+                updateSettings('platformFeeRate', parseFloat(e.target.value))
+              }
               min="0"
               max="100"
               step="0.1"
@@ -170,7 +172,9 @@ export default function AdminSettings() {
           <div className="flex items-center space-x-2">
             <Switch
               checked={settings.botDetectionEnabled}
-              onCheckedChange={(checked) => updateSettings('botDetectionEnabled', checked)}
+              onCheckedChange={checked =>
+                updateSettings('botDetectionEnabled', checked)
+              }
             />
             <Label>Enable Bot Detection</Label>
           </div>
@@ -182,18 +186,30 @@ export default function AdminSettings() {
                 id="view-like-ratio"
                 type="number"
                 value={settings.botDetectionThresholds.viewLikeRatio}
-                onChange={(e) => updateSettings('botDetectionThresholds.viewLikeRatio', parseFloat(e.target.value))}
+                onChange={e =>
+                  updateSettings(
+                    'botDetectionThresholds.viewLikeRatio',
+                    parseFloat(e.target.value)
+                  )
+                }
                 min="1"
                 step="0.1"
               />
             </div>
             <div>
-              <Label htmlFor="view-comment-ratio">View:Comment Ratio Threshold</Label>
+              <Label htmlFor="view-comment-ratio">
+                View:Comment Ratio Threshold
+              </Label>
               <Input
                 id="view-comment-ratio"
                 type="number"
                 value={settings.botDetectionThresholds.viewCommentRatio}
-                onChange={(e) => updateSettings('botDetectionThresholds.viewCommentRatio', parseFloat(e.target.value))}
+                onChange={e =>
+                  updateSettings(
+                    'botDetectionThresholds.viewCommentRatio',
+                    parseFloat(e.target.value)
+                  )
+                }
                 min="1"
                 step="0.1"
               />
@@ -204,7 +220,12 @@ export default function AdminSettings() {
                 id="spike-percentage"
                 type="number"
                 value={settings.botDetectionThresholds.spikePercentage}
-                onChange={(e) => updateSettings('botDetectionThresholds.spikePercentage', parseFloat(e.target.value))}
+                onChange={e =>
+                  updateSettings(
+                    'botDetectionThresholds.spikePercentage',
+                    parseFloat(e.target.value)
+                  )
+                }
                 min="100"
                 step="10"
               />
@@ -215,7 +236,12 @@ export default function AdminSettings() {
                 id="spike-time"
                 type="number"
                 value={settings.botDetectionThresholds.spikeTimeWindow}
-                onChange={(e) => updateSettings('botDetectionThresholds.spikeTimeWindow', parseInt(e.target.value))}
+                onChange={e =>
+                  updateSettings(
+                    'botDetectionThresholds.spikeTimeWindow',
+                    parseInt(e.target.value)
+                  )
+                }
                 min="1"
               />
             </div>
@@ -228,7 +254,12 @@ export default function AdminSettings() {
                 id="ban-confidence"
                 type="number"
                 value={settings.botDetectionConfidence.ban}
-                onChange={(e) => updateSettings('botDetectionConfidence.ban', parseInt(e.target.value))}
+                onChange={e =>
+                  updateSettings(
+                    'botDetectionConfidence.ban',
+                    parseInt(e.target.value)
+                  )
+                }
                 min="50"
                 max="100"
               />
@@ -239,7 +270,12 @@ export default function AdminSettings() {
                 id="warning-confidence"
                 type="number"
                 value={settings.botDetectionConfidence.warning}
-                onChange={(e) => updateSettings('botDetectionConfidence.warning', parseInt(e.target.value))}
+                onChange={e =>
+                  updateSettings(
+                    'botDetectionConfidence.warning',
+                    parseInt(e.target.value)
+                  )
+                }
                 min="20"
                 max="90"
               />
@@ -250,7 +286,12 @@ export default function AdminSettings() {
                 id="monitor-confidence"
                 type="number"
                 value={settings.botDetectionConfidence.monitor}
-                onChange={(e) => updateSettings('botDetectionConfidence.monitor', parseInt(e.target.value))}
+                onChange={e =>
+                  updateSettings(
+                    'botDetectionConfidence.monitor',
+                    parseInt(e.target.value)
+                  )
+                }
                 min="10"
                 max="50"
               />
@@ -271,7 +312,12 @@ export default function AdminSettings() {
               id="minimum-payout"
               type="number"
               value={settings.payoutSettings.minimumPayout}
-              onChange={(e) => updateSettings('payoutSettings.minimumPayout', parseFloat(e.target.value))}
+              onChange={e =>
+                updateSettings(
+                  'payoutSettings.minimumPayout',
+                  parseFloat(e.target.value)
+                )
+              }
               min="0"
               step="1000"
             />
@@ -281,14 +327,18 @@ export default function AdminSettings() {
             <Input
               id="payout-schedule"
               value={settings.payoutSettings.payoutSchedule}
-              onChange={(e) => updateSettings('payoutSettings.payoutSchedule', e.target.value)}
+              onChange={e =>
+                updateSettings('payoutSettings.payoutSchedule', e.target.value)
+              }
               placeholder="e.g., Daily at 00:00 WIB"
             />
           </div>
           <div className="flex items-center space-x-2">
             <Switch
               checked={settings.payoutSettings.autoProcessPayouts}
-              onCheckedChange={(checked) => updateSettings('payoutSettings.autoProcessPayouts', checked)}
+              onCheckedChange={checked =>
+                updateSettings('payoutSettings.autoProcessPayouts', checked)
+              }
             />
             <Label>Auto Process Payouts</Label>
           </div>
@@ -304,7 +354,9 @@ export default function AdminSettings() {
           <div className="flex items-center space-x-2">
             <Switch
               checked={settings.systemMaintenance.maintenanceMode}
-              onCheckedChange={(checked) => updateSettings('systemMaintenance.maintenanceMode', checked)}
+              onCheckedChange={checked =>
+                updateSettings('systemMaintenance.maintenanceMode', checked)
+              }
             />
             <Label>Maintenance Mode</Label>
           </div>
@@ -313,7 +365,12 @@ export default function AdminSettings() {
             <Textarea
               id="maintenance-message"
               value={settings.systemMaintenance.maintenanceMessage}
-              onChange={(e) => updateSettings('systemMaintenance.maintenanceMessage', e.target.value)}
+              onChange={e =>
+                updateSettings(
+                  'systemMaintenance.maintenanceMessage',
+                  e.target.value
+                )
+              }
               placeholder="Message to display during maintenance"
               rows={3}
             />
@@ -323,18 +380,11 @@ export default function AdminSettings() {
 
       {/* Save Button */}
       <div className="flex justify-end space-x-4">
-        <Button
-          variant="outline"
-          onClick={fetchSettings}
-          disabled={loading}
-        >
+        <Button variant="outline" onClick={fetchSettings} disabled={loading}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Reset
         </Button>
-        <Button
-          onClick={handleSaveSettings}
-          disabled={saving}
-        >
+        <Button onClick={handleSaveSettings} disabled={saving}>
           <Save className="w-4 h-4 mr-2" />
           {saving ? 'Saving...' : 'Save Settings'}
         </Button>

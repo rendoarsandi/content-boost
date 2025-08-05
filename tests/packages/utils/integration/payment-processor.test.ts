@@ -1,11 +1,11 @@
-import { 
-  PaymentProcessor, 
-  MockPaymentGateway, 
-  createPaymentProcessor, 
+import {
+  PaymentProcessor,
+  MockPaymentGateway,
+  createPaymentProcessor,
   createMockPaymentGateway,
   PaymentRequest,
   PaymentResponse,
-  PaymentNotification
+  PaymentNotification,
 } from '../src/payment-processor';
 
 // Helper function to generate test UUIDs
@@ -78,16 +78,18 @@ describe('MockPaymentGateway', () => {
 
       // Act - Run multiple times to catch random failures
       const responses = await Promise.all(
-        Array.from({ length: 20 }, () => gateway.processPayment({
-          ...request,
-          id: `payment-${Math.random()}`,
-        }))
+        Array.from({ length: 20 }, () =>
+          gateway.processPayment({
+            ...request,
+            id: `payment-${Math.random()}`,
+          })
+        )
       );
 
       // Assert - Should have some failures due to 10% failure rate
       const failedResponses = responses.filter(r => r.status === 'failed');
       expect(failedResponses.length).toBeGreaterThan(0);
-      
+
       failedResponses.forEach(response => {
         expect(response.failureReason).toBeDefined();
         expect(response.transactionId).toBeUndefined();
@@ -114,7 +116,9 @@ describe('MockPaymentGateway', () => {
       const initialResponse = await gateway.processPayment(request);
 
       // Act
-      const statusResponse = await gateway.checkPaymentStatus(initialResponse.paymentId);
+      const statusResponse = await gateway.checkPaymentStatus(
+        initialResponse.paymentId
+      );
 
       // Assert
       expect(statusResponse).toBeDefined();
@@ -124,7 +128,9 @@ describe('MockPaymentGateway', () => {
 
     it('should throw error for non-existent payment', async () => {
       // Act & Assert
-      await expect(gateway.checkPaymentStatus('non-existent')).rejects.toThrow('Payment not found');
+      await expect(gateway.checkPaymentStatus('non-existent')).rejects.toThrow(
+        'Payment not found'
+      );
     });
   });
 
@@ -147,7 +153,9 @@ describe('MockPaymentGateway', () => {
       const initialResponse = await gateway.processPayment(request);
 
       // Act
-      const cancelResponse = await gateway.cancelPayment(initialResponse.paymentId);
+      const cancelResponse = await gateway.cancelPayment(
+        initialResponse.paymentId
+      );
 
       // Assert
       expect(cancelResponse.status).toBe('cancelled');
@@ -339,7 +347,8 @@ describe('PaymentProcessor', () => {
       };
 
       // Mock first attempt failure, second attempt success
-      jest.spyOn(mockGateway, 'processPayment')
+      jest
+        .spyOn(mockGateway, 'processPayment')
         .mockRejectedValueOnce(new Error('Network timeout'))
         .mockResolvedValueOnce({
           id: request.id,
@@ -377,7 +386,8 @@ describe('PaymentProcessor', () => {
       };
 
       // Mock all attempts failing
-      jest.spyOn(mockGateway, 'processPayment')
+      jest
+        .spyOn(mockGateway, 'processPayment')
         .mockRejectedValue(new Error('Payment gateway error'));
 
       // Act
@@ -430,16 +440,18 @@ describe('PaymentProcessor', () => {
       }));
 
       // Mock successful processing for all
-      jest.spyOn(mockGateway, 'processPayment').mockImplementation(async (req) => ({
-        id: req.id,
-        paymentId: `mock_${req.id}`,
-        status: 'completed',
-        amount: req.amount,
-        currency: req.currency,
-        transactionId: `TXN_${req.id}`,
-        processedAt: new Date(),
-        completedAt: new Date(),
-      }));
+      jest
+        .spyOn(mockGateway, 'processPayment')
+        .mockImplementation(async req => ({
+          id: req.id,
+          paymentId: `mock_${req.id}`,
+          status: 'completed',
+          amount: req.amount,
+          currency: req.currency,
+          transactionId: `TXN_${req.id}`,
+          processedAt: new Date(),
+          completedAt: new Date(),
+        }));
 
       // Act
       const responses = await processor.processBatchPayments(
@@ -482,22 +494,24 @@ describe('PaymentProcessor', () => {
       ];
 
       // Mock mixed results
-      jest.spyOn(mockGateway, 'processPayment').mockImplementation(async (req) => {
-        if (req.id === 'batch-success') {
-          return {
-            id: req.id,
-            paymentId: `mock_${req.id}`,
-            status: 'completed',
-            amount: req.amount,
-            currency: req.currency,
-            transactionId: `TXN_${req.id}`,
-            processedAt: new Date(),
-            completedAt: new Date(),
-          };
-        } else {
-          throw new Error('Payment failed');
-        }
-      });
+      jest
+        .spyOn(mockGateway, 'processPayment')
+        .mockImplementation(async req => {
+          if (req.id === 'batch-success') {
+            return {
+              id: req.id,
+              paymentId: `mock_${req.id}`,
+              status: 'completed',
+              amount: req.amount,
+              currency: req.currency,
+              transactionId: `TXN_${req.id}`,
+              processedAt: new Date(),
+              completedAt: new Date(),
+            };
+          } else {
+            throw new Error('Payment failed');
+          }
+        });
 
       // Act
       const responses = await processor.processBatchPayments(requests);
@@ -511,28 +525,37 @@ describe('PaymentProcessor', () => {
 
     it('should prevent concurrent batch processing', async () => {
       // Arrange
-      const requests: PaymentRequest[] = [{
-        id: 'concurrent-test',
-        payoutId: 'payout-concurrent',
-        promoterId: 'promoter-concurrent',
-        amount: 10000,
-        currency: 'IDR',
-        description: 'Concurrent test',
-        recipientInfo: { name: 'Concurrent User' },
-        createdAt: new Date(),
-      }];
+      const requests: PaymentRequest[] = [
+        {
+          id: 'concurrent-test',
+          payoutId: 'payout-concurrent',
+          promoterId: 'promoter-concurrent',
+          amount: 10000,
+          currency: 'IDR',
+          description: 'Concurrent test',
+          recipientInfo: { name: 'Concurrent User' },
+          createdAt: new Date(),
+        },
+      ];
 
       // Mock slow processing
       jest.spyOn(mockGateway, 'processPayment').mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve({
-          id: 'concurrent-test',
-          paymentId: 'mock_concurrent',
-          status: 'completed',
-          amount: 10000,
-          currency: 'IDR',
-          processedAt: new Date(),
-          completedAt: new Date(),
-        }), 100))
+        () =>
+          new Promise(resolve =>
+            setTimeout(
+              () =>
+                resolve({
+                  id: 'concurrent-test',
+                  paymentId: 'mock_concurrent',
+                  status: 'completed',
+                  amount: 10000,
+                  currency: 'IDR',
+                  processedAt: new Date(),
+                  completedAt: new Date(),
+                }),
+              100
+            )
+          )
       );
 
       // Act
@@ -540,7 +563,9 @@ describe('PaymentProcessor', () => {
       const promise2 = processor.processBatchPayments(requests);
 
       // Assert
-      await expect(promise2).rejects.toThrow('Batch payment processing is already in progress');
+      await expect(promise2).rejects.toThrow(
+        'Batch payment processing is already in progress'
+      );
       await promise1; // Wait for first to complete
     });
   });
@@ -617,7 +642,9 @@ describe('PaymentProcessor', () => {
         },
       ];
 
-      jest.spyOn(mockGateway, 'getTransactionHistory').mockResolvedValue(mockHistory);
+      jest
+        .spyOn(mockGateway, 'getTransactionHistory')
+        .mockResolvedValue(mockHistory);
 
       // Act
       const history = await processor.getTransactionHistory({

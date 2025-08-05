@@ -3,7 +3,12 @@ import { z } from 'zod';
 
 // Asumsi: Skema Zod didefinisikan di sini atau diimpor dari @repo/utils/validation
 const EmailSchema = z.string().email();
-const PasswordSchema = z.string().min(8).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/);
+const PasswordSchema = z
+  .string()
+  .min(8)
+  .regex(/[A-Z]/)
+  .regex(/[a-z]/)
+  .regex(/[0-9]/);
 const URLSchema = z.string().url();
 const UUIDSchema = z.string().uuid();
 const PlatformSchema = z.enum(['tiktok', 'instagram']);
@@ -11,11 +16,14 @@ const UserRoleSchema = z.enum(['creator', 'promoter', 'admin']);
 
 // Wrapper functions for simple validation
 const validateEmail = (email: string) => EmailSchema.safeParse(email).success;
-const validatePassword = (password: string) => PasswordSchema.safeParse(password).success;
+const validatePassword = (password: string) =>
+  PasswordSchema.safeParse(password).success;
 const validateURL = (url: string) => URLSchema.safeParse(url).success;
 const validateUUID = (uuid: string) => UUIDSchema.safeParse(uuid).success;
-const validatePlatform = (platform: string) => PlatformSchema.safeParse(platform).success;
-const validateUserRole = (role: string) => UserRoleSchema.safeParse(role).success;
+const validatePlatform = (platform: string) =>
+  PlatformSchema.safeParse(platform).success;
+const validateUserRole = (role: string) =>
+  UserRoleSchema.safeParse(role).success;
 
 describe('Validation Utilities', () => {
   describe('Basic validation functions', () => {
@@ -71,26 +79,26 @@ describe('Validation Utilities', () => {
     });
 
     describe('validatePlatform', () => {
-        it('should validate correct platforms', () => {
-            expect(validatePlatform('tiktok')).toBe(true);
-            expect(validatePlatform('instagram')).toBe(true);
-        });
+      it('should validate correct platforms', () => {
+        expect(validatePlatform('tiktok')).toBe(true);
+        expect(validatePlatform('instagram')).toBe(true);
+      });
 
-        it('should reject invalid platforms', () => {
-            expect(validatePlatform('youtube')).toBe(false);
-        });
+      it('should reject invalid platforms', () => {
+        expect(validatePlatform('youtube')).toBe(false);
+      });
     });
 
     describe('validateUserRole', () => {
-        it('should validate correct user roles', () => {
-            expect(validateUserRole('creator')).toBe(true);
-            expect(validateUserRole('promoter')).toBe(true);
-            expect(validateUserRole('admin')).toBe(true);
-        });
+      it('should validate correct user roles', () => {
+        expect(validateUserRole('creator')).toBe(true);
+        expect(validateUserRole('promoter')).toBe(true);
+        expect(validateUserRole('admin')).toBe(true);
+      });
 
-        it('should reject invalid user roles', () => {
-            expect(validateUserRole('user')).toBe(false);
-        });
+      it('should reject invalid user roles', () => {
+        expect(validateUserRole('user')).toBe(false);
+      });
     });
   });
 });

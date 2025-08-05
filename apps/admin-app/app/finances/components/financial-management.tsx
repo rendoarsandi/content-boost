@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
   CardTitle,
   Input,
   Select,
@@ -24,16 +24,16 @@ import {
   Label,
   Textarea,
 } from '@repo/ui';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  Download, 
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Download,
   CreditCard,
   AlertCircle,
   CheckCircle,
   Clock,
-  Eye
+  Eye,
 } from 'lucide-react';
 
 interface FinancialStats {
@@ -75,10 +75,14 @@ export default function FinancialManagement() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'complaints'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'transactions' | 'complaints'
+  >('overview');
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [withdrawalLoading, setWithdrawalLoading] = useState(false);
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
+    null
+  );
   const [complaintNotes, setComplaintNotes] = useState('');
   const [complaintStatus, setComplaintStatus] = useState('');
 
@@ -117,7 +121,7 @@ export default function FinancialManagement() {
 
   const handleWithdrawal = async () => {
     if (!withdrawalAmount || !stats) return;
-    
+
     const amount = parseFloat(withdrawalAmount);
     if (amount <= 0 || amount > stats.availableBalance) {
       alert('Invalid withdrawal amount');
@@ -158,9 +162,9 @@ export default function FinancialManagement() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: complaintStatus,
-          adminNotes: complaintNotes 
+          adminNotes: complaintNotes,
         }),
       });
 
@@ -177,23 +181,35 @@ export default function FinancialManagement() {
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'open': return 'bg-red-100 text-red-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      case 'open':
+        return 'bg-red-100 text-red-800';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800';
+      case 'resolved':
+        return 'bg-green-100 text-green-800';
+      case 'closed':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPriorityBadgeColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high':
+        return 'bg-red-100 text-red-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'low':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -225,7 +241,7 @@ export default function FinancialManagement() {
             { id: 'overview', name: 'Overview', icon: DollarSign },
             { id: 'transactions', name: 'Transactions', icon: CreditCard },
             { id: 'complaints', name: 'Complaints', icon: AlertCircle },
-          ].map((tab) => {
+          ].map(tab => {
             const Icon = tab.icon;
             return (
               <button
@@ -252,20 +268,26 @@ export default function FinancialManagement() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Revenue
+                </CardTitle>
                 <DollarSign className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   Rp {stats.totalRevenue.toLocaleString('id-ID')}
                 </div>
-                <p className="text-xs text-muted-foreground">All time platform fees</p>
+                <p className="text-xs text-muted-foreground">
+                  All time platform fees
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Monthly Revenue
+                </CardTitle>
                 <TrendingUp className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
@@ -278,51 +300,69 @@ export default function FinancialManagement() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Available Balance
+                </CardTitle>
                 <CreditCard className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   Rp {stats.availableBalance.toLocaleString('id-ID')}
                 </div>
-                <p className="text-xs text-muted-foreground">Ready for withdrawal</p>
+                <p className="text-xs text-muted-foreground">
+                  Ready for withdrawal
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Withdrawn
+                </CardTitle>
                 <TrendingDown className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   Rp {stats.totalWithdrawn.toLocaleString('id-ID')}
                 </div>
-                <p className="text-xs text-muted-foreground">All time withdrawals</p>
+                <p className="text-xs text-muted-foreground">
+                  All time withdrawals
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Pending Payouts
+                </CardTitle>
                 <Clock className="h-4 w-4 text-yellow-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   Rp {stats.pendingPayouts.toLocaleString('id-ID')}
                 </div>
-                <p className="text-xs text-muted-foreground">Awaiting processing</p>
+                <p className="text-xs text-muted-foreground">
+                  Awaiting processing
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Platform Fee Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Platform Fee Rate
+                </CardTitle>
                 <DollarSign className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.platformFeeRate}%</div>
-                <p className="text-xs text-muted-foreground">Current fee rate</p>
+                <div className="text-2xl font-bold">
+                  {stats.platformFeeRate}%
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Current fee rate
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -335,12 +375,14 @@ export default function FinancialManagement() {
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
-                  <Label htmlFor="withdrawal-amount">Withdrawal Amount (Rp)</Label>
+                  <Label htmlFor="withdrawal-amount">
+                    Withdrawal Amount (Rp)
+                  </Label>
                   <Input
                     id="withdrawal-amount"
                     type="number"
                     value={withdrawalAmount}
-                    onChange={(e) => setWithdrawalAmount(e.target.value)}
+                    onChange={e => setWithdrawalAmount(e.target.value)}
                     placeholder="Enter amount"
                     max={stats.availableBalance}
                   />
@@ -351,9 +393,7 @@ export default function FinancialManagement() {
                 <div className="flex items-end">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button 
-                        disabled={!withdrawalAmount || withdrawalLoading}
-                      >
+                      <Button disabled={!withdrawalAmount || withdrawalLoading}>
                         <Download className="w-4 h-4 mr-2" />
                         Withdraw
                       </Button>
@@ -362,7 +402,11 @@ export default function FinancialManagement() {
                       <DialogHeader>
                         <DialogTitle>Confirm Withdrawal</DialogTitle>
                         <DialogDescription>
-                          Are you sure you want to withdraw Rp {parseFloat(withdrawalAmount || '0').toLocaleString('id-ID')}?
+                          Are you sure you want to withdraw Rp{' '}
+                          {parseFloat(withdrawalAmount || '0').toLocaleString(
+                            'id-ID'
+                          )}
+                          ?
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter>
@@ -370,7 +414,9 @@ export default function FinancialManagement() {
                           onClick={handleWithdrawal}
                           disabled={withdrawalLoading}
                         >
-                          {withdrawalLoading ? 'Processing...' : 'Confirm Withdrawal'}
+                          {withdrawalLoading
+                            ? 'Processing...'
+                            : 'Confirm Withdrawal'}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -390,26 +436,40 @@ export default function FinancialManagement() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {transactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
+              {transactions.map(transaction => (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div>
                     <div className="flex items-center space-x-2">
                       <h3 className="font-medium">{transaction.description}</h3>
-                      <Badge className={getStatusBadgeColor(transaction.status)}>
+                      <Badge
+                        className={getStatusBadgeColor(transaction.status)}
+                      >
                         {transaction.status}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-500">
-                      {new Date(transaction.createdAt).toLocaleDateString('id-ID')}
+                      {new Date(transaction.createdAt).toLocaleDateString(
+                        'id-ID'
+                      )}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className={`font-medium ${
-                      transaction.type === 'revenue' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {transaction.type === 'revenue' ? '+' : '-'}Rp {transaction.amount.toLocaleString('id-ID')}
+                    <p
+                      className={`font-medium ${
+                        transaction.type === 'revenue'
+                          ? 'text-green-600'
+                          : 'text-red-600'
+                      }`}
+                    >
+                      {transaction.type === 'revenue' ? '+' : '-'}Rp{' '}
+                      {transaction.amount.toLocaleString('id-ID')}
                     </p>
-                    <p className="text-xs text-gray-500 capitalize">{transaction.type}</p>
+                    <p className="text-xs text-gray-500 capitalize">
+                      {transaction.type}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -431,23 +491,35 @@ export default function FinancialManagement() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {complaints.map((complaint) => (
-                <div key={complaint.id} className="flex items-center justify-between p-4 border rounded-lg">
+              {complaints.map(complaint => (
+                <div
+                  key={complaint.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <h3 className="font-medium">{complaint.subject}</h3>
                       <Badge className={getStatusBadgeColor(complaint.status)}>
                         {complaint.status}
                       </Badge>
-                      <Badge className={getPriorityBadgeColor(complaint.priority)}>
+                      <Badge
+                        className={getPriorityBadgeColor(complaint.priority)}
+                      >
                         {complaint.priority}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{complaint.description}</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {complaint.description}
+                    </p>
                     <div className="text-xs text-gray-500">
-                      <span>From: {complaint.userName} ({complaint.userEmail})</span>
+                      <span>
+                        From: {complaint.userName} ({complaint.userEmail})
+                      </span>
                       <span className="ml-4">
-                        Created: {new Date(complaint.createdAt).toLocaleDateString('id-ID')}
+                        Created:{' '}
+                        {new Date(complaint.createdAt).toLocaleDateString(
+                          'id-ID'
+                        )}
                       </span>
                     </div>
                   </div>
@@ -478,28 +550,40 @@ export default function FinancialManagement() {
                           <div className="space-y-4">
                             <div>
                               <Label>Subject</Label>
-                              <p className="text-sm text-gray-600">{selectedComplaint.subject}</p>
+                              <p className="text-sm text-gray-600">
+                                {selectedComplaint.subject}
+                              </p>
                             </div>
                             <div>
                               <Label>Description</Label>
-                              <p className="text-sm text-gray-600">{selectedComplaint.description}</p>
+                              <p className="text-sm text-gray-600">
+                                {selectedComplaint.description}
+                              </p>
                             </div>
                             <div>
                               <Label>User</Label>
                               <p className="text-sm text-gray-600">
-                                {selectedComplaint.userName} ({selectedComplaint.userEmail})
+                                {selectedComplaint.userName} (
+                                {selectedComplaint.userEmail})
                               </p>
                             </div>
                             <div>
                               <Label htmlFor="complaint-status">Status</Label>
-                              <Select value={complaintStatus} onValueChange={setComplaintStatus}>
+                              <Select
+                                value={complaintStatus}
+                                onValueChange={setComplaintStatus}
+                              >
                                 <SelectTrigger>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="open">Open</SelectItem>
-                                  <SelectItem value="in_progress">In Progress</SelectItem>
-                                  <SelectItem value="resolved">Resolved</SelectItem>
+                                  <SelectItem value="in_progress">
+                                    In Progress
+                                  </SelectItem>
+                                  <SelectItem value="resolved">
+                                    Resolved
+                                  </SelectItem>
                                   <SelectItem value="closed">Closed</SelectItem>
                                 </SelectContent>
                               </Select>
@@ -509,7 +593,9 @@ export default function FinancialManagement() {
                               <Textarea
                                 id="admin-notes"
                                 value={complaintNotes}
-                                onChange={(e) => setComplaintNotes(e.target.value)}
+                                onChange={e =>
+                                  setComplaintNotes(e.target.value)
+                                }
                                 placeholder="Add admin notes..."
                                 rows={3}
                               />
@@ -518,7 +604,10 @@ export default function FinancialManagement() {
                         )}
                         <DialogFooter>
                           <Button
-                            onClick={() => selectedComplaint && handleComplaintUpdate(selectedComplaint.id)}
+                            onClick={() =>
+                              selectedComplaint &&
+                              handleComplaintUpdate(selectedComplaint.id)
+                            }
                           >
                             Update Complaint
                           </Button>

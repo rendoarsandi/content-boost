@@ -22,7 +22,7 @@ export class MetricsValidator {
           passed,
           value,
           message: passed ? undefined : rule.errorMessage,
-          severity: rule.severity
+          severity: rule.severity,
         });
       } catch (error) {
         results.push({
@@ -31,7 +31,7 @@ export class MetricsValidator {
           passed: false,
           value: undefined,
           message: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          severity: 'error'
+          severity: 'error',
         });
       }
     }
@@ -41,7 +41,9 @@ export class MetricsValidator {
 
   async isValid(metrics: any): Promise<boolean> {
     const results = await this.validateMetrics(metrics);
-    return !results.some(result => !result.passed && result.severity === 'error');
+    return !results.some(
+      result => !result.passed && result.severity === 'error'
+    );
   }
 
   async getValidationSummary(metrics: any): Promise<{
@@ -54,7 +56,7 @@ export class MetricsValidator {
     warnings: ValidationResult[];
   }> {
     const results = await this.validateMetrics(metrics);
-    
+
     const errors = results.filter(r => !r.passed && r.severity === 'error');
     const warnings = results.filter(r => !r.passed && r.severity === 'warning');
     const passed = results.filter(r => r.passed);
@@ -66,7 +68,7 @@ export class MetricsValidator {
       passedCount: passed.length,
       totalRules: results.length,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -74,7 +76,7 @@ export class MetricsValidator {
     if (validationResults.length === 0) return 0;
 
     let score = 100;
-    
+
     for (const result of validationResults) {
       if (!result.passed) {
         if (result.severity === 'error') {
@@ -98,7 +100,10 @@ export class MetricsValidator {
       // Calculate average metrics from historical data
       const avgViews = this.calculateAverage(historicalData, 'metrics.views');
       const avgLikes = this.calculateAverage(historicalData, 'metrics.likes');
-      const avgComments = this.calculateAverage(historicalData, 'metrics.comments');
+      const avgComments = this.calculateAverage(
+        historicalData,
+        'metrics.comments'
+      );
 
       // Check for significant spikes (more than 500% of average)
       const viewsSpike = metrics.metrics.views > avgViews * 5;
@@ -106,9 +111,17 @@ export class MetricsValidator {
       const commentsSpike = metrics.metrics.comments > avgComments * 5;
 
       // Check for unusual ratios
-      const viewLikeRatio = metrics.metrics.views > 0 ? metrics.metrics.likes / metrics.metrics.views : 0;
-      const avgViewLikeRatio = this.calculateAverageRatio(historicalData, 'metrics.likes', 'metrics.views');
-      const ratioAnomaly = Math.abs(viewLikeRatio - avgViewLikeRatio) > avgViewLikeRatio * 2;
+      const viewLikeRatio =
+        metrics.metrics.views > 0
+          ? metrics.metrics.likes / metrics.metrics.views
+          : 0;
+      const avgViewLikeRatio = this.calculateAverageRatio(
+        historicalData,
+        'metrics.likes',
+        'metrics.views'
+      );
+      const ratioAnomaly =
+        Math.abs(viewLikeRatio - avgViewLikeRatio) > avgViewLikeRatio * 2;
 
       return viewsSpike || likesSpike || commentsSpike || ratioAnomaly;
     } catch (error) {
@@ -146,27 +159,35 @@ export class MetricsValidator {
     const values = data
       .map(item => this.getFieldValue(item, fieldPath))
       .filter(value => typeof value === 'number' && !isNaN(value));
-    
+
     if (values.length === 0) return 0;
-    
+
     return values.reduce((sum, value) => sum + value, 0) / values.length;
   }
 
-  private calculateAverageRatio(data: any[], numeratorPath: string, denominatorPath: string): number {
+  private calculateAverageRatio(
+    data: any[],
+    numeratorPath: string,
+    denominatorPath: string
+  ): number {
     const ratios = data
       .map(item => {
         const numerator = this.getFieldValue(item, numeratorPath);
         const denominator = this.getFieldValue(item, denominatorPath);
-        
-        if (typeof numerator === 'number' && typeof denominator === 'number' && denominator > 0) {
+
+        if (
+          typeof numerator === 'number' &&
+          typeof denominator === 'number' &&
+          denominator > 0
+        ) {
           return numerator / denominator;
         }
         return null;
       })
       .filter(ratio => ratio !== null) as number[];
-    
+
     if (ratios.length === 0) return 0;
-    
+
     return ratios.reduce((sum, ratio) => sum + ratio, 0) / ratios.length;
   }
 }

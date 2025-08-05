@@ -7,7 +7,7 @@ import { sum, count } from 'drizzle-orm';
 
 // Mock Next.js auth
 vi.mock('@repo/auth/server-only', () => ({
-  getSession: vi.fn()
+  getSession: vi.fn(),
 }));
 
 // Mock database
@@ -15,13 +15,13 @@ vi.mock('@repo/database', () => ({
   db: {
     select: vi.fn(() => ({
       from: vi.fn(() => ({
-        where: vi.fn(() => Promise.resolve([{ id: 'test-campaign-id' }]))
-      }))
+        where: vi.fn(() => Promise.resolve([{ id: 'test-campaign-id' }])),
+      })),
     })),
   },
   campaigns: {},
   viewRecords: {},
-  campaignApplications: {}
+  campaignApplications: {},
 }));
 
 // Import auth mock to manipulate it
@@ -33,8 +33,8 @@ describe('Campaign Metrics API Integration Tests', () => {
       id: 'test-creator-id',
       role: 'creator',
       name: 'Test Creator',
-      email: 'creator@test.com'
-    }
+      email: 'creator@test.com',
+    },
   };
 
   const mockPromoterSession = {
@@ -42,8 +42,8 @@ describe('Campaign Metrics API Integration Tests', () => {
       id: 'test-promoter-id',
       role: 'promoter',
       name: 'Test Promoter',
-      email: 'promoter@test.com'
-    }
+      email: 'promoter@test.com',
+    },
   };
 
   const mockCampaign = {
@@ -56,7 +56,7 @@ describe('Campaign Metrics API Integration Tests', () => {
     status: 'active',
     requirements: ['Test Requirement'],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 
   beforeEach(() => {
@@ -68,26 +68,38 @@ describe('Campaign Metrics API Integration Tests', () => {
       // Mock unauthenticated session
       vi.mocked(getSession).mockResolvedValueOnce(null);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id/metrics');
-      const response = await getMetrics(request, { params: { id: 'test-campaign-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id/metrics'
+      );
+      const response = await getMetrics(request, {
+        params: { id: 'test-campaign-id' },
+      });
 
       expect(response.status).toBe(401);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Unauthorized'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Unauthorized',
+        })
+      );
     });
 
     test('should return 403 when user is not a creator', async () => {
       // Mock promoter session
       vi.mocked(getSession).mockResolvedValueOnce(mockPromoterSession);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id/metrics');
-      const response = await getMetrics(request, { params: { id: 'test-campaign-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id/metrics'
+      );
+      const response = await getMetrics(request, {
+        params: { id: 'test-campaign-id' },
+      });
 
       expect(response.status).toBe(403);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Forbidden - Only creators can view campaign metrics'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Forbidden - Only creators can view campaign metrics',
+        })
+      );
     });
 
     test('should return 404 when campaign not found', async () => {
@@ -97,17 +109,23 @@ describe('Campaign Metrics API Integration Tests', () => {
       // Mock empty database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([])
-        })
+          where: vi.fn().mockResolvedValue([]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/non-existent-id/metrics');
-      const response = await getMetrics(request, { params: { id: 'non-existent-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/non-existent-id/metrics'
+      );
+      const response = await getMetrics(request, {
+        params: { id: 'non-existent-id' },
+      });
 
       expect(response.status).toBe(404);
-      expect(await response.json()).toEqual(expect.objectContaining({
-        error: 'Campaign not found'
-      }));
+      expect(await response.json()).toEqual(
+        expect.objectContaining({
+          error: 'Campaign not found',
+        })
+      );
     });
 
     test('should return metrics for campaign owner', async () => {
@@ -117,61 +135,75 @@ describe('Campaign Metrics API Integration Tests', () => {
       // Mock campaign database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([mockCampaign])
-        })
+          where: vi.fn().mockResolvedValue([mockCampaign]),
+        }),
       } as any);
 
       // Mock view metrics response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            totalViews: 500,
-            legitimateViews: 450
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              totalViews: 500,
+              legitimateViews: 450,
+            },
+          ]),
+        }),
       } as any);
 
       // Mock legitimate views metrics
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            legitimateViews: 450
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              legitimateViews: 450,
+            },
+          ]),
+        }),
       } as any);
 
       // Mock bot views metrics
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            botViews: 50
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              botViews: 50,
+            },
+          ]),
+        }),
       } as any);
 
       // Mock active promoters count
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            count: 5
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              count: 5,
+            },
+          ]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id/metrics');
-      const response = await getMetrics(request, { params: { id: 'test-campaign-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id/metrics'
+      );
+      const response = await getMetrics(request, {
+        params: { id: 'test-campaign-id' },
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data).toEqual(expect.objectContaining({
-        metrics: expect.objectContaining({
-          totalViews: 500,
-          legitimateViews: 450,
-          botViews: 50,
-          activePromoters: 5,
-          estimatedSpent: 4500 // 450 legitimate views * 10 rate per view
+      expect(data).toEqual(
+        expect.objectContaining({
+          metrics: expect.objectContaining({
+            totalViews: 500,
+            legitimateViews: 450,
+            botViews: 50,
+            activePromoters: 5,
+            estimatedSpent: 4500, // 450 legitimate views * 10 rate per view
+          }),
         })
-      }));
+      );
     });
 
     test('should handle empty metrics data', async () => {
@@ -181,61 +213,75 @@ describe('Campaign Metrics API Integration Tests', () => {
       // Mock campaign database response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([mockCampaign])
-        })
+          where: vi.fn().mockResolvedValue([mockCampaign]),
+        }),
       } as any);
 
       // Mock empty view metrics response
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            totalViews: null,
-            legitimateViews: null
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              totalViews: null,
+              legitimateViews: null,
+            },
+          ]),
+        }),
       } as any);
 
       // Mock empty legitimate views metrics
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            legitimateViews: null
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              legitimateViews: null,
+            },
+          ]),
+        }),
       } as any);
 
       // Mock empty bot views metrics
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            botViews: null
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              botViews: null,
+            },
+          ]),
+        }),
       } as any);
 
       // Mock empty active promoters count
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            count: null
-          }])
-        })
+          where: vi.fn().mockResolvedValue([
+            {
+              count: null,
+            },
+          ]),
+        }),
       } as any);
 
-      const request = new NextRequest('http://localhost/api/campaigns/test-campaign-id/metrics');
-      const response = await getMetrics(request, { params: { id: 'test-campaign-id' } });
+      const request = new NextRequest(
+        'http://localhost/api/campaigns/test-campaign-id/metrics'
+      );
+      const response = await getMetrics(request, {
+        params: { id: 'test-campaign-id' },
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data).toEqual(expect.objectContaining({
-        metrics: expect.objectContaining({
-          totalViews: 0,
-          legitimateViews: 0,
-          botViews: 0,
-          activePromoters: 0,
-          estimatedSpent: 0
+      expect(data).toEqual(
+        expect.objectContaining({
+          metrics: expect.objectContaining({
+            totalViews: 0,
+            legitimateViews: 0,
+            botViews: 0,
+            activePromoters: 0,
+            estimatedSpent: 0,
+          }),
         })
-      }));
+      );
     });
   });
 });

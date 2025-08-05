@@ -12,8 +12,8 @@ export async function POST(
     // For now, just log the unban action
     console.log(`User ${userId} has been unbanned by admin`);
 
-    return NextResponse.json({ 
-      message: 'User unban acknowledged (stubbed)' 
+    return NextResponse.json({
+      message: 'User unban acknowledged (stubbed)',
     });
   } catch (error) {
     console.error('Unban user error:', error);

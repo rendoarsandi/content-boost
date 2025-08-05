@@ -77,7 +77,11 @@ export abstract class BaseSocialMediaAPI {
   protected rateLimitConfig: RateLimitConfig;
   protected platform: string;
 
-  constructor(cache: RedisCache, platform: string, rateLimitConfig?: RateLimitConfig) {
+  constructor(
+    cache: RedisCache,
+    platform: string,
+    rateLimitConfig?: RateLimitConfig
+  ) {
     this.cache = cache;
     this.platform = platform;
     this.rateLimitConfig = rateLimitConfig || DEFAULT_RATE_LIMITS[platform];
@@ -95,12 +99,14 @@ export abstract class BaseSocialMediaAPI {
 
   protected async getRateLimitInfo(userId: string): Promise<APIRateLimitInfo> {
     const count = await this.cache.getRateLimit(this.platform, userId);
-    const ttl = await this.cache.ttl(this.cache.getKeyManager().rateLimit(this.platform, userId));
-    
+    const ttl = await this.cache.ttl(
+      this.cache.getKeyManager().rateLimit(this.platform, userId)
+    );
+
     return {
       limit: this.rateLimitConfig.maxRequests,
       remaining: Math.max(0, this.rateLimitConfig.maxRequests - count),
-      resetTime: new Date(Date.now() + (ttl * 1000)),
+      resetTime: new Date(Date.now() + ttl * 1000),
     };
   }
 
@@ -119,7 +125,9 @@ export abstract class BaseSocialMediaAPI {
           message: `Rate limit exceeded for ${this.platform}. Try again after ${rateLimitInfo.resetTime.toISOString()}`,
           statusCode: 429,
           retryable: true,
-          retryAfter: Math.ceil((rateLimitInfo.resetTime.getTime() - Date.now()) / 1000),
+          retryAfter: Math.ceil(
+            (rateLimitInfo.resetTime.getTime() - Date.now()) / 1000
+          ),
         });
       }
 
@@ -130,7 +138,11 @@ export abstract class BaseSocialMediaAPI {
       const result = await operation();
       return result;
     } catch (error) {
-      if (error instanceof APIError && error.retryable && attempt <= this.rateLimitConfig.maxRetries) {
+      if (
+        error instanceof APIError &&
+        error.retryable &&
+        attempt <= this.rateLimitConfig.maxRetries
+      ) {
         const backoffMs = Math.min(
           this.rateLimitConfig.backoffMultiplier ** (attempt - 1) * 1000,
           this.rateLimitConfig.maxBackoffMs
@@ -138,7 +150,7 @@ export abstract class BaseSocialMediaAPI {
 
         console.warn(
           `${this.platform} API request failed (attempt ${attempt}/${this.rateLimitConfig.maxRetries}). ` +
-          `Retrying in ${backoffMs}ms. Error: ${error.message}`
+            `Retrying in ${backoffMs}ms. Error: ${error.message}`
         );
 
         await this.sleep(backoffMs);
@@ -154,9 +166,15 @@ export abstract class BaseSocialMediaAPI {
   }
 
   // Abstract methods to be implemented by specific platforms
-  abstract getMetrics(accessToken: string, postId: string, userId: string): Promise<SocialMediaMetrics>;
+  abstract getMetrics(
+    accessToken: string,
+    postId: string,
+    userId: string
+  ): Promise<SocialMediaMetrics>;
   abstract validateToken(accessToken: string): Promise<boolean>;
-  abstract refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken?: string }>;
+  abstract refreshToken(
+    refreshToken: string
+  ): Promise<{ accessToken: string; refreshToken?: string }>;
 }
 
 // TikTok API Client
@@ -165,47 +183,58 @@ export class TikTokAPI extends BaseSocialMediaAPI {
     super(cache, 'tiktok');
   }
 
-  async getMetrics(accessToken: string, videoId: string, userId: string): Promise<TikTokVideoMetrics> {
+  async getMetrics(
+    accessToken: string,
+    videoId: string,
+    userId: string
+  ): Promise<TikTokVideoMetrics> {
     return this.executeWithBackoff(async () => {
-      const response = await fetch(`https://open-api.tiktok.com/v2/video/query/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filters: {
-            video_ids: [videoId],
+      const response = await fetch(
+        `https://open-api.tiktok.com/v2/video/query/`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
           },
-          fields: [
-            'id',
-            'title',
-            'video_description',
-            'duration',
-            'cover_image_url',
-            'create_time',
-            'share_url',
-            'view_count',
-            'like_count',
-            'comment_count',
-            'share_count',
-            'download_count',
-          ],
-        }),
-      });
+          body: JSON.stringify({
+            filters: {
+              video_ids: [videoId],
+            },
+            fields: [
+              'id',
+              'title',
+              'video_description',
+              'duration',
+              'cover_image_url',
+              'create_time',
+              'share_url',
+              'view_count',
+              'like_count',
+              'comment_count',
+              'share_count',
+              'download_count',
+            ],
+          }),
+        }
+      );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({})) as any;
+        const errorData = (await response.json().catch(() => ({}))) as any;
         throw new APIError({
           code: errorData.error?.code || 'TIKTOK_API_ERROR',
-          message: errorData.error?.message || `TikTok API request failed with status ${response.status}`,
+          message:
+            errorData.error?.message ||
+            `TikTok API request failed with status ${response.status}`,
           statusCode: response.status,
           retryable: response.status >= 500 || response.status === 429,
-          retryAfter: response.headers?.get?.('retry-after') ? parseInt(response.headers.get('retry-after')!) : undefined,
+          retryAfter: response.headers?.get?.('retry-after')
+            ? parseInt(response.headers.get('retry-after')!)
+            : undefined,
         });
       }
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
 
       if (data.error) {
         throw new APIError({
@@ -241,11 +270,14 @@ export class TikTokAPI extends BaseSocialMediaAPI {
 
   async validateToken(accessToken: string): Promise<boolean> {
     try {
-      const response = await fetch('https://open-api.tiktok.com/v2/user/info/', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+      const response = await fetch(
+        'https://open-api.tiktok.com/v2/user/info/',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       return response.ok;
     } catch (error) {
@@ -254,19 +286,24 @@ export class TikTokAPI extends BaseSocialMediaAPI {
     }
   }
 
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken?: string }> {
-    const response = await fetch('https://open-api.tiktok.com/oauth/refresh_token/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        client_key: process.env.TIKTOK_CLIENT_ID!,
-        client_secret: process.env.TIKTOK_CLIENT_SECRET!,
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-      }),
-    });
+  async refreshToken(
+    refreshToken: string
+  ): Promise<{ accessToken: string; refreshToken?: string }> {
+    const response = await fetch(
+      'https://open-api.tiktok.com/oauth/refresh_token/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_key: process.env.TIKTOK_CLIENT_ID!,
+          client_secret: process.env.TIKTOK_CLIENT_SECRET!,
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new APIError({
@@ -277,7 +314,7 @@ export class TikTokAPI extends BaseSocialMediaAPI {
       });
     }
 
-    const data = await response.json() as any;
+    const data = (await response.json()) as any;
 
     if (data.error) {
       throw new APIError({
@@ -301,7 +338,11 @@ export class InstagramAPI extends BaseSocialMediaAPI {
     super(cache, 'instagram');
   }
 
-  async getMetrics(accessToken: string, mediaId: string, userId: string): Promise<InstagramMediaMetrics> {
+  async getMetrics(
+    accessToken: string,
+    mediaId: string,
+    userId: string
+  ): Promise<InstagramMediaMetrics> {
     return this.executeWithBackoff(async () => {
       const fields = [
         'id',
@@ -322,17 +363,21 @@ export class InstagramAPI extends BaseSocialMediaAPI {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({})) as any;
+        const errorData = (await response.json().catch(() => ({}))) as any;
         throw new APIError({
           code: errorData.error?.code || 'INSTAGRAM_API_ERROR',
-          message: errorData.error?.message || `Instagram API request failed with status ${response.status}`,
+          message:
+            errorData.error?.message ||
+            `Instagram API request failed with status ${response.status}`,
           statusCode: response.status,
           retryable: response.status >= 500 || response.status === 429,
-          retryAfter: response.headers?.get?.('retry-after') ? parseInt(response.headers.get('retry-after')!) : undefined,
+          retryAfter: response.headers?.get?.('retry-after')
+            ? parseInt(response.headers.get('retry-after')!)
+            : undefined,
         });
       }
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
 
       if (data.error) {
         throw new APIError({
@@ -370,7 +415,9 @@ export class InstagramAPI extends BaseSocialMediaAPI {
     }
   }
 
-  async refreshToken(accessToken: string): Promise<{ accessToken: string; refreshToken?: string }> {
+  async refreshToken(
+    accessToken: string
+  ): Promise<{ accessToken: string; refreshToken?: string }> {
     const response = await fetch(
       `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${accessToken}`,
       { method: 'GET' }
@@ -385,7 +432,7 @@ export class InstagramAPI extends BaseSocialMediaAPI {
       });
     }
 
-    const data = await response.json() as any;
+    const data = (await response.json()) as any;
 
     if (data.error) {
       throw new APIError({
@@ -431,7 +478,10 @@ export class SocialMediaAPIManager {
     }
   }
 
-  async validateToken(platform: 'tiktok' | 'instagram', accessToken: string): Promise<boolean> {
+  async validateToken(
+    platform: 'tiktok' | 'instagram',
+    accessToken: string
+  ): Promise<boolean> {
     switch (platform) {
       case 'tiktok':
         return this.tiktokAPI.validateToken(accessToken);
@@ -456,7 +506,10 @@ export class SocialMediaAPIManager {
     }
   }
 
-  async getRateLimitInfo(platform: 'tiktok' | 'instagram', userId: string): Promise<APIRateLimitInfo> {
+  async getRateLimitInfo(
+    platform: 'tiktok' | 'instagram',
+    userId: string
+  ): Promise<APIRateLimitInfo> {
     switch (platform) {
       case 'tiktok':
         return this.tiktokAPI['getRateLimitInfo'](userId);
@@ -475,9 +528,13 @@ export class SocialMediaAPIManager {
       postId: string;
       userId: string;
     }>
-  ): Promise<Array<{ success: boolean; data?: SocialMediaMetrics; error?: APIError }>> {
+  ): Promise<
+    Array<{ success: boolean; data?: SocialMediaMetrics; error?: APIError }>
+  > {
     const results = await Promise.allSettled(
-      requests.map(req => this.getMetrics(req.platform, req.accessToken, req.postId, req.userId))
+      requests.map(req =>
+        this.getMetrics(req.platform, req.accessToken, req.postId, req.userId)
+      )
     );
 
     return results.map(result => {
@@ -486,12 +543,15 @@ export class SocialMediaAPIManager {
       } else {
         return {
           success: false,
-          error: result.reason instanceof APIError ? result.reason : new APIError({
-            code: 'UNKNOWN_ERROR',
-            message: result.reason?.message || 'Unknown error occurred',
-            statusCode: 500,
-            retryable: false,
-          }),
+          error:
+            result.reason instanceof APIError
+              ? result.reason
+              : new APIError({
+                  code: 'UNKNOWN_ERROR',
+                  message: result.reason?.message || 'Unknown error occurred',
+                  statusCode: 500,
+                  retryable: false,
+                }),
         };
       }
     });
@@ -499,8 +559,12 @@ export class SocialMediaAPIManager {
 
   // Health check for all platforms
   async healthCheck(): Promise<Record<string, boolean>> {
-    const tiktokHealthy = await this.tiktokAPI.validateToken('dummy_token').catch(() => false);
-    const instagramHealthy = await this.instagramAPI.validateToken('dummy_token').catch(() => false);
+    const tiktokHealthy = await this.tiktokAPI
+      .validateToken('dummy_token')
+      .catch(() => false);
+    const instagramHealthy = await this.instagramAPI
+      .validateToken('dummy_token')
+      .catch(() => false);
 
     return {
       tiktok: tiktokHealthy,

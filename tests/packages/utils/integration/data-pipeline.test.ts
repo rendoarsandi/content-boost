@@ -118,7 +118,7 @@ describe('DataPipeline', () => {
       });
 
       expect(pipeline.getStageCount()).toBe(1);
-      
+
       pipeline.clear();
       expect(pipeline.getStageCount()).toBe(0);
     });
@@ -374,15 +374,19 @@ describe('MetricsDataProcessor', () => {
 
       expect(aggregated).toHaveLength(1); // One aggregation rule
       expect(aggregated[0].viewCount).toBe(150); // Average: (100 + 150 + 200) / 3
-      expect(aggregated[0].customMetrics.aggregationRule).toBe('hourly-average');
+      expect(aggregated[0].customMetrics.aggregationRule).toBe(
+        'hourly-average'
+      );
       expect(aggregated[0].customMetrics.aggregatedCount).toBe(3);
     });
   });
 
   describe('normalization rules', () => {
     it('should ensure non-negative values', () => {
-      const rule = DEFAULT_NORMALIZATION_RULES.find(r => r.name === 'ensure-non-negative')!;
-      
+      const rule = DEFAULT_NORMALIZATION_RULES.find(
+        r => r.name === 'ensure-non-negative'
+      )!;
+
       const metrics = {
         viewCount: -100,
         likeCount: 50,
@@ -391,7 +395,7 @@ describe('MetricsDataProcessor', () => {
       } as ProcessedMetrics;
 
       const normalized = rule.apply(metrics);
-      
+
       expect(normalized.viewCount).toBe(0);
       expect(normalized.likeCount).toBe(50);
       expect(normalized.commentCount).toBe(0);
@@ -399,8 +403,10 @@ describe('MetricsDataProcessor', () => {
     });
 
     it('should round numbers', () => {
-      const rule = DEFAULT_NORMALIZATION_RULES.find(r => r.name === 'round-numbers')!;
-      
+      const rule = DEFAULT_NORMALIZATION_RULES.find(
+        r => r.name === 'round-numbers'
+      )!;
+
       const metrics = {
         viewCount: 100.7,
         likeCount: 50.3,
@@ -409,7 +415,7 @@ describe('MetricsDataProcessor', () => {
       } as ProcessedMetrics;
 
       const normalized = rule.apply(metrics);
-      
+
       expect(normalized.viewCount).toBe(101);
       expect(normalized.likeCount).toBe(50);
       expect(normalized.commentCount).toBe(11);
@@ -417,8 +423,10 @@ describe('MetricsDataProcessor', () => {
     });
 
     it('should calculate engagement rate', () => {
-      const rule = DEFAULT_NORMALIZATION_RULES.find(r => r.name === 'calculate-engagement-rate')!;
-      
+      const rule = DEFAULT_NORMALIZATION_RULES.find(
+        r => r.name === 'calculate-engagement-rate'
+      )!;
+
       const metrics = {
         viewCount: 1000,
         likeCount: 50,
@@ -427,15 +435,17 @@ describe('MetricsDataProcessor', () => {
       } as ProcessedMetrics;
 
       const normalized = rule.apply(metrics);
-      
+
       expect(normalized.customMetrics.engagementRate).toBe(0.065); // (50 + 10 + 5) / 1000
     });
   });
 
   describe('aggregation rules', () => {
     it('should calculate hourly average', () => {
-      const rule = DEFAULT_AGGREGATION_RULES.find(r => r.name === 'hourly-average')!;
-      
+      const rule = DEFAULT_AGGREGATION_RULES.find(
+        r => r.name === 'hourly-average'
+      )!;
+
       const metrics = [
         {
           viewCount: 100,
@@ -454,7 +464,7 @@ describe('MetricsDataProcessor', () => {
       ] as ProcessedMetrics[];
 
       const aggregated = rule.aggregateFunction(metrics);
-      
+
       expect(aggregated.viewCount).toBe(150); // (100 + 200) / 2
       expect(aggregated.likeCount).toBe(15); // (10 + 20) / 2
       expect(aggregated.commentCount).toBe(8); // (5 + 10) / 2 rounded
@@ -462,9 +472,13 @@ describe('MetricsDataProcessor', () => {
     });
 
     it('should throw error for empty metrics array', () => {
-      const rule = DEFAULT_AGGREGATION_RULES.find(r => r.name === 'hourly-average')!;
-      
-      expect(() => rule.aggregateFunction([])).toThrow('No metrics to aggregate');
+      const rule = DEFAULT_AGGREGATION_RULES.find(
+        r => r.name === 'hourly-average'
+      )!;
+
+      expect(() => rule.aggregateFunction([])).toThrow(
+        'No metrics to aggregate'
+      );
     });
   });
 
@@ -472,7 +486,7 @@ describe('MetricsDataProcessor', () => {
     it('should add custom normalization rule', async () => {
       processor.addNormalizationRule({
         name: 'custom-rule',
-        apply: (metrics) => ({
+        apply: metrics => ({
           ...metrics,
           viewCount: metrics.viewCount * 2,
         }),
@@ -507,21 +521,25 @@ describe('MetricsDataProcessor', () => {
       processor.addAggregationRule({
         name: 'custom-aggregation',
         timeWindow: 60000,
-        aggregateFunction: (metrics) => ({
+        aggregateFunction: metrics => ({
           ...metrics[0],
           viewCount: Math.max(...metrics.map(m => m.viewCount)),
         }),
       });
 
       const now = Date.now();
-      const mockKeys = [`metrics:user123:campaign456:video789:history_${now - 30000}`];
-      const mockMetrics = [{
-        viewCount: 100,
-        likeCount: 10,
-        commentCount: 5,
-        shareCount: 2,
-        timestamp: new Date(now - 30000),
-      }];
+      const mockKeys = [
+        `metrics:user123:campaign456:video789:history_${now - 30000}`,
+      ];
+      const mockMetrics = [
+        {
+          viewCount: 100,
+          likeCount: 10,
+          commentCount: 5,
+          shareCount: 2,
+          timestamp: new Date(now - 30000),
+        },
+      ];
 
       (mockCache.keys as jest.Mock).mockResolvedValue(mockKeys);
       (mockCache.get as jest.Mock).mockResolvedValue(mockMetrics[0]);
@@ -534,7 +552,11 @@ describe('MetricsDataProcessor', () => {
       );
 
       expect(aggregated).toHaveLength(2); // Default + custom rule
-      expect(aggregated.some(a => a.customMetrics.aggregationRule === 'custom-aggregation')).toBe(true);
+      expect(
+        aggregated.some(
+          a => a.customMetrics.aggregationRule === 'custom-aggregation'
+        )
+      ).toBe(true);
     });
   });
 });

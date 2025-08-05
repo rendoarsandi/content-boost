@@ -11,13 +11,10 @@ export async function POST(
 ) {
   const { id: alertId } = await params;
   const alert = resolveAlert(alertId);
-  
+
   if (!alert) {
-    return NextResponse.json(
-      { error: 'Alert not found' },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
   }
-  
+
   return NextResponse.json({ alert });
 }

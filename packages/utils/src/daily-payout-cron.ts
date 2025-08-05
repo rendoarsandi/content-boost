@@ -1,60 +1,79 @@
-import { CronScheduler, createCronScheduler, SCHEDULES } from './cron-scheduler';
+import {
+  CronScheduler,
+  createCronScheduler,
+  SCHEDULES,
+} from './cron-scheduler';
 import { PayoutEngine, createPayoutEngine, PayoutBatch } from './payout-engine';
 
 // Types for database integration
 export interface PayoutCronDependencies {
   // Get active promotions for payout calculation
-  getActivePromotions: () => Promise<Array<{
-    promoterId: string;
-    campaignId: string;
-    applicationId?: string;
-    ratePerView: number;
-  }>>;
+  getActivePromotions: () => Promise<
+    Array<{
+      promoterId: string;
+      campaignId: string;
+      applicationId?: string;
+      ratePerView: number;
+    }>
+  >;
 
   // Get view records for a specific promoter/campaign in a period
-  getViewRecords: (promoterId: string, campaignId: string, period: {
-    start: Date;
-    end: Date;
-    promoterId: string;
-    campaignId: string;
-  }) => Promise<Array<{
-    viewCount: number;
-    isLegitimate: boolean;
-    timestamp: Date;
-  }>>;
+  getViewRecords: (
+    promoterId: string,
+    campaignId: string,
+    period: {
+      start: Date;
+      end: Date;
+      promoterId: string;
+      campaignId: string;
+    }
+  ) => Promise<
+    Array<{
+      viewCount: number;
+      isLegitimate: boolean;
+      timestamp: Date;
+    }>
+  >;
 
   // Save payout batch results to database
   savePayoutBatch: (batch: PayoutBatch) => Promise<void>;
 
   // Save individual payout records
-  savePayouts: (payouts: Array<{
-    promoterId: string;
-    campaignId: string;
-    applicationId?: string;
-    periodStart: Date;
-    periodEnd: Date;
-    totalViews: number;
-    legitimateViews: number;
-    botViews: number;
-    ratePerView: number;
-    grossAmount: number;
-    platformFee: number;
-    netAmount: number;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-    processedAt?: Date;
-    failureReason?: string;
-  }>) => Promise<void>;
+  savePayouts: (
+    payouts: Array<{
+      promoterId: string;
+      campaignId: string;
+      applicationId?: string;
+      periodStart: Date;
+      periodEnd: Date;
+      totalViews: number;
+      legitimateViews: number;
+      botViews: number;
+      ratePerView: number;
+      grossAmount: number;
+      platformFee: number;
+      netAmount: number;
+      status: 'pending' | 'processing' | 'completed' | 'failed';
+      processedAt?: Date;
+      failureReason?: string;
+    }>
+  ) => Promise<void>;
 
   // Update platform revenue
-  updatePlatformRevenue: (period: { start: Date; end: Date }, totalFees: number) => Promise<void>;
+  updatePlatformRevenue: (
+    period: { start: Date; end: Date },
+    totalFees: number
+  ) => Promise<void>;
 
   // Send notifications
-  sendPayoutNotifications?: (payouts: Array<{
-    promoterId: string;
-    amount: number;
-    status: 'completed' | 'failed';
-    error?: string;
-  }>) => Promise<void>;
+  sendPayoutNotifications?: (
+    payouts: Array<{
+      promoterId: string;
+      amount: number;
+      status: 'completed' | 'failed';
+      error?: string;
+    }>
+  ) => Promise<void>;
 }
 
 export interface DailyPayoutCronConfig {
@@ -162,9 +181,12 @@ export class DailyPayoutCron {
 
     this.isRunning = true;
     this.scheduler.start();
-    
+
     this.log('info', 'Daily payout cron system started');
-    this.log('info', `Next payout scheduled for: ${this.payoutEngine.getNextPayoutTime().toLocaleString('id-ID', { timeZone: this.config.timezone })}`);
+    this.log(
+      'info',
+      `Next payout scheduled for: ${this.payoutEngine.getNextPayoutTime().toLocaleString('id-ID', { timeZone: this.config.timezone })}`
+    );
   }
 
   /**
@@ -178,7 +200,7 @@ export class DailyPayoutCron {
 
     this.isRunning = false;
     this.scheduler.stop();
-    
+
     this.log('info', 'Daily payout cron system stopped');
   }
 
@@ -192,12 +214,15 @@ export class DailyPayoutCron {
 
       // Check if it's the right time (00:00 WIB)
       if (!this.payoutEngine.isDailyPayoutTime()) {
-        this.log('warn', 'Skipping payout - not the scheduled time (00:00 WIB)');
+        this.log(
+          'warn',
+          'Skipping payout - not the scheduled time (00:00 WIB)'
+        );
         return;
       }
 
       const today = new Date();
-      
+
       // Calculate payouts using the engine
       const batch = await this.payoutEngine.calculateDailyPayouts(
         today,
@@ -256,20 +281,32 @@ export class DailyPayoutCron {
       }
 
       // Update platform revenue
-      const totalPlatformFees = successfulPayouts.reduce((sum, payout) => sum + payout.platformFee, 0);
+      const totalPlatformFees = successfulPayouts.reduce(
+        (sum, payout) => sum + payout.platformFee,
+        0
+      );
       if (totalPlatformFees > 0) {
         await this.dependencies.updatePlatformRevenue(
-          { start: batch.jobs[0]?.period.start || today, end: batch.jobs[0]?.period.end || today },
+          {
+            start: batch.jobs[0]?.period.start || today,
+            end: batch.jobs[0]?.period.end || today,
+          },
           totalPlatformFees
         );
       }
 
       // Send notifications if enabled
-      if (this.config.enableNotifications && this.dependencies.sendPayoutNotifications) {
+      if (
+        this.config.enableNotifications &&
+        this.dependencies.sendPayoutNotifications
+      ) {
         const notifications = batch.jobs.map(job => ({
           promoterId: job.promoterId,
           amount: job.calculation?.netAmount || 0,
-          status: job.status === 'completed' ? 'completed' as const : 'failed' as const,
+          status:
+            job.status === 'completed'
+              ? ('completed' as const)
+              : ('failed' as const),
           error: job.error,
         }));
 
@@ -282,9 +319,11 @@ export class DailyPayoutCron {
 
       // Save report to logs (if logging is configured)
       await this.savePayoutReport(batch.date, report);
-
     } catch (error) {
-      this.log('error', `Daily payout calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        'error',
+        `Daily payout calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       throw error;
     }
   }
@@ -295,13 +334,15 @@ export class DailyPayoutCron {
   private async retryFailedPayouts(): Promise<void> {
     try {
       this.log('debug', 'Checking for failed payouts to retry...');
-      
+
       // This would typically query the database for failed payouts
       // For now, we'll just log that the check was performed
       this.log('debug', 'Failed payout retry check completed');
-      
     } catch (error) {
-      this.log('error', `Failed payout retry failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        'error',
+        `Failed payout retry failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -314,16 +355,22 @@ export class DailyPayoutCron {
       const schedulerStats = this.scheduler.getStats();
 
       // Check if system is healthy
-      const isHealthy = this.scheduler.isHealthy() && !engineStatus.isProcessing;
+      const isHealthy =
+        this.scheduler.isHealthy() && !engineStatus.isProcessing;
 
       if (!isHealthy) {
         this.log('warn', 'Payout system health check failed');
       } else {
-        this.log('debug', `Payout system healthy - Scheduler: ${schedulerStats.enabledJobs} jobs, Engine: ${engineStatus.isProcessing ? 'processing' : 'idle'}`);
+        this.log(
+          'debug',
+          `Payout system healthy - Scheduler: ${schedulerStats.enabledJobs} jobs, Engine: ${engineStatus.isProcessing ? 'processing' : 'idle'}`
+        );
       }
-
     } catch (error) {
-      this.log('error', `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        'error',
+        `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -336,7 +383,10 @@ export class DailyPayoutCron {
       // For now, we'll just ensure the report is logged
       this.log('info', `Payout report for ${date} generated`);
     } catch (error) {
-      this.log('error', `Failed to save payout report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        'error',
+        `Failed to save payout report: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -345,9 +395,9 @@ export class DailyPayoutCron {
    */
   async executeManualPayout(date?: Date): Promise<PayoutBatch> {
     this.log('info', 'Executing manual payout calculation...');
-    
+
     const targetDate = date || new Date();
-    
+
     const batch = await this.payoutEngine.calculateDailyPayouts(
       targetDate,
       this.dependencies.getActivePromotions,
@@ -405,28 +455,43 @@ export class DailyPayoutCron {
     }
 
     // Update platform revenue
-    const totalPlatformFees = successfulPayouts.reduce((sum, payout) => sum + payout.platformFee, 0);
+    const totalPlatformFees = successfulPayouts.reduce(
+      (sum, payout) => sum + payout.platformFee,
+      0
+    );
     if (totalPlatformFees > 0) {
       await this.dependencies.updatePlatformRevenue(
-        { start: batch.jobs[0]?.period.start || targetDate, end: batch.jobs[0]?.period.end || targetDate },
+        {
+          start: batch.jobs[0]?.period.start || targetDate,
+          end: batch.jobs[0]?.period.end || targetDate,
+        },
         totalPlatformFees
       );
     }
 
     // Send notifications if enabled
-    if (this.config.enableNotifications && this.dependencies.sendPayoutNotifications) {
+    if (
+      this.config.enableNotifications &&
+      this.dependencies.sendPayoutNotifications
+    ) {
       const notifications = batch.jobs.map(job => ({
         promoterId: job.promoterId,
         amount: job.calculation?.netAmount || 0,
-        status: job.status === 'completed' ? 'completed' as const : 'failed' as const,
+        status:
+          job.status === 'completed'
+            ? ('completed' as const)
+            : ('failed' as const),
         error: job.error,
       }));
 
       await this.dependencies.sendPayoutNotifications(notifications);
     }
 
-    this.log('info', `Manual payout completed for ${this.payoutEngine['formatDate'](targetDate)}`);
-    
+    this.log(
+      'info',
+      `Manual payout completed for ${this.payoutEngine['formatDate'](targetDate)}`
+    );
+
     return batch;
   }
 
@@ -464,7 +529,7 @@ export class DailyPayoutCron {
    */
   updateConfig(newConfig: Partial<DailyPayoutCronConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // Update payout engine config
     this.payoutEngine = createPayoutEngine({
       timezone: this.config.timezone,
@@ -479,7 +544,10 @@ export class DailyPayoutCron {
   /**
    * Logging utility
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string
+  ): void {
     const levels = ['debug', 'info', 'warn', 'error'];
     const configLevel = levels.indexOf(this.config.logLevel);
     const messageLevel = levels.indexOf(level);
@@ -500,7 +568,10 @@ export const createDailyPayoutCron = (
 };
 
 // Export helper function to create WIB-specific cron schedule
-export const createWIBSchedule = (hour: number = 0, minute: number = 0): string => {
+export const createWIBSchedule = (
+  hour: number = 0,
+  minute: number = 0
+): string => {
   // This would need to be converted to a proper cron expression
   // For now, return a simple interval
   return '24h';

@@ -16,9 +16,11 @@ function showWarning() {
 }
 
 function showTimeout() {
-  console.log('\n❌ TIMEOUT: Build process exceeded maximum timeout (10 minutes)');
+  console.log(
+    '\n❌ TIMEOUT: Build process exceeded maximum timeout (10 minutes)'
+  );
   console.log('   Terminating build to prevent hanging...\n');
-  
+
   if (buildProcess) {
     buildProcess.kill('SIGTERM');
     setTimeout(() => {
@@ -32,16 +34,16 @@ function showTimeout() {
 
 function startBuild() {
   console.log('🔨 Starting build process with timeout monitoring...\n');
-  
+
   // Start the build process
   buildProcess = spawn('turbo', ['run', 'build'], {
     stdio: 'inherit',
     shell: true,
-    cwd: process.cwd()
+    cwd: process.cwd(),
   });
 
   // Handle process events
-  buildProcess.on('error', (error) => {
+  buildProcess.on('error', error => {
     console.error('❌ Failed to start build process:', error.message);
     process.exit(1);
   });
@@ -49,15 +51,19 @@ function startBuild() {
   buildProcess.on('exit', (code, signal) => {
     const elapsed = Date.now() - startTime;
     const elapsedMinutes = Math.round(elapsed / 60000);
-    
+
     if (signal === 'SIGTERM' || signal === 'SIGKILL') {
       console.log('\n🛑 Build process terminated due to timeout');
       process.exit(1);
     } else if (code !== 0) {
-      console.log(`\n❌ Build process failed with code ${code} (took ${elapsedMinutes} minutes)`);
+      console.log(
+        `\n❌ Build process failed with code ${code} (took ${elapsedMinutes} minutes)`
+      );
       process.exit(code);
     } else {
-      console.log(`\n✅ Build completed successfully (took ${elapsedMinutes} minutes)`);
+      console.log(
+        `\n✅ Build completed successfully (took ${elapsedMinutes} minutes)`
+      );
       process.exit(0);
     }
   });
@@ -65,13 +71,13 @@ function startBuild() {
   // Start timeout monitoring
   const timeoutInterval = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    
+
     // Show warning at 2 minutes
     if (elapsed >= WARNING_TIMEOUT && !warningShown) {
       showWarning();
       warningShown = true;
     }
-    
+
     // Force terminate at 10 minutes
     if (elapsed >= BUILD_TIMEOUT) {
       clearInterval(timeoutInterval);
@@ -83,7 +89,7 @@ function startBuild() {
   process.on('SIGINT', () => {
     console.log('\n🛑 Received interrupt signal, stopping build process...');
     clearInterval(timeoutInterval);
-    
+
     if (buildProcess) {
       buildProcess.kill('SIGTERM');
       setTimeout(() => {

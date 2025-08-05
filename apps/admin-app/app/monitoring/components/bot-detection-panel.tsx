@@ -34,15 +34,15 @@ export default function BotDetectionPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<BotDetectionStats | null>(null);
   const [timeRange, setTimeRange] = useState('24h');
-  
+
   useEffect(() => {
     // In a real app, this would fetch from an API
     fetchBotDetectionStats();
   }, [timeRange]);
-  
+
   const fetchBotDetectionStats = () => {
     setIsLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       setStats({
@@ -75,7 +75,7 @@ export default function BotDetectionPanel() {
       setIsLoading(false);
     }, 1000);
   };
-  
+
   return (
     <Card>
       <CardHeader>
@@ -83,13 +83,10 @@ export default function BotDetectionPanel() {
         <CardDescription>
           Monitor bot detection performance and suspicious activity
         </CardDescription>
-        
+
         <div className="flex flex-wrap gap-4 mt-4">
           <div className="w-48">
-            <Select
-              value={timeRange}
-              onValueChange={setTimeRange}
-            >
+            <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger>
                 <SelectValue placeholder="Time range" />
               </SelectTrigger>
@@ -104,7 +101,7 @@ export default function BotDetectionPanel() {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center py-8">
@@ -114,39 +111,60 @@ export default function BotDetectionPanel() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-lg border shadow-sm">
-                <div className="text-sm text-gray-500">Total Traffic Analyzed</div>
-                <div className="text-2xl font-bold mt-1">{stats.totalAnalyzed.toLocaleString()}</div>
+                <div className="text-sm text-gray-500">
+                  Total Traffic Analyzed
+                </div>
+                <div className="text-2xl font-bold mt-1">
+                  {stats.totalAnalyzed.toLocaleString()}
+                </div>
               </div>
-              
+
               <div className="bg-white p-4 rounded-lg border shadow-sm">
-                <div className="text-sm text-gray-500">Bot Traffic Detected</div>
+                <div className="text-sm text-gray-500">
+                  Bot Traffic Detected
+                </div>
                 <div className="text-2xl font-bold mt-1 text-red-600">
-                  {stats.botDetected.toLocaleString()} 
+                  {stats.botDetected.toLocaleString()}
                   <span className="text-sm font-normal text-gray-500 ml-1">
-                    ({((stats.botDetected / stats.totalAnalyzed) * 100).toFixed(1)}%)
+                    (
+                    {((stats.botDetected / stats.totalAnalyzed) * 100).toFixed(
+                      1
+                    )}
+                    %)
                   </span>
                 </div>
               </div>
-              
+
               <div className="bg-white p-4 rounded-lg border shadow-sm">
                 <div className="text-sm text-gray-500">Suspicious Activity</div>
                 <div className="text-2xl font-bold mt-1 text-yellow-600">
                   {stats.suspiciousActivity.toLocaleString()}
                   <span className="text-sm font-normal text-gray-500 ml-1">
-                    ({((stats.suspiciousActivity / stats.totalAnalyzed) * 100).toFixed(1)}%)
+                    (
+                    {(
+                      (stats.suspiciousActivity / stats.totalAnalyzed) *
+                      100
+                    ).toFixed(1)}
+                    %)
                   </span>
                 </div>
               </div>
-              
+
               <div className="bg-white p-4 rounded-lg border shadow-sm">
-                <div className="text-sm text-gray-500">Avg. Confidence Score</div>
-                <div className="text-2xl font-bold mt-1">{stats.averageConfidenceScore.toFixed(1)}</div>
+                <div className="text-sm text-gray-500">
+                  Avg. Confidence Score
+                </div>
+                <div className="text-2xl font-bold mt-1">
+                  {stats.averageConfidenceScore.toFixed(1)}
+                </div>
               </div>
             </div>
-            
+
             <div className="bg-white p-4 rounded-lg border shadow-sm">
-              <h3 className="text-lg font-medium mb-4">Top Suspicious Promoters</h3>
-              
+              <h3 className="text-lg font-medium mb-4">
+                Top Suspicious Promoters
+              </h3>
+
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -159,7 +177,7 @@ export default function BotDetectionPanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {stats.topSuspiciousPromoters.map((promoter) => (
+                    {stats.topSuspiciousPromoters.map(promoter => (
                       <tr key={promoter.promoterId} className="border-t">
                         <td className="px-4 py-3">{promoter.promoterId}</td>
                         <td className="px-4 py-3">{promoter.promoterName}</td>
@@ -170,7 +188,9 @@ export default function BotDetectionPanel() {
                           {promoter.detectedAt.toLocaleString()}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <Button size="sm" variant="outline">Review</Button>
+                          <Button size="sm" variant="outline">
+                            Review
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -185,7 +205,7 @@ export default function BotDetectionPanel() {
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter>
         <Button onClick={fetchBotDetectionStats} disabled={isLoading}>
           {isLoading ? 'Refreshing...' : 'Refresh Stats'}

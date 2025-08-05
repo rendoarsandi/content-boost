@@ -27,9 +27,11 @@ Semua API endpoints memerlukan authentication kecuali yang disebutkan sebaliknya
 ### Campaign Management
 
 #### GET /api/campaigns
+
 Mendapatkan daftar campaigns
 
 **Response:**
+
 ```json
 {
   "campaigns": [
@@ -48,9 +50,11 @@ Mendapatkan daftar campaigns
 ```
 
 #### POST /api/campaigns
+
 Membuat campaign baru
 
 **Request Body:**
+
 ```json
 {
   "title": "string",
@@ -67,25 +71,31 @@ Membuat campaign baru
 ### Promoter Management
 
 #### GET /api/promoter/campaigns
+
 Mendapatkan campaigns yang tersedia untuk promoter
 
 #### POST /api/promoter/campaigns/{id}/apply
+
 Apply untuk campaign tertentu
 
 ### Analytics
 
 #### GET /api/campaigns/{id}/metrics
+
 Mendapatkan metrics real-time untuk campaign
 
 #### GET /api/promoter/analytics
+
 Mendapatkan analytics untuk promoter
 
 ### Bot Detection
 
 #### GET /api/bot-detection/stats
+
 Mendapatkan statistik bot detection
 
 #### POST /api/bot-detection/{id}/review
+
 Review hasil bot detection
 
 ## Error Handling

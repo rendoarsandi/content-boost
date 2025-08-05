@@ -4,20 +4,25 @@ export * from './types';
 export * from './config';
 
 // Main exports
-export { RedisCache, CacheKeyManager, DEFAULT_TTL_POLICIES, DEFAULT_KEY_CONFIG } from './redis';
-export { 
-  createRedisConfig, 
-  createTTLPolicies, 
-  createKeyConfig, 
+export {
+  RedisCache,
+  CacheKeyManager,
+  DEFAULT_TTL_POLICIES,
+  DEFAULT_KEY_CONFIG,
+} from './redis';
+export {
+  createRedisConfig,
+  createTTLPolicies,
+  createKeyConfig,
   createCache,
-  createHealthCheckConfig 
+  createHealthCheckConfig,
 } from './config';
-export type { 
-  RedisConfig, 
-  TTLPolicy, 
-  CacheKeyConfig, 
-  CacheUtilityOptions, 
+export type {
+  RedisConfig,
+  TTLPolicy,
+  CacheKeyConfig,
+  CacheUtilityOptions,
   CacheStats,
   CacheEntry,
-  HealthCheckConfig
+  HealthCheckConfig,
 } from './types';

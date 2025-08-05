@@ -4,16 +4,16 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@repo/ui';
-import { 
-  BarChart3, 
-  Megaphone, 
-  DollarSign, 
-  LogOut, 
-  Menu, 
-  Settings, 
-  Shield, 
-  Users, 
-  X 
+import {
+  BarChart3,
+  Megaphone,
+  DollarSign,
+  LogOut,
+  Menu,
+  Settings,
+  Shield,
+  Users,
+  X,
 } from 'lucide-react';
 
 const navigation = [
@@ -46,12 +46,10 @@ export default function AdminNav() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">
-                Admin Panel
-              </h1>
+              <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navigation.map((item) => {
+              {navigation.map(item => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
@@ -102,7 +100,7 @@ export default function AdminNav() {
       {isMobileMenuOpen && (
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
-            {navigation.map((item) => {
+            {navigation.map(item => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (

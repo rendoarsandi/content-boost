@@ -10,14 +10,18 @@ export const WIB_OFFSET = 7; // UTC+7
  * Get current time in Indonesian timezone (WIB)
  */
 export function getCurrentWIBTime(): Date {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: INDONESIA_TIMEZONE }));
+  return new Date(
+    new Date().toLocaleString('en-US', { timeZone: INDONESIA_TIMEZONE })
+  );
 }
 
 /**
  * Convert UTC date to WIB
  */
 export function convertToWIB(utcDate: Date): Date {
-  return new Date(utcDate.toLocaleString('en-US', { timeZone: INDONESIA_TIMEZONE }));
+  return new Date(
+    utcDate.toLocaleString('en-US', { timeZone: INDONESIA_TIMEZONE })
+  );
 }
 
 /**
@@ -36,7 +40,7 @@ export function convertToUTC(wibDate: Date): Date {
 export function getStartOfDayWIB(date?: Date): Date {
   const targetDate = date || getCurrentWIBTime();
   const wibDate = convertToWIB(targetDate);
-  
+
   wibDate.setHours(0, 0, 0, 0);
   return wibDate;
 }
@@ -47,7 +51,7 @@ export function getStartOfDayWIB(date?: Date): Date {
 export function getEndOfDayWIB(date?: Date): Date {
   const targetDate = date || getCurrentWIBTime();
   const wibDate = convertToWIB(targetDate);
-  
+
   wibDate.setHours(23, 59, 59, 999);
   return wibDate;
 }
@@ -60,10 +64,10 @@ export function getYesterdayRangeWIB(): { start: Date; end: Date } {
   const today = getCurrentWIBTime();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   return {
     start: getStartOfDayWIB(yesterday),
-    end: getEndOfDayWIB(yesterday)
+    end: getEndOfDayWIB(yesterday),
   };
 }
 
@@ -74,16 +78,16 @@ export function getCurrentWeekRangeWIB(): { start: Date; end: Date } {
   const today = getCurrentWIBTime();
   const dayOfWeek = today.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as 0
-  
+
   const monday = new Date(today);
   monday.setDate(today.getDate() + mondayOffset);
-  
+
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  
+
   return {
     start: getStartOfDayWIB(monday),
-    end: getEndOfDayWIB(sunday)
+    end: getEndOfDayWIB(sunday),
   };
 }
 
@@ -92,13 +96,13 @@ export function getCurrentWeekRangeWIB(): { start: Date; end: Date } {
  */
 export function getCurrentMonthRangeWIB(): { start: Date; end: Date } {
   const today = getCurrentWIBTime();
-  
+
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-  
+
   return {
     start: getStartOfDayWIB(firstDay),
-    end: getEndOfDayWIB(lastDay)
+    end: getEndOfDayWIB(lastDay),
   };
 }
 
@@ -108,7 +112,7 @@ export function getCurrentMonthRangeWIB(): { start: Date; end: Date } {
 export function isToday(date: Date): boolean {
   const today = getCurrentWIBTime();
   const targetDate = convertToWIB(date);
-  
+
   return (
     today.getFullYear() === targetDate.getFullYear() &&
     today.getMonth() === targetDate.getMonth() &&
@@ -123,9 +127,9 @@ export function isYesterday(date: Date): boolean {
   const today = getCurrentWIBTime();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   const targetDate = convertToWIB(date);
-  
+
   return (
     yesterday.getFullYear() === targetDate.getFullYear() &&
     yesterday.getMonth() === targetDate.getMonth() &&
@@ -136,22 +140,25 @@ export function isYesterday(date: Date): boolean {
 /**
  * Format date for Indonesian locale
  */
-export function formatDateIndonesian(date: Date, includeTime: boolean = false): string {
+export function formatDateIndonesian(
+  date: Date,
+  includeTime: boolean = false
+): string {
   const wibDate = convertToWIB(date);
-  
+
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    timeZone: INDONESIA_TIMEZONE
+    timeZone: INDONESIA_TIMEZONE,
   };
-  
+
   if (includeTime) {
     options.hour = '2-digit';
     options.minute = '2-digit';
     options.second = '2-digit';
   }
-  
+
   return wibDate.toLocaleDateString('id-ID', options);
 }
 
@@ -160,13 +167,13 @@ export function formatDateIndonesian(date: Date, includeTime: boolean = false): 
  */
 export function formatTimeIndonesian(date: Date): string {
   const wibDate = convertToWIB(date);
-  
+
   return wibDate.toLocaleTimeString('id-ID', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     timeZone: INDONESIA_TIMEZONE,
-    hour12: false
+    hour12: false,
   });
 }
 
@@ -180,7 +187,7 @@ export function getRelativeTimeIndonesian(date: Date): string {
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
-  
+
   if (diffMinutes < 1) {
     return 'Baru saja';
   } else if (diffMinutes < 60) {
@@ -236,7 +243,7 @@ export function isWithinTimeWindow(
   const targetDate = convertToWIB(date);
   const diffMs = Math.abs(reference.getTime() - targetDate.getTime());
   const diffMinutes = diffMs / (1000 * 60);
-  
+
   return diffMinutes <= windowMinutes;
 }
 
@@ -250,12 +257,12 @@ export function generateDateRange(
 ): Date[] {
   const dates: Date[] = [];
   const current = new Date(startDate);
-  
+
   while (current <= endDate) {
     dates.push(new Date(current));
     current.setDate(current.getDate() + intervalDays);
   }
-  
+
   return dates;
 }
 
@@ -265,15 +272,16 @@ export function generateDateRange(
 export function getBusinessDaysBetween(startDate: Date, endDate: Date): number {
   let count = 0;
   const current = new Date(startDate);
-  
+
   while (current <= endDate) {
     const dayOfWeek = current.getDay();
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday (0) or Saturday (6)
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      // Not Sunday (0) or Saturday (6)
       count++;
     }
     current.setDate(current.getDate() + 1);
   }
-  
+
   return count;
 }
 
@@ -284,7 +292,7 @@ export function isBusinessHours(): boolean {
   const now = getCurrentWIBTime();
   const hour = now.getHours();
   const dayOfWeek = now.getDay();
-  
+
   // Monday (1) to Friday (5), 9 AM to 6 PM
   return dayOfWeek >= 1 && dayOfWeek <= 5 && hour >= 9 && hour < 18;
 }
@@ -296,12 +304,12 @@ export function getNextBusinessDay(date?: Date): Date {
   const targetDate = date || getCurrentWIBTime();
   const nextDay = new Date(targetDate);
   nextDay.setDate(nextDay.getDate() + 1);
-  
+
   // Skip weekends
   while (nextDay.getDay() === 0 || nextDay.getDay() === 6) {
     nextDay.setDate(nextDay.getDate() + 1);
   }
-  
+
   return getStartOfDayWIB(nextDay);
 }
 
@@ -316,29 +324,37 @@ export function parseIndonesianDate(dateString: string): Date | null {
       /^(\d{1,2})-(\d{1,2})-(\d{4})$/, // DD-MM-YYYY
       /^(\d{4})-(\d{1,2})-(\d{1,2})$/, // YYYY-MM-DD
     ];
-    
+
     for (const format of formats) {
       const match = dateString.match(format);
       if (match) {
         let day, month, year;
-        
-        if (format === formats[2]) { // YYYY-MM-DD
+
+        if (format === formats[2]) {
+          // YYYY-MM-DD
           [, year, month, day] = match;
-        } else { // DD/MM/YYYY or DD-MM-YYYY
+        } else {
+          // DD/MM/YYYY or DD-MM-YYYY
           [, day, month, year] = match;
         }
-        
-        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        
+
+        const date = new Date(
+          parseInt(year),
+          parseInt(month) - 1,
+          parseInt(day)
+        );
+
         // Validate the date
-        if (date.getFullYear() == parseInt(year) &&
-            date.getMonth() == parseInt(month) - 1 &&
-            date.getDate() == parseInt(day)) {
+        if (
+          date.getFullYear() == parseInt(year) &&
+          date.getMonth() == parseInt(month) - 1 &&
+          date.getDate() == parseInt(day)
+        ) {
           return date;
         }
       }
     }
-    
+
     // Fallback to standard Date parsing
     return new Date(dateString);
   } catch {
@@ -367,16 +383,16 @@ export function getTimeUntilNextPayout(): {
   const now = getCurrentWIBTime();
   const nextPayout = getStartOfDayWIB();
   nextPayout.setDate(nextPayout.getDate() + 1); // Tomorrow at 00:00
-  
+
   const diffMs = nextPayout.getTime() - now.getTime();
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-  
+
   return {
     hours,
     minutes,
     seconds,
-    totalMs: diffMs
+    totalMs: diffMs,
   };
 }

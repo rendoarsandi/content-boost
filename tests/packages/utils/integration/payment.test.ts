@@ -8,7 +8,7 @@ import {
   calculatePlatformRevenue,
   generatePayoutSummary,
   PaymentCalculation,
-  PayoutPeriod
+  PayoutPeriod,
 } from '../src/payment';
 
 describe('Payment Utilities', () => {
@@ -46,18 +46,30 @@ describe('Payment Utilities', () => {
     });
 
     it('should throw error for negative values', () => {
-      expect(() => calculatePayout(-100, 50, 1000)).toThrow('Views and rate must be non-negative numbers');
-      expect(() => calculatePayout(100, -50, 1000)).toThrow('Views and rate must be non-negative numbers');
-      expect(() => calculatePayout(100, 50, -1000)).toThrow('Views and rate must be non-negative numbers');
+      expect(() => calculatePayout(-100, 50, 1000)).toThrow(
+        'Views and rate must be non-negative numbers'
+      );
+      expect(() => calculatePayout(100, -50, 1000)).toThrow(
+        'Views and rate must be non-negative numbers'
+      );
+      expect(() => calculatePayout(100, 50, -1000)).toThrow(
+        'Views and rate must be non-negative numbers'
+      );
     });
 
     it('should throw error when legitimate views exceed total views', () => {
-      expect(() => calculatePayout(100, 150, 1000)).toThrow('Legitimate views cannot exceed total views');
+      expect(() => calculatePayout(100, 150, 1000)).toThrow(
+        'Legitimate views cannot exceed total views'
+      );
     });
 
     it('should throw error for invalid platform fee percentage', () => {
-      expect(() => calculatePayout(100, 50, 1000, -5)).toThrow('Platform fee percentage must be between 0 and 100');
-      expect(() => calculatePayout(100, 50, 1000, 105)).toThrow('Platform fee percentage must be between 0 and 100');
+      expect(() => calculatePayout(100, 50, 1000, -5)).toThrow(
+        'Platform fee percentage must be between 0 and 100'
+      );
+      expect(() => calculatePayout(100, 50, 1000, 105)).toThrow(
+        'Platform fee percentage must be between 0 and 100'
+      );
     });
   });
 
@@ -66,7 +78,7 @@ describe('Payment Utilities', () => {
       start: new Date('2024-01-01T00:00:00Z'),
       end: new Date('2024-01-01T23:59:59Z'),
       promoterId: 'promoter-123',
-      campaignId: 'campaign-456'
+      campaignId: 'campaign-456',
     };
 
     it('should calculate daily payout from view records', () => {
@@ -74,23 +86,23 @@ describe('Payment Utilities', () => {
         {
           viewCount: 100,
           isLegitimate: true,
-          timestamp: new Date('2024-01-01T10:00:00Z')
+          timestamp: new Date('2024-01-01T10:00:00Z'),
         },
         {
           viewCount: 200,
           isLegitimate: true,
-          timestamp: new Date('2024-01-01T15:00:00Z')
+          timestamp: new Date('2024-01-01T15:00:00Z'),
         },
         {
           viewCount: 50,
           isLegitimate: false, // Bot views
-          timestamp: new Date('2024-01-01T20:00:00Z')
+          timestamp: new Date('2024-01-01T20:00:00Z'),
         },
         {
           viewCount: 75,
           isLegitimate: true,
-          timestamp: new Date('2023-12-31T22:00:00Z') // Outside period
-        }
+          timestamp: new Date('2023-12-31T22:00:00Z'), // Outside period
+        },
       ];
 
       const result = calculateDailyPayout(payoutPeriod, viewRecords, 1000);
@@ -125,7 +137,7 @@ describe('Payment Utilities', () => {
 
   describe('formatCurrencyDetailed', () => {
     it('should format with decimal places', () => {
-      expect(formatCurrencyDetailed(1000000.50)).toBe('Rp1.000.000,50');
+      expect(formatCurrencyDetailed(1000000.5)).toBe('Rp1.000.000,50');
       expect(formatCurrencyDetailed(500.25)).toBe('Rp500,25');
     });
   });
@@ -142,14 +154,16 @@ describe('Payment Utilities', () => {
         maxRetries: 5,
         baseDelayMs: 1000,
         maxDelayMs: 5000,
-        backoffMultiplier: 2
+        backoffMultiplier: 2,
       };
 
       expect(calculateRetryDelay(5, config)).toBe(5000); // Capped at maxDelayMs
     });
 
     it('should throw error for attempts exceeding max retries', () => {
-      expect(() => calculateRetryDelay(4)).toThrow('Attempt number 4 exceeds max retries 3');
+      expect(() => calculateRetryDelay(4)).toThrow(
+        'Attempt number 4 exceeds max retries 3'
+      );
     });
   });
 
@@ -180,7 +194,7 @@ describe('Payment Utilities', () => {
           platformFeePercentage: 5,
           platformFee: 40000,
           netAmount: 760000,
-          calculatedAt: new Date()
+          calculatedAt: new Date(),
         },
         {
           totalViews: 500,
@@ -191,13 +205,13 @@ describe('Payment Utilities', () => {
           platformFeePercentage: 5,
           platformFee: 30000,
           netAmount: 570000,
-          calculatedAt: new Date()
-        }
+          calculatedAt: new Date(),
+        },
       ];
 
       const period = {
         start: new Date('2024-01-01'),
-        end: new Date('2024-01-31')
+        end: new Date('2024-01-31'),
       };
 
       const result = calculatePlatformRevenue(payouts, period);
@@ -221,7 +235,7 @@ describe('Payment Utilities', () => {
         platformFeePercentage: 5,
         platformFee: 40000,
         netAmount: 760000,
-        calculatedAt: new Date()
+        calculatedAt: new Date(),
       };
 
       const summary = generatePayoutSummary(calculation);
@@ -245,7 +259,7 @@ describe('Payment Utilities', () => {
         platformFeePercentage: 5,
         platformFee: 0,
         netAmount: 0,
-        calculatedAt: new Date()
+        calculatedAt: new Date(),
       };
 
       const summary = generatePayoutSummary(calculation);

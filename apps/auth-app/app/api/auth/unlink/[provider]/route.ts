@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
@@ -6,12 +6,9 @@ export async function POST(
 ) {
   try {
     const { provider } = await params;
-    
-    if (!["tiktok", "instagram"].includes(provider)) {
-      return NextResponse.json(
-        { error: "Invalid provider" },
-        { status: 400 }
-      );
+
+    if (!['tiktok', 'instagram'].includes(provider)) {
+      return NextResponse.json({ error: 'Invalid provider' }, { status: 400 });
     }
 
     // For development/demo purposes, simulate account unlinking
@@ -22,9 +19,9 @@ export async function POST(
 
     console.log(`Mock unlink: ${provider} account unlinked`);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: `${provider} account unlinked successfully`
+      message: `${provider} account unlinked successfully`,
     });
   } catch (error) {
     console.error(`Error unlinking account:`, error);

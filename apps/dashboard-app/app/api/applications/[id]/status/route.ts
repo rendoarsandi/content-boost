@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const UpdateStatusSchema = z.object({
-  status: z.enum(['approved', 'rejected']),
+  status: z.enum(['APPROVED', 'REJECTED']),
 });
 
 // PATCH /api/applications/[id]/status - Simplified application status endpoint
@@ -19,7 +19,7 @@ export async function PATCH(
     return NextResponse.json({
       applicationId,
       status: validatedData.status,
-      message: `Application ${validatedData.status} successfully`
+      message: `Application ${validatedData.status} successfully`,
     });
   } catch (error) {
     console.error('Error updating application status:', error);

@@ -18,7 +18,7 @@ function showWarning() {
 function showTimeout() {
   console.log('\n❌ TIMEOUT: Test suite exceeded maximum timeout (5 minutes)');
   console.log('   Terminating tests to prevent hanging...\n');
-  
+
   if (testProcess) {
     testProcess.kill('SIGTERM');
     setTimeout(() => {
@@ -32,21 +32,24 @@ function showTimeout() {
 
 function startTests() {
   console.log('🧪 Starting test suite with timeout monitoring...\n');
-  
+
   // Get test command from arguments or use default
   const testArgs = process.argv.slice(2);
   const testCommand = testArgs.length > 0 ? testArgs : ['run', 'test'];
-  
+
   // Start the test process
-  const command = testCommand[0] === 'run' && testCommand[1] === 'test' ? ['turbo', 'run', 'test'] : ['npm', ...testCommand];
+  const command =
+    testCommand[0] === 'run' && testCommand[1] === 'test'
+      ? ['turbo', 'run', 'test']
+      : ['npm', ...testCommand];
   testProcess = spawn(command[0], command.slice(1), {
     stdio: 'inherit',
     shell: true,
-    cwd: process.cwd()
+    cwd: process.cwd(),
   });
 
   // Handle process events
-  testProcess.on('error', (error) => {
+  testProcess.on('error', error => {
     console.error('❌ Failed to start test process:', error.message);
     process.exit(1);
   });
@@ -54,12 +57,14 @@ function startTests() {
   testProcess.on('exit', (code, signal) => {
     const elapsed = Date.now() - startTime;
     const elapsedSeconds = Math.round(elapsed / 1000);
-    
+
     if (signal === 'SIGTERM' || signal === 'SIGKILL') {
       console.log('\n🛑 Test process terminated due to timeout');
       process.exit(1);
     } else if (code !== 0) {
-      console.log(`\n❌ Tests failed with code ${code} (took ${elapsedSeconds} seconds)`);
+      console.log(
+        `\n❌ Tests failed with code ${code} (took ${elapsedSeconds} seconds)`
+      );
       process.exit(code);
     } else {
       console.log(`\n✅ All tests passed (took ${elapsedSeconds} seconds)`);
@@ -70,13 +75,13 @@ function startTests() {
   // Start timeout monitoring
   const timeoutInterval = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    
+
     // Show warning at 1 minute
     if (elapsed >= WARNING_TIMEOUT && !warningShown) {
       showWarning();
       warningShown = true;
     }
-    
+
     // Force terminate at 5 minutes
     if (elapsed >= TEST_TIMEOUT) {
       clearInterval(timeoutInterval);
@@ -88,7 +93,7 @@ function startTests() {
   process.on('SIGINT', () => {
     console.log('\n🛑 Received interrupt signal, stopping test process...');
     clearInterval(timeoutInterval);
-    
+
     if (testProcess) {
       testProcess.kill('SIGTERM');
       setTimeout(() => {

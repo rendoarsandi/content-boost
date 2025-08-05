@@ -36,7 +36,11 @@ describe('MetricsCollector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    metricsCollector = createMetricsCollector(mockCache, mockAPIManager, mockTokenManager);
+    metricsCollector = createMetricsCollector(
+      mockCache,
+      mockAPIManager,
+      mockTokenManager
+    );
   });
 
   describe('addJob', () => {
@@ -62,7 +66,10 @@ describe('MetricsCollector', () => {
         }),
         { ttl: DEFAULT_CONFIG.cacheSettings.jobQueueTTL }
       );
-      expect(mockCache['client'].lpush).toHaveBeenCalledWith('metrics-queue:pending', jobId);
+      expect(mockCache['client'].lpush).toHaveBeenCalledWith(
+        'metrics-queue:pending',
+        jobId
+      );
     });
   });
 
@@ -80,12 +87,14 @@ describe('MetricsCollector', () => {
 
     it('should not start if already running', async () => {
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
+
       await metricsCollector.start();
       await metricsCollector.start(); // Second start should warn
 
-      expect(consoleSpy).toHaveBeenCalledWith('Metrics collector is already running');
-      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Metrics collector is already running'
+      );
+
       await metricsCollector.stop();
       consoleSpy.mockRestore();
     });
@@ -123,7 +132,9 @@ describe('MetricsCollector', () => {
       };
 
       // Mock dependencies
-      (mockTokenManager.getValidToken as jest.Mock).mockResolvedValue(mockToken);
+      (mockTokenManager.getValidToken as jest.Mock).mockResolvedValue(
+        mockToken
+      );
       (mockAPIManager.getMetrics as jest.Mock).mockResolvedValue(mockMetrics);
       (mockCache.get as jest.Mock)
         .mockResolvedValueOnce(job) // getJobStatus
@@ -131,15 +142,25 @@ describe('MetricsCollector', () => {
         .mockResolvedValueOnce(job); // updateJobStatus
 
       // Mock queue operations
-      (mockCache['client'].rpop as jest.Mock).mockResolvedValueOnce('job123').mockResolvedValue(null);
+      (mockCache['client'].rpop as jest.Mock)
+        .mockResolvedValueOnce('job123')
+        .mockResolvedValue(null);
 
       await metricsCollector.start();
-      
+
       // Wait for processing
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      expect(mockTokenManager.getValidToken).toHaveBeenCalledWith('user123', 'tiktok');
-      expect(mockAPIManager.getMetrics).toHaveBeenCalledWith('tiktok', 'valid_token', 'video789', 'user123');
+      expect(mockTokenManager.getValidToken).toHaveBeenCalledWith(
+        'user123',
+        'tiktok'
+      );
+      expect(mockAPIManager.getMetrics).toHaveBeenCalledWith(
+        'tiktok',
+        'valid_token',
+        'video789',
+        'user123'
+      );
       expect(mockCache.set).toHaveBeenCalledWith(
         expect.stringContaining('metrics:user123:campaign456:video789:current'),
         expect.objectContaining({
@@ -172,10 +193,12 @@ describe('MetricsCollector', () => {
       // Mock token manager to return null (no valid token)
       (mockTokenManager.getValidToken as jest.Mock).mockResolvedValue(null);
       (mockCache.get as jest.Mock).mockResolvedValue(job);
-      (mockCache['client'].rpop as jest.Mock).mockResolvedValueOnce('job123').mockResolvedValue(null);
+      (mockCache['client'].rpop as jest.Mock)
+        .mockResolvedValueOnce('job123')
+        .mockResolvedValue(null);
 
       await metricsCollector.start();
-      
+
       // Wait for processing
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -194,8 +217,10 @@ describe('MetricsCollector', () => {
 
   describe('validation rules', () => {
     it('should validate non-negative values', () => {
-      const rule = DEFAULT_VALIDATION_RULES.find(r => r.name === 'non-negative-values')!;
-      
+      const rule = DEFAULT_VALIDATION_RULES.find(
+        r => r.name === 'non-negative-values'
+      )!;
+
       const validMetrics = {
         viewCount: 100,
         likeCount: 10,
@@ -213,7 +238,7 @@ describe('MetricsCollector', () => {
       };
 
       expect(rule.validate(validMetrics).isValid).toBe(true);
-      
+
       const invalidResult = rule.validate(invalidMetrics);
       expect(invalidResult.isValid).toBe(false);
       expect(invalidResult.error).toContain('viewCount');
@@ -221,8 +246,10 @@ describe('MetricsCollector', () => {
     });
 
     it('should validate reasonable growth', () => {
-      const rule = DEFAULT_VALIDATION_RULES.find(r => r.name === 'reasonable-growth')!;
-      
+      const rule = DEFAULT_VALIDATION_RULES.find(
+        r => r.name === 'reasonable-growth'
+      )!;
+
       const previousMetrics = {
         viewCount: 100,
         likeCount: 10,
@@ -241,25 +268,27 @@ describe('MetricsCollector', () => {
 
       const suspiciousGrowth = {
         viewCount: 250, // +150 views
-        likeCount: 5,   // -5 likes (suspicious)
+        likeCount: 5, // -5 likes (suspicious)
         commentCount: 2, // -3 comments (suspicious)
         shareCount: 1,
         timestamp: new Date(),
       };
 
       expect(rule.validate(normalGrowth, previousMetrics).isValid).toBe(true);
-      
+
       const suspiciousResult = rule.validate(suspiciousGrowth, previousMetrics);
       expect(suspiciousResult.isValid).toBe(false);
       expect(suspiciousResult.error).toContain('engagement decreased');
     });
 
     it('should validate engagement ratio', () => {
-      const rule = DEFAULT_VALIDATION_RULES.find(r => r.name === 'engagement-ratio')!;
-      
+      const rule = DEFAULT_VALIDATION_RULES.find(
+        r => r.name === 'engagement-ratio'
+      )!;
+
       const normalEngagement = {
         viewCount: 1000,
-        likeCount: 50,  // 5% like rate
+        likeCount: 50, // 5% like rate
         commentCount: 10, // 1% comment rate
         shareCount: 5,
         timestamp: new Date(),
@@ -267,17 +296,19 @@ describe('MetricsCollector', () => {
 
       const suspiciousEngagement = {
         viewCount: 10000,
-        likeCount: 5,    // 0.05% like rate (very low)
+        likeCount: 5, // 0.05% like rate (very low)
         commentCount: 0, // 0% comment rate (very low)
         shareCount: 0,
         timestamp: new Date(),
       };
 
       expect(rule.validate(normalEngagement).isValid).toBe(true);
-      
+
       const suspiciousResult = rule.validate(suspiciousEngagement);
       expect(suspiciousResult.isValid).toBe(false);
-      expect(suspiciousResult.error).toContain('Suspiciously low engagement ratio');
+      expect(suspiciousResult.error).toContain(
+        'Suspiciously low engagement ratio'
+      );
     });
   });
 
@@ -310,7 +341,7 @@ describe('MetricsCollector', () => {
         .mockResolvedValueOnce(2); // database storage queue
 
       const stats = await metricsCollector.getQueueStats();
-      
+
       expect(stats).toEqual({
         pending: 5,
         processing: 0,
@@ -355,8 +386,12 @@ describe('MetricsCollector', () => {
         .mockResolvedValueOnce(mockMetrics1)
         .mockResolvedValueOnce(mockMetrics2);
 
-      const history = await metricsCollector.getMetricsHistory('user123', 'campaign456', 'video789');
-      
+      const history = await metricsCollector.getMetricsHistory(
+        'user123',
+        'campaign456',
+        'video789'
+      );
+
       expect(history).toHaveLength(2);
       expect(history[0]).toEqual(mockMetrics1); // Order may vary based on timestamp parsing
       expect(history[1]).toEqual(mockMetrics2);
@@ -366,7 +401,7 @@ describe('MetricsCollector', () => {
   describe('getCurrentMetrics', () => {
     it('should return current aggregated metrics', async () => {
       const mockAggregatedMetrics = {
-        'video789': {
+        video789: {
           viewCount: 150,
           likeCount: 15,
           timestamp: new Date(),
@@ -381,10 +416,15 @@ describe('MetricsCollector', () => {
 
       (mockCache.get as jest.Mock).mockResolvedValue(mockAggregatedMetrics);
 
-      const result = await metricsCollector.getCurrentMetrics('user123', 'campaign456');
-      
+      const result = await metricsCollector.getCurrentMetrics(
+        'user123',
+        'campaign456'
+      );
+
       expect(result).toEqual(mockAggregatedMetrics);
-      expect(mockCache.get).toHaveBeenCalledWith('metrics-aggregated:user123:campaign456');
+      expect(mockCache.get).toHaveBeenCalledWith(
+        'metrics-aggregated:user123:campaign456'
+      );
     });
   });
 

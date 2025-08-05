@@ -19,7 +19,7 @@ import {
   PayoutSchema,
   BotDetectionConfigSchema,
   PaginationSchema,
-  DateRangeSchema
+  DateRangeSchema,
 } from '@repo/utils/validation';
 
 describe('Validation Utilities', () => {
@@ -56,7 +56,9 @@ describe('Validation Utilities', () => {
       it('should validate correct URLs', () => {
         expect(validateURL('https://example.com')).toBe(true);
         expect(validateURL('http://subdomain.domain.co.id/path')).toBe(true);
-        expect(validateURL('https://drive.google.com/file/d/123/view')).toBe(true);
+        expect(validateURL('https://drive.google.com/file/d/123/view')).toBe(
+          true
+        );
       });
 
       it('should reject invalid URLs', () => {
@@ -116,7 +118,7 @@ describe('Validation Utilities', () => {
           name: 'Test User',
           role: 'creator',
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
         const result = validateData(UserSchema, validUser);
@@ -131,7 +133,7 @@ describe('Validation Utilities', () => {
           name: '',
           role: 'invalid-role',
           createdAt: 'not-a-date',
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
         const result = validateData(UserSchema, invalidUser);
@@ -146,7 +148,7 @@ describe('Validation Utilities', () => {
         const validCreateUser = {
           email: 'newuser@example.com',
           name: 'New User',
-          role: 'promoter'
+          role: 'promoter',
         };
 
         const result = validateData(CreateUserSchema, validCreateUser);
@@ -169,7 +171,7 @@ describe('Validation Utilities', () => {
           startDate: new Date('2024-01-01'),
           endDate: new Date('2024-01-31'),
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
         const result = validateData(CampaignSchema, validCampaign);
@@ -189,12 +191,16 @@ describe('Validation Utilities', () => {
           startDate: new Date('2024-01-31'),
           endDate: new Date('2024-01-01'), // Before start date
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
         const result = validateData(CampaignSchema, invalidCampaign);
         expect(result.success).toBe(false);
-        expect(result.errors?.some(error => error.includes('End date must be after start date'))).toBe(true);
+        expect(
+          result.errors?.some(error =>
+            error.includes('End date must be after start date')
+          )
+        ).toBe(true);
       });
 
       it('should reject campaign with budget less than rate per view', () => {
@@ -210,12 +216,16 @@ describe('Validation Utilities', () => {
           startDate: new Date('2024-01-01'),
           endDate: new Date('2024-01-31'),
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
         const result = validateData(CampaignSchema, invalidCampaign);
         expect(result.success).toBe(false);
-        expect(result.errors?.some(error => error.includes('Budget must be at least equal to rate per view'))).toBe(true);
+        expect(
+          result.errors?.some(error =>
+            error.includes('Budget must be at least equal to rate per view')
+          )
+        ).toBe(true);
       });
     });
 
@@ -233,7 +243,7 @@ describe('Validation Utilities', () => {
           shareCount: 5,
           botScore: 25,
           isLegitimate: true,
-          timestamp: new Date()
+          timestamp: new Date(),
         };
 
         const result = validateData(ViewRecordSchema, validViewRecord);
@@ -251,12 +261,16 @@ describe('Validation Utilities', () => {
           likeCount: 100,
           commentCount: 10,
           shareCount: 5,
-          timestamp: new Date()
+          timestamp: new Date(),
         };
 
         const result = validateData(ViewRecordSchema, invalidViewRecord);
         expect(result.success).toBe(false);
-        expect(result.errors?.some(error => error.includes('View count must be non-negative'))).toBe(true);
+        expect(
+          result.errors?.some(error =>
+            error.includes('View count must be non-negative')
+          )
+        ).toBe(true);
       });
     });
 
@@ -267,13 +281,13 @@ describe('Validation Utilities', () => {
             viewLikeRatio: 10,
             viewCommentRatio: 100,
             spikePercentage: 500,
-            spikeTimeWindow: 300000
+            spikeTimeWindow: 300000,
           },
           confidence: {
             ban: 90,
             warning: 50,
-            monitor: 20
-          }
+            monitor: 20,
+          },
         };
 
         const result = validateData(BotDetectionConfigSchema, validConfig);
@@ -286,18 +300,24 @@ describe('Validation Utilities', () => {
             viewLikeRatio: 10,
             viewCommentRatio: 100,
             spikePercentage: 500,
-            spikeTimeWindow: 300000
+            spikeTimeWindow: 300000,
           },
           confidence: {
             ban: 50, // Lower than warning
             warning: 70,
-            monitor: 20
-          }
+            monitor: 20,
+          },
         };
 
         const result = validateData(BotDetectionConfigSchema, invalidConfig);
         expect(result.success).toBe(false);
-        expect(result.errors?.some(error => error.includes('Ban confidence must be higher than warning confidence'))).toBe(true);
+        expect(
+          result.errors?.some(error =>
+            error.includes(
+              'Ban confidence must be higher than warning confidence'
+            )
+          )
+        ).toBe(true);
       });
     });
 
@@ -307,7 +327,7 @@ describe('Validation Utilities', () => {
           page: 1,
           limit: 10,
           sortBy: 'createdAt',
-          sortOrder: 'desc'
+          sortOrder: 'desc',
         };
 
         const result = validateData(PaginationSchema, validPagination);
@@ -327,7 +347,7 @@ describe('Validation Utilities', () => {
       it('should reject invalid pagination values', () => {
         const invalidPagination = {
           page: 0, // Must be at least 1
-          limit: 101 // Exceeds maximum
+          limit: 101, // Exceeds maximum
         };
 
         const result = validateData(PaginationSchema, invalidPagination);
@@ -339,7 +359,7 @@ describe('Validation Utilities', () => {
       it('should validate correct date range', () => {
         const validDateRange = {
           startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-01-31')
+          endDate: new Date('2024-01-31'),
         };
 
         const result = validateData(DateRangeSchema, validDateRange);
@@ -349,12 +369,16 @@ describe('Validation Utilities', () => {
       it('should reject date range with end before start', () => {
         const invalidDateRange = {
           startDate: new Date('2024-01-31'),
-          endDate: new Date('2024-01-01')
+          endDate: new Date('2024-01-01'),
         };
 
         const result = validateData(DateRangeSchema, invalidDateRange);
         expect(result.success).toBe(false);
-        expect(result.errors?.some(error => error.includes('End date must be after or equal to start date'))).toBe(true);
+        expect(
+          result.errors?.some(error =>
+            error.includes('End date must be after or equal to start date')
+          )
+        ).toBe(true);
       });
     });
   });
@@ -365,7 +389,7 @@ describe('Validation Utilities', () => {
         const validUser = {
           email: 'test@example.com',
           name: 'Test User',
-          role: 'creator'
+          role: 'creator',
         };
 
         const result = parseData(CreateUserSchema, validUser);
@@ -376,21 +400,23 @@ describe('Validation Utilities', () => {
         const invalidUser = {
           email: 'invalid-email',
           name: '',
-          role: 'invalid-role'
+          role: 'invalid-role',
         };
 
-        expect(() => parseData(CreateUserSchema, invalidUser)).toThrow('Validation failed');
+        expect(() => parseData(CreateUserSchema, invalidUser)).toThrow(
+          'Validation failed'
+        );
       });
     });
 
     describe('createValidator', () => {
       it('should create a validator function', () => {
         const validator = createValidator(CreateUserSchema);
-        
+
         const validUser = {
           email: 'test@example.com',
           name: 'Test User',
-          role: 'creator'
+          role: 'creator',
         };
 
         const result = validator(validUser);
@@ -399,9 +425,9 @@ describe('Validation Utilities', () => {
 
       it('should throw error for invalid data in created validator', () => {
         const validator = createValidator(CreateUserSchema);
-        
+
         const invalidUser = {
-          email: 'invalid-email'
+          email: 'invalid-email',
         };
 
         expect(() => validator(invalidUser)).toThrow('Validation failed');

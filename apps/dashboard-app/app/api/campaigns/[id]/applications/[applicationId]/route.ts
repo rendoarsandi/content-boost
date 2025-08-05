@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const EnhancedReviewApplicationSchema = z.object({
-  status: z.enum(['approved', 'rejected']),
+  status: z.enum(['APPROVED', 'REJECTED']),
   reviewMessage: z.string().max(500, 'Review message too long').optional(),
-  feedback: z.object({
-    contentQuality: z.number().min(1).max(5).optional(),
-    alignmentWithBrand: z.number().min(1).max(5).optional(),
-    creativityScore: z.number().min(1).max(5).optional(),
-    notes: z.string().max(1000).optional(),
-  }).optional(),
+  feedback: z
+    .object({
+      contentQuality: z.number().min(1).max(5).optional(),
+      alignmentWithBrand: z.number().min(1).max(5).optional(),
+      creativityScore: z.number().min(1).max(5).optional(),
+      notes: z.string().max(1000).optional(),
+    })
+    .optional(),
 });
 
 // PUT /api/campaigns/[id]/applications/[applicationId] - Simplified review application
@@ -22,9 +24,10 @@ export async function PUT(
     const body = await request.json();
     const validatedData = EnhancedReviewApplicationSchema.parse(body);
 
-    const statusMessage = validatedData.status === 'approved' 
-      ? 'Application approved successfully. The promoter can now access campaign materials.'
-      : 'Application rejected. The promoter has been notified with your feedback.';
+    const statusMessage =
+      validatedData.status === 'APPROVED'
+        ? 'Application approved successfully. The promoter can now access campaign materials.'
+        : 'Application rejected. The promoter has been notified with your feedback.';
 
     return NextResponse.json({
       application: {
@@ -32,24 +35,27 @@ export async function PUT(
         campaignId,
         status: validatedData.status,
         reviewMessage: validatedData.reviewMessage,
-        feedback: validatedData.feedback
+        feedback: validatedData.feedback,
       },
       message: statusMessage,
-      nextSteps: validatedData.status === 'approved' ? [
-        'Promoter will receive notification with access instructions',
-        'Promoter can now access campaign materials',
-        'Tracking will begin once promoter starts promoting'
-      ] : [
-        'Promoter has been notified of rejection with your feedback',
-        'They may improve and apply to future campaigns'
-      ]
+      nextSteps:
+        validatedData.status === 'APPROVED'
+          ? [
+              'Promoter will receive notification with access instructions',
+              'Promoter can now access campaign materials',
+              'Tracking will begin once promoter starts promoting',
+            ]
+          : [
+              'Promoter has been notified of rejection with your feedback',
+              'They may improve and apply to future campaigns',
+            ],
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation error',
-          details: error.issues
+          details: error.issues,
         },
         { status: 400 }
       );
@@ -71,13 +77,13 @@ export async function GET(
   try {
     const { id: campaignId, applicationId } = await params;
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       application: {
         id: applicationId,
         campaignId,
-        status: 'pending',
+        status: 'PENDING',
         submittedContent: 'Sample content',
-        appliedAt: new Date().toISOString()
+        appliedAt: new Date().toISOString(),
       },
       campaign: {
         id: campaignId,
@@ -89,13 +95,13 @@ export async function GET(
       promoter: {
         id: 'sample-promoter',
         name: 'Sample Promoter',
-        email: 'promoter@example.com'
+        email: 'promoter@example.com',
       },
       creator: {
         id: 'sample-creator',
         name: 'Sample Creator',
-        email: 'creator@example.com'
-      }
+        email: 'creator@example.com',
+      },
     });
   } catch (error) {
     console.error('Error fetching application:', error);

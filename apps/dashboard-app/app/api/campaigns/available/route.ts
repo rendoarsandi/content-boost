@@ -6,12 +6,9 @@ import { auth } from '@repo/auth/server-only';
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only promoters can view available campaigns
@@ -28,13 +25,13 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Get campaigns that the promoter hasn't applied to yet
-    const existingPromotions = await db.promotion.findMany({
+    const existingPromotions = await db.campaignApplication.findMany({
       where: {
-        promoterId: session.user.id
+        promoterId: session.user.id,
       },
       select: {
-        campaignId: true
-      }
+        campaignId: true,
+      },
     });
 
     const appliedCampaignIds = existingPromotions.map(p => p.campaignId);
@@ -43,27 +40,27 @@ export async function GET(request: NextRequest) {
     const availableCampaigns = await db.campaign.findMany({
       where: {
         id: {
-          notIn: appliedCampaignIds
-        }
+          notIn: appliedCampaignIds,
+        },
       },
       include: {
         creator: true,
-        promotions: true
+        applications: true,
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'desc',
       },
       skip,
-      take: limit
+      take: limit,
     });
 
     // Get total count for pagination
     const totalCount = await db.campaign.count({
       where: {
         id: {
-          notIn: appliedCampaignIds
-        }
-      }
+          notIn: appliedCampaignIds,
+        },
+      },
     });
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -76,8 +73,8 @@ export async function GET(request: NextRequest) {
         totalCount,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     console.error('Error fetching available campaigns:', error);

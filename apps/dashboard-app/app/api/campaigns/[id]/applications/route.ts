@@ -17,7 +17,7 @@ export async function GET(
       {
         id: 'app-1',
         campaignId,
-        status: 'pending',
+        status: 'PENDING',
         submittedContent: 'Great content proposal for your campaign',
         appliedAt: new Date('2024-01-01').toISOString(),
         promoter: {
@@ -25,13 +25,13 @@ export async function GET(
           name: 'John Doe',
           email: 'john@example.com',
           followers: 15000,
-          engagementRate: 3.2
-        }
+          engagementRate: 3.2,
+        },
       },
       {
         id: 'app-2',
         campaignId,
-        status: 'approved',
+        status: 'APPROVED',
         submittedContent: 'Excellent video content idea',
         appliedAt: new Date('2024-01-02').toISOString(),
         promoter: {
@@ -39,13 +39,13 @@ export async function GET(
           name: 'Jane Smith',
           email: 'jane@example.com',
           followers: 25000,
-          engagementRate: 4.1
-        }
+          engagementRate: 4.1,
+        },
       },
       {
         id: 'app-3',
         campaignId,
-        status: 'rejected',
+        status: 'REJECTED',
         submittedContent: 'Standard content proposal',
         appliedAt: new Date('2024-01-03').toISOString(),
         promoter: {
@@ -53,19 +53,22 @@ export async function GET(
           name: 'Bob Wilson',
           email: 'bob@example.com',
           followers: 8000,
-          engagementRate: 2.8
-        }
-      }
+          engagementRate: 2.8,
+        },
+      },
     ];
 
     // Filter by status if provided
-    const filteredApplications = status 
+    const filteredApplications = status
       ? applications.filter(app => app.status === status)
       : applications;
 
     // Pagination
     const startIndex = (page - 1) * limit;
-    const paginatedApplications = filteredApplications.slice(startIndex, startIndex + limit);
+    const paginatedApplications = filteredApplications.slice(
+      startIndex,
+      startIndex + limit
+    );
 
     return NextResponse.json({
       applications: paginatedApplications,
@@ -73,14 +76,14 @@ export async function GET(
         page,
         limit,
         total: filteredApplications.length,
-        totalPages: Math.ceil(filteredApplications.length / limit)
+        totalPages: Math.ceil(filteredApplications.length / limit),
       },
       stats: {
         total: applications.length,
-        pending: applications.filter(app => app.status === 'pending').length,
-        approved: applications.filter(app => app.status === 'approved').length,
-        rejected: applications.filter(app => app.status === 'rejected').length
-      }
+        pending: applications.filter(app => app.status === 'PENDING').length,
+        approved: applications.filter(app => app.status === 'APPROVED').length,
+        rejected: applications.filter(app => app.status === 'REJECTED').length,
+      },
     });
   } catch (error) {
     console.error('Error fetching applications:', error);

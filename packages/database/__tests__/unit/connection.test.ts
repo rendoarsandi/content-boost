@@ -38,7 +38,7 @@ describe('DatabaseConnection', () => {
     it('should not create multiple pools on multiple connect calls', async () => {
       await dbConnection.connect();
       await dbConnection.connect(); // Should not throw or create new pool
-      
+
       expect(dbConnection.getPool()).toBeDefined();
     });
   });
@@ -81,7 +81,7 @@ describe('DatabaseConnection', () => {
       const db = new DatabaseConnection({ url: 'test' });
       // Access private config through any to test defaults
       const config = (db as any).config;
-      
+
       expect(config.maxConnections).toBe(20);
       expect(config.idleTimeout).toBe(30000);
       expect(config.connectionTimeout).toBe(5000);
@@ -93,7 +93,7 @@ describe('DatabaseConnection', () => {
         maxConnections: 10,
         idleTimeout: 60000,
       });
-      
+
       const config = (db as any).config;
       expect(config.maxConnections).toBe(10);
       expect(config.idleTimeout).toBe(60000);

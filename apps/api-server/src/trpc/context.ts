@@ -6,7 +6,7 @@ import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
  * @link https://trpc.io/docs/v10/context
  */
 export const createContext = async (
-  opts: CreateExpressContextOptions | CreateWSSContextFnOptions,
+  opts: CreateExpressContextOptions | CreateWSSContextFnOptions
 ) => {
   // Di sini kita bisa mengambil session pengguna atau info lain
   // dan meneruskannya ke resolver tRPC kita.

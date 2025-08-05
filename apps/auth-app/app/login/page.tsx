@@ -3,7 +3,16 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authClient } from '@repo/auth';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Alert, AlertDescription } from '@repo/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Alert,
+  AlertDescription,
+} from '@repo/ui';
 import { Loader2, Music, Camera } from 'lucide-react';
 
 function LoginForm() {
@@ -12,24 +21,25 @@ function LoginForm() {
   const [session, setSession] = useState<any>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  const callbackUrl = searchParams.get('callbackUrl') || 'https://dashboard.domain.com';
+
+  const callbackUrl =
+    searchParams.get('callbackUrl') || 'https://dashboard.domain.com';
   const error_param = searchParams.get('error');
-  
+
   // Handle OAuth errors from URL params
   useEffect(() => {
     if (error_param) {
       setError(`Authentication failed: ${error_param}`);
     }
   }, [error_param]);
-  
+
   // Check session on component mount
   useEffect(() => {
     const checkSession = async () => {
       try {
         const currentSession = await authClient.getSession();
         setSession(currentSession);
-        
+
         // If user is authenticated, redirect to callback URL
         if (currentSession?.data?.user) {
           // For now, just redirect to callback URL
@@ -40,7 +50,7 @@ function LoginForm() {
         console.error('Error checking session:', error);
       }
     };
-    
+
     checkSession();
   }, [router, callbackUrl]);
 
@@ -48,13 +58,13 @@ function LoginForm() {
     try {
       setIsLoading(provider);
       setError(null);
-      
+
       // Generate OAuth URLs for TikTok and Instagram
       const oauthUrls = {
         tiktok: `https://www.tiktok.com/auth/authorize/?client_key=${process.env.NEXT_PUBLIC_TIKTOK_CLIENT_ID}&scope=user.info.basic,video.list&response_type=code&redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/callback/tiktok')}&state=${encodeURIComponent(callbackUrl)}`,
         instagram: `https://api.instagram.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/callback/instagram')}&scope=user_profile,user_media&response_type=code&state=${encodeURIComponent(callbackUrl)}`,
       };
-      
+
       // For development, use mock OAuth flow
       if (process.env.NODE_ENV === 'development') {
         // Simulate OAuth flow by redirecting to callback with mock code
@@ -70,7 +80,7 @@ function LoginForm() {
       setIsLoading(null);
     }
   };
-  
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
@@ -86,7 +96,7 @@ function LoginForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           <div className="space-y-3">
             <Button
               className="w-full bg-black hover:bg-gray-800 text-white"
@@ -105,7 +115,7 @@ function LoginForm() {
                 </>
               )}
             </Button>
-            
+
             <Button
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
               onClick={() => handleSocialLogin('instagram')}
@@ -124,7 +134,7 @@ function LoginForm() {
               )}
             </Button>
           </div>
-          
+
           <div className="text-center text-sm text-gray-600">
             <p>
               Dengan login, Anda menyetujui{' '}
@@ -145,15 +155,17 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </CardContent>
-        </Card>
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+          <Card className="w-full max-w-md">
+            <CardContent className="flex items-center justify-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </CardContent>
+          </Card>
+        </main>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

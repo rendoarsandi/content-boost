@@ -9,7 +9,7 @@ export const subscriptionRouter = router({
   onUpdate: publicProcedure
     .input(z.object({ campaignId: z.string() }))
     .subscription(({ input }) => {
-      return observable<{ date: Date; message: string }>((emit) => {
+      return observable<{ date: Date; message: string }>(emit => {
         const handler = (data: { message: string }) => {
           emit.next({ date: new Date(), ...data });
         };
@@ -23,7 +23,7 @@ export const subscriptionRouter = router({
         };
       });
     }),
-  
+
   // Prosedur untuk memicu update (misalnya dari webhook atau proses internal)
   triggerUpdate: publicProcedure
     .input(z.object({ campaignId: z.string(), message: z.string() }))

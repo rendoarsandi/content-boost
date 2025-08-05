@@ -10,7 +10,11 @@ interface ContentEditorProps {
   initialMetadata: Record<string, any>;
 }
 
-export function ContentEditor({ applicationId, initialContent, initialMetadata }: ContentEditorProps) {
+export function ContentEditor({
+  applicationId,
+  initialContent,
+  initialMetadata,
+}: ContentEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [metadata, setMetadata] = useState(initialMetadata);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,18 +25,24 @@ export function ContentEditor({ applicationId, initialContent, initialMetadata }
 
   const handleContentChange = (value: string) => {
     setContent(value);
-    setHasChanges(value !== initialContent || JSON.stringify(metadata) !== JSON.stringify(initialMetadata));
+    setHasChanges(
+      value !== initialContent ||
+        JSON.stringify(metadata) !== JSON.stringify(initialMetadata)
+    );
   };
 
   const handleMetadataChange = (key: string, value: string) => {
     const newMetadata = { ...metadata, [key]: value };
     setMetadata(newMetadata);
-    setHasChanges(content !== initialContent || JSON.stringify(newMetadata) !== JSON.stringify(initialMetadata));
+    setHasChanges(
+      content !== initialContent ||
+        JSON.stringify(newMetadata) !== JSON.stringify(initialMetadata)
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!content.trim()) {
       setError('Content cannot be empty');
       return;
@@ -42,16 +52,19 @@ export function ContentEditor({ applicationId, initialContent, initialMetadata }
     setError(null);
 
     try {
-      const response = await fetch(`/api/promoter/applications/${applicationId}/content`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          submittedContent: content.trim(),
-          metadata,
-        }),
-      });
+      const response = await fetch(
+        `/api/promoter/applications/${applicationId}/content`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            submittedContent: content.trim(),
+            metadata,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -106,13 +119,16 @@ export function ContentEditor({ applicationId, initialContent, initialMetadata }
             Promotional Content *
           </label>
           <p className="text-sm text-gray-600 mb-3">
-            Write your promotional content here. This could be captions, scripts, or descriptions for your posts.
+            Write your promotional content here. This could be captions,
+            scripts, or descriptions for your posts.
           </p>
           <textarea
             id="content"
             placeholder="Write your promotional content here..."
             value={content}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleContentChange(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              handleContentChange(e.target.value)
+            }
             rows={8}
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
@@ -125,52 +141,80 @@ export function ContentEditor({ applicationId, initialContent, initialMetadata }
         {/* Metadata Fields */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Additional Information</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="platform" className="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+              <label
+                htmlFor="platform"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Platform
+              </label>
               <input
                 id="platform"
                 type="text"
                 placeholder="e.g., TikTok, Instagram"
                 value={metadata.platform || ''}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMetadataChange('platform', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleMetadataChange('platform', e.target.value)
+                }
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
-              <label htmlFor="postType" className="block text-sm font-medium text-gray-700 mb-1">Post Type</label>
+              <label
+                htmlFor="postType"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Post Type
+              </label>
               <input
                 id="postType"
                 type="text"
                 placeholder="e.g., Video, Story, Reel"
                 value={metadata.postType || ''}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMetadataChange('postType', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleMetadataChange('postType', e.target.value)
+                }
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="hashtags" className="block text-sm font-medium text-gray-700 mb-1">Hashtags</label>
+            <label
+              htmlFor="hashtags"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Hashtags
+            </label>
             <input
               id="hashtags"
               type="text"
               placeholder="e.g., #promotion #content #viral"
               value={metadata.hashtags || ''}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMetadataChange('hashtags', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleMetadataChange('hashtags', e.target.value)
+              }
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Notes
+            </label>
             <textarea
               id="notes"
               placeholder="Any additional notes or ideas for your promotion..."
               value={metadata.notes || ''}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleMetadataChange('notes', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                handleMetadataChange('notes', e.target.value)
+              }
               rows={3}
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
@@ -186,7 +230,7 @@ export function ContentEditor({ applicationId, initialContent, initialMetadata }
           >
             {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
-          
+
           <Button
             type="button"
             variant="outline"
@@ -195,7 +239,7 @@ export function ContentEditor({ applicationId, initialContent, initialMetadata }
           >
             Reset
           </Button>
-          
+
           <Button
             type="button"
             variant="outline"

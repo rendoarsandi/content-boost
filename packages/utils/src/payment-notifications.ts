@@ -10,7 +10,11 @@ export interface NotificationChannel {
 export interface NotificationTemplate {
   id: string;
   name: string;
-  type: 'payment_completed' | 'payment_failed' | 'payment_processing' | 'payment_retry';
+  type:
+    | 'payment_completed'
+    | 'payment_failed'
+    | 'payment_processing'
+    | 'payment_retry';
   channels: NotificationChannel[];
   subject: string;
   content: {
@@ -62,11 +66,14 @@ export interface NotificationStats {
     failed: number;
     pending: number;
   };
-  channelStats: Record<string, {
-    sent: number;
-    delivered: number;
-    failed: number;
-  }>;
+  channelStats: Record<
+    string,
+    {
+      sent: number;
+      delivered: number;
+      failed: number;
+    }
+  >;
   templateStats: Record<string, number>;
 }
 
@@ -167,7 +174,13 @@ Creator Promotion Platform Team`,
   <p>Best regards,<br>Creator Promotion Platform Team</p>
 </div>`,
       },
-      variables: ['promoterName', 'amount', 'campaignTitle', 'transactionId', 'processedAt'],
+      variables: [
+        'promoterName',
+        'amount',
+        'campaignTitle',
+        'transactionId',
+        'processedAt',
+      ],
     });
 
     // Payment failed template
@@ -238,7 +251,14 @@ Creator Promotion Platform Team`,
   <p>Best regards,<br>Creator Promotion Platform Team</p>
 </div>`,
       },
-      variables: ['promoterName', 'amount', 'campaignTitle', 'failureReason', 'attemptedAt', 'retryMessage'],
+      variables: [
+        'promoterName',
+        'amount',
+        'campaignTitle',
+        'failureReason',
+        'attemptedAt',
+        'retryMessage',
+      ],
     });
 
     // Payment processing template
@@ -301,7 +321,14 @@ We'll keep you updated on the progress.
 Best regards,
 Creator Promotion Platform Team`,
       },
-      variables: ['promoterName', 'amount', 'campaignTitle', 'retryCount', 'maxRetries', 'nextAttempt'],
+      variables: [
+        'promoterName',
+        'amount',
+        'campaignTitle',
+        'retryCount',
+        'maxRetries',
+        'nextAttempt',
+      ],
     });
   }
 
@@ -310,7 +337,10 @@ Creator Promotion Platform Team`,
    */
   addTemplate(template: NotificationTemplate): void {
     this.templates.set(template.id, template);
-    this.log('info', `Added notification template: ${template.name} (${template.id})`);
+    this.log(
+      'info',
+      `Added notification template: ${template.name} (${template.id})`
+    );
   }
 
   /**
@@ -324,11 +354,14 @@ Creator Promotion Platform Team`,
     priority: NotificationRequest['priority'] = 'normal'
   ): Promise<NotificationRequest> {
     // Find template
-    const template = Array.from(this.templates.values())
-      .find(t => t.type === templateType);
+    const template = Array.from(this.templates.values()).find(
+      t => t.type === templateType
+    );
 
     if (!template) {
-      throw new Error(`Notification template not found for type: ${templateType}`);
+      throw new Error(
+        `Notification template not found for type: ${templateType}`
+      );
     }
 
     // Create notification request
@@ -351,7 +384,10 @@ Creator Promotion Platform Team`,
     // Process notification
     await this.processNotification(notification, template);
 
-    this.log('info', `Sent payment notification: ${templateType} to ${recipientId}`);
+    this.log(
+      'info',
+      `Sent payment notification: ${templateType} to ${recipientId}`
+    );
 
     return notification;
   }
@@ -377,7 +413,12 @@ Creator Promotion Platform Team`,
 
       try {
         // Send through channel
-        await this.sendThroughChannel(notification, template, channel, delivery);
+        await this.sendThroughChannel(
+          notification,
+          template,
+          channel,
+          delivery
+        );
         delivery.status = 'sent';
         delivery.sentAt = new Date();
 
@@ -386,11 +427,14 @@ Creator Promotion Platform Team`,
           delivery.status = 'delivered';
           delivery.deliveredAt = new Date();
         }
-
       } catch (error) {
         delivery.status = 'failed';
-        delivery.failureReason = error instanceof Error ? error.message : 'Unknown error';
-        this.log('error', `Failed to send notification through ${channel.type}: ${delivery.failureReason}`);
+        delivery.failureReason =
+          error instanceof Error ? error.message : 'Unknown error';
+        this.log(
+          'error',
+          `Failed to send notification through ${channel.type}: ${delivery.failureReason}`
+        );
       }
 
       deliveries.push(delivery);
@@ -410,15 +454,26 @@ Creator Promotion Platform Team`,
     delivery: NotificationDelivery
   ): Promise<void> {
     // Replace variables in template
-    const subject = this.replaceVariables(template.subject, notification.variables);
-    const content = this.replaceVariables(template.content.text, notification.variables);
-    const htmlContent = template.content.html 
+    const subject = this.replaceVariables(
+      template.subject,
+      notification.variables
+    );
+    const content = this.replaceVariables(
+      template.content.text,
+      notification.variables
+    );
+    const htmlContent = template.content.html
       ? this.replaceVariables(template.content.html, notification.variables)
       : undefined;
 
     switch (channel.type) {
       case 'email':
-        await this.sendEmail(notification.recipientInfo, subject, content, htmlContent);
+        await this.sendEmail(
+          notification.recipientInfo,
+          subject,
+          content,
+          htmlContent
+        );
         break;
 
       case 'sms':
@@ -426,7 +481,11 @@ Creator Promotion Platform Team`,
         break;
 
       case 'push':
-        await this.sendPushNotification(notification.recipientInfo, subject, content);
+        await this.sendPushNotification(
+          notification.recipientInfo,
+          subject,
+          content
+        );
         break;
 
       case 'webhook':
@@ -434,7 +493,11 @@ Creator Promotion Platform Team`,
         break;
 
       case 'in_app':
-        await this.sendInAppNotification(notification.recipientId, subject, content);
+        await this.sendInAppNotification(
+          notification.recipientId,
+          subject,
+          content
+        );
         break;
 
       default:
@@ -445,9 +508,12 @@ Creator Promotion Platform Team`,
   /**
    * Replace template variables
    */
-  private replaceVariables(template: string, variables: Record<string, string | number>): string {
+  private replaceVariables(
+    template: string,
+    variables: Record<string, string | number>
+  ): string {
     let result = template;
-    
+
     Object.entries(variables).forEach(([key, value]) => {
       const regex = new RegExp(`{${key}}`, 'g');
       result = result.replace(regex, String(value));
@@ -471,12 +537,13 @@ Creator Promotion Platform Team`,
 
     // Mock email sending
     this.log('info', `Sending email to ${recipient.email}: ${subject}`);
-    
+
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Simulate occasional failures
-    if (Math.random() < 0.05) { // 5% failure rate
+    if (Math.random() < 0.05) {
+      // 5% failure rate
       throw new Error('Email service temporarily unavailable');
     }
   }
@@ -493,13 +560,17 @@ Creator Promotion Platform Team`,
     }
 
     // Mock SMS sending
-    this.log('info', `Sending SMS to ${recipient.phone}: ${content.substring(0, 50)}...`);
-    
+    this.log(
+      'info',
+      `Sending SMS to ${recipient.phone}: ${content.substring(0, 50)}...`
+    );
+
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 200));
 
     // Simulate occasional failures
-    if (Math.random() < 0.1) { // 10% failure rate
+    if (Math.random() < 0.1) {
+      // 10% failure rate
       throw new Error('SMS service temporarily unavailable');
     }
   }
@@ -518,7 +589,7 @@ Creator Promotion Platform Team`,
 
     // Mock push notification sending
     this.log('info', `Sending push notification: ${title}`);
-    
+
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 50));
   }
@@ -538,7 +609,7 @@ Creator Promotion Platform Team`,
 
     // Mock webhook sending
     this.log('info', `Sending webhook to ${webhookUrl}`);
-    
+
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300));
   }
@@ -553,7 +624,7 @@ Creator Promotion Platform Team`,
   ): Promise<void> {
     // Mock in-app notification
     this.log('info', `Sending in-app notification to ${recipientId}: ${title}`);
-    
+
     // Simulate instant delivery
     await new Promise(resolve => setTimeout(resolve, 10));
   }
@@ -561,7 +632,9 @@ Creator Promotion Platform Team`,
   /**
    * Get notification by ID
    */
-  async getNotification(notificationId: string): Promise<NotificationRequest | null> {
+  async getNotification(
+    notificationId: string
+  ): Promise<NotificationRequest | null> {
     return this.notifications.get(notificationId) || null;
   }
 
@@ -578,23 +651,30 @@ Creator Promotion Platform Team`,
       limit?: number;
     }
   ): Promise<NotificationRequest[]> {
-    let notifications = Array.from(this.notifications.values())
-      .filter(n => n.recipientId === recipientId);
+    let notifications = Array.from(this.notifications.values()).filter(
+      n => n.recipientId === recipientId
+    );
 
     // Apply filters
     if (filters?.templateType) {
       const templateIds = Array.from(this.templates.values())
         .filter(t => t.type === filters.templateType)
         .map(t => t.id);
-      notifications = notifications.filter(n => templateIds.includes(n.templateId));
+      notifications = notifications.filter(n =>
+        templateIds.includes(n.templateId)
+      );
     }
 
     if (filters?.startDate) {
-      notifications = notifications.filter(n => n.createdAt >= filters.startDate!);
+      notifications = notifications.filter(
+        n => n.createdAt >= filters.startDate!
+      );
     }
 
     if (filters?.endDate) {
-      notifications = notifications.filter(n => n.createdAt <= filters.endDate!);
+      notifications = notifications.filter(
+        n => n.createdAt <= filters.endDate!
+      );
     }
 
     // Sort by creation date (newest first)
@@ -611,7 +691,9 @@ Creator Promotion Platform Team`,
   /**
    * Get delivery status for a notification
    */
-  async getDeliveryStatus(notificationId: string): Promise<NotificationDelivery[]> {
+  async getDeliveryStatus(
+    notificationId: string
+  ): Promise<NotificationDelivery[]> {
     return this.deliveries.get(notificationId) || [];
   }
 
@@ -626,38 +708,50 @@ Creator Promotion Platform Team`,
       recipientId?: string;
     }
   ): Promise<NotificationStats> {
-    let notifications = Array.from(this.notifications.values())
-      .filter(n => n.createdAt >= startDate && n.createdAt <= endDate);
+    let notifications = Array.from(this.notifications.values()).filter(
+      n => n.createdAt >= startDate && n.createdAt <= endDate
+    );
 
     // Apply filters
     if (filters?.templateType) {
       const templateIds = Array.from(this.templates.values())
         .filter(t => t.type === filters.templateType)
         .map(t => t.id);
-      notifications = notifications.filter(n => templateIds.includes(n.templateId));
+      notifications = notifications.filter(n =>
+        templateIds.includes(n.templateId)
+      );
     }
 
     if (filters?.recipientId) {
-      notifications = notifications.filter(n => n.recipientId === filters.recipientId);
+      notifications = notifications.filter(
+        n => n.recipientId === filters.recipientId
+      );
     }
 
     // Calculate delivery stats
-    const allDeliveries = notifications.flatMap(n => this.deliveries.get(n.id) || []);
-    
+    const allDeliveries = notifications.flatMap(
+      n => this.deliveries.get(n.id) || []
+    );
+
     const deliveryStats = {
-      sent: allDeliveries.filter(d => d.status === 'sent' || d.status === 'delivered').length,
+      sent: allDeliveries.filter(
+        d => d.status === 'sent' || d.status === 'delivered'
+      ).length,
       delivered: allDeliveries.filter(d => d.status === 'delivered').length,
       failed: allDeliveries.filter(d => d.status === 'failed').length,
       pending: allDeliveries.filter(d => d.status === 'pending').length,
     };
 
     // Calculate channel stats
-    const channelStats: Record<string, { sent: number; delivered: number; failed: number }> = {};
+    const channelStats: Record<
+      string,
+      { sent: number; delivered: number; failed: number }
+    > = {};
     allDeliveries.forEach(delivery => {
       if (!channelStats[delivery.channel]) {
         channelStats[delivery.channel] = { sent: 0, delivered: 0, failed: 0 };
       }
-      
+
       if (delivery.status === 'sent' || delivery.status === 'delivered') {
         channelStats[delivery.channel].sent++;
       }
@@ -690,7 +784,9 @@ Creator Promotion Platform Team`,
   /**
    * Retry failed notifications
    */
-  async retryFailedNotifications(maxAge: number = 24 * 60 * 60 * 1000): Promise<number> {
+  async retryFailedNotifications(
+    maxAge: number = 24 * 60 * 60 * 1000
+  ): Promise<number> {
     const cutoffTime = new Date(Date.now() - maxAge);
     let retriedCount = 0;
 
@@ -700,8 +796,8 @@ Creator Promotion Platform Team`,
         continue;
       }
 
-      const failedDeliveries = deliveries.filter(d => 
-        d.status === 'failed' && d.retryCount < 3
+      const failedDeliveries = deliveries.filter(
+        d => d.status === 'failed' && d.retryCount < 3
       );
 
       for (const delivery of failedDeliveries) {
@@ -709,23 +805,36 @@ Creator Promotion Platform Team`,
           const template = this.templates.get(notification.templateId);
           if (!template) continue;
 
-          const channel = template.channels.find(c => c.type === delivery.channel);
+          const channel = template.channels.find(
+            c => c.type === delivery.channel
+          );
           if (!channel) continue;
 
           // Retry delivery
-          await this.sendThroughChannel(notification, template, channel, delivery);
-          
+          await this.sendThroughChannel(
+            notification,
+            template,
+            channel,
+            delivery
+          );
+
           delivery.status = 'sent';
           delivery.sentAt = new Date();
           delivery.retryCount++;
           retriedCount++;
 
-          this.log('info', `Retried notification delivery: ${notificationId} via ${delivery.channel}`);
-
+          this.log(
+            'info',
+            `Retried notification delivery: ${notificationId} via ${delivery.channel}`
+          );
         } catch (error) {
           delivery.retryCount++;
-          delivery.failureReason = error instanceof Error ? error.message : 'Unknown error';
-          this.log('error', `Retry failed for notification ${notificationId}: ${delivery.failureReason}`);
+          delivery.failureReason =
+            error instanceof Error ? error.message : 'Unknown error';
+          this.log(
+            'error',
+            `Retry failed for notification ${notificationId}: ${delivery.failureReason}`
+          );
         }
       }
     }
@@ -742,8 +851,10 @@ Creator Promotion Platform Team`,
     totalDeliveries: number;
     isProcessing: boolean;
   } {
-    const totalDeliveries = Array.from(this.deliveries.values())
-      .reduce((sum, deliveries) => sum + deliveries.length, 0);
+    const totalDeliveries = Array.from(this.deliveries.values()).reduce(
+      (sum, deliveries) => sum + deliveries.length,
+      0
+    );
 
     return {
       totalTemplates: this.templates.size,
@@ -756,7 +867,11 @@ Creator Promotion Platform Team`,
   /**
    * Logging utility
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, ...args: any[]): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    ...args: any[]
+  ): void {
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}] [${level.toUpperCase()}] [PaymentNotificationSystem]`;
     switch (level) {
@@ -808,7 +923,7 @@ export const createPaymentFailedNotification = (
   campaignTitle,
   failureReason,
   attemptedAt: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }),
-  retryMessage: willRetry 
+  retryMessage: willRetry
     ? `We will automatically retry this payment. You will be notified of the outcome.${maxRetries ? ` (Maximum ${maxRetries} attempts)` : ''}`
     : 'This payment will not be retried automatically. Please contact support if you believe this is an error.',
 });

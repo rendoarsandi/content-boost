@@ -43,11 +43,11 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const settings = await request.json();
-    
+
     // In a real implementation, this would save to database
     // For now, just log the settings
     console.log('Platform settings updated:', settings);
-    
+
     return NextResponse.json({
       message: 'Settings updated successfully',
       settings,

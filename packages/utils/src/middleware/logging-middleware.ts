@@ -15,7 +15,7 @@ export async function loggingMiddleware(
   const requestId = crypto.randomUUID();
   const url = new URL(request.url);
   const startTime = Date.now();
-  
+
   // Skip logging for static assets and health checks
   if (
     url.pathname.startsWith('/_next/') ||
@@ -45,10 +45,10 @@ export async function loggingMiddleware(
 
   // Add headers for tracking
   response.headers.set('X-Request-ID', requestId);
-  
+
   // End performance monitoring
   const duration = performanceMonitor.endMeasure(operationName);
-  
+
   // Log the response
   appLogger.info(`Request completed: ${request.method} ${url.pathname}`, {
     requestId,
@@ -67,9 +67,13 @@ export async function loggingMiddleware(
  * @param request Next.js request
  * @param response Next.js response
  */
-export function errorHandler(error: Error, request: NextRequest, response: NextResponse) {
+export function errorHandler(
+  error: Error,
+  request: NextRequest,
+  response: NextResponse
+) {
   const url = new URL(request.url);
-  
+
   // Log the error
   appLogger.error(`API Error: ${error.message}`, {
     path: url.pathname,

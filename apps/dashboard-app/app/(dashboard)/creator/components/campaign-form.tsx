@@ -2,7 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Alert, AlertDescription } from '@repo/ui';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  Alert,
+  AlertDescription,
+} from '@repo/ui';
 
 interface CampaignMaterial {
   type: 'google_drive' | 'youtube' | 'image' | 'video';
@@ -130,17 +140,16 @@ export function CampaignForm() {
     }
   };
 
-  const maxViews = formData.budget && formData.ratePerView 
-    ? Math.floor(formData.budget / formData.ratePerView)
-    : 0;
+  const maxViews =
+    formData.budget && formData.ratePerView
+      ? Math.floor(formData.budget / formData.ratePerView)
+      : 0;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
         <Alert className="border-red-200 bg-red-50">
-          <AlertDescription className="text-red-800">
-            {error}
-          </AlertDescription>
+          <AlertDescription className="text-red-800">{error}</AlertDescription>
         </Alert>
       )}
 
@@ -155,7 +164,7 @@ export function CampaignForm() {
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
+              onChange={e => handleInputChange('title', e.target.value)}
               placeholder="Enter campaign title"
               required
             />
@@ -166,7 +175,7 @@ export function CampaignForm() {
             <textarea
               id="description"
               value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              onChange={e => handleInputChange('description', e.target.value)}
               placeholder="Describe your campaign goals and content"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={4}
@@ -188,7 +197,9 @@ export function CampaignForm() {
                 id="budget"
                 type="number"
                 value={formData.budget || ''}
-                onChange={(e) => handleInputChange('budget', Number(e.target.value))}
+                onChange={e =>
+                  handleInputChange('budget', Number(e.target.value))
+                }
                 placeholder="1000000"
                 min="1"
                 required
@@ -201,7 +212,9 @@ export function CampaignForm() {
                 id="ratePerView"
                 type="number"
                 value={formData.ratePerView || ''}
-                onChange={(e) => handleInputChange('ratePerView', Number(e.target.value))}
+                onChange={e =>
+                  handleInputChange('ratePerView', Number(e.target.value))
+                }
                 placeholder="1000"
                 min="1"
                 required
@@ -212,7 +225,8 @@ export function CampaignForm() {
           {maxViews > 0 && (
             <div className="p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Estimated Maximum Views:</strong> {maxViews.toLocaleString()} views
+                <strong>Estimated Maximum Views:</strong>{' '}
+                {maxViews.toLocaleString()} views
               </p>
               <p className="text-xs text-blue-600 mt-1">
                 Based on your budget and rate per view
@@ -235,7 +249,7 @@ export function CampaignForm() {
                 id="startDate"
                 type="datetime-local"
                 value={formData.startDate}
-                onChange={(e) => handleInputChange('startDate', e.target.value)}
+                onChange={e => handleInputChange('startDate', e.target.value)}
               />
             </div>
 
@@ -245,7 +259,7 @@ export function CampaignForm() {
                 id="endDate"
                 type="datetime-local"
                 value={formData.endDate}
-                onChange={(e) => handleInputChange('endDate', e.target.value)}
+                onChange={e => handleInputChange('endDate', e.target.value)}
               />
             </div>
           </div>
@@ -262,7 +276,7 @@ export function CampaignForm() {
             <div key={index} className="flex space-x-2">
               <Input
                 value={requirement}
-                onChange={(e) => handleRequirementChange(index, e.target.value)}
+                onChange={e => handleRequirementChange(index, e.target.value)}
                 placeholder="Enter requirement"
                 className="flex-1"
               />
@@ -299,7 +313,12 @@ export function CampaignForm() {
                 <select
                   id="materialType"
                   value={newMaterial.type}
-                  onChange={(e) => setNewMaterial(prev => ({ ...prev, type: e.target.value as any }))}
+                  onChange={e =>
+                    setNewMaterial(prev => ({
+                      ...prev,
+                      type: e.target.value as any,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="google_drive">Google Drive</option>
@@ -314,7 +333,9 @@ export function CampaignForm() {
                 <Input
                   id="materialTitle"
                   value={newMaterial.title}
-                  onChange={(e) => setNewMaterial(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={e =>
+                    setNewMaterial(prev => ({ ...prev, title: e.target.value }))
+                  }
                   placeholder="Material title"
                 />
               </div>
@@ -325,17 +346,26 @@ export function CampaignForm() {
               <Input
                 id="materialUrl"
                 value={newMaterial.url}
-                onChange={(e) => setNewMaterial(prev => ({ ...prev, url: e.target.value }))}
+                onChange={e =>
+                  setNewMaterial(prev => ({ ...prev, url: e.target.value }))
+                }
                 placeholder="https://..."
               />
             </div>
 
             <div>
-              <Label htmlFor="materialDescription">Description (Optional)</Label>
+              <Label htmlFor="materialDescription">
+                Description (Optional)
+              </Label>
               <Input
                 id="materialDescription"
                 value={newMaterial.description}
-                onChange={(e) => setNewMaterial(prev => ({ ...prev, description: e.target.value }))}
+                onChange={e =>
+                  setNewMaterial(prev => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
                 placeholder="Material description"
               />
             </div>
@@ -350,10 +380,15 @@ export function CampaignForm() {
             <div className="space-y-2">
               <h4 className="font-medium">Added Materials</h4>
               {formData.materials.map((material, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div>
                     <p className="font-medium">{material.title}</p>
-                    <p className="text-sm text-gray-600">{material.type} - {material.url}</p>
+                    <p className="text-sm text-gray-600">
+                      {material.type} - {material.url}
+                    </p>
                   </div>
                   <Button
                     type="button"
@@ -372,11 +407,7 @@ export function CampaignForm() {
 
       {/* Submit */}
       <div className="flex space-x-4">
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="flex-1"
-        >
+        <Button type="submit" disabled={isLoading} className="flex-1">
           {isLoading ? 'Creating Campaign...' : 'Create Campaign'}
         </Button>
         <Button

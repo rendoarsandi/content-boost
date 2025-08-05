@@ -23,7 +23,12 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"],
-      "inputs": ["src/**/*.tsx", "src/**/*.ts", "__tests__/**/*.ts", "__tests__/**/*.tsx"]
+      "inputs": [
+        "src/**/*.tsx",
+        "src/**/*.ts",
+        "__tests__/**/*.ts",
+        "__tests__/**/*.tsx"
+      ]
     },
     "clean": {
       "cache": false,

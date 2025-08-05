@@ -39,12 +39,14 @@ describe('BotAnalysisWorker Playtest', () => {
       },
     ];
     worker.addViewRecords(viewRecords);
-    console.log(`Records added. Total processed: ${worker.getStats().totalRecordsProcessed}`);
+    console.log(
+      `Records added. Total processed: ${worker.getStats().totalRecordsProcessed}`
+    );
 
     // 4. Wait for the worker to perform analysis
     // In a real scenario, this would happen automatically in the background.
     // For this test, we'll wait a moment to simulate background processing.
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // 5. Check the stats to see if analysis was performed
     const stats = worker.getStats();

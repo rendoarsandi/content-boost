@@ -7,7 +7,9 @@ export async function loggingMiddleware(request: NextRequest, appName: string) {
   response.headers.set('x-app-name', appName);
 
   // Log request details
-  console.log(`[${appName}] ${request.method} ${request.url} - ${Date.now() - start}ms`);
+  console.log(
+    `[${appName}] ${request.method} ${request.url} - ${Date.now() - start}ms`
+  );
 
   return response;
 }

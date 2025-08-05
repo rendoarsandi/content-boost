@@ -31,7 +31,7 @@ export interface DataAggregationRule {
 export const DEFAULT_NORMALIZATION_RULES: DataNormalizationRule[] = [
   {
     name: 'ensure-non-negative',
-    apply: (metrics) => ({
+    apply: metrics => ({
       ...metrics,
       viewCount: Math.max(0, metrics.viewCount),
       likeCount: Math.max(0, metrics.likeCount),
@@ -41,7 +41,7 @@ export const DEFAULT_NORMALIZATION_RULES: DataNormalizationRule[] = [
   },
   {
     name: 'round-numbers',
-    apply: (metrics) => ({
+    apply: metrics => ({
       ...metrics,
       viewCount: Math.round(metrics.viewCount),
       likeCount: Math.round(metrics.likeCount),
@@ -51,14 +51,16 @@ export const DEFAULT_NORMALIZATION_RULES: DataNormalizationRule[] = [
   },
   {
     name: 'calculate-engagement-rate',
-    apply: (metrics) => {
-      const totalEngagement = metrics.likeCount + metrics.commentCount + metrics.shareCount;
-      const engagementRate = metrics.viewCount > 0 ? totalEngagement / metrics.viewCount : 0;
-      
+    apply: metrics => {
+      const totalEngagement =
+        metrics.likeCount + metrics.commentCount + metrics.shareCount;
+      const engagementRate =
+        metrics.viewCount > 0 ? totalEngagement / metrics.viewCount : 0;
+
       return {
         ...metrics,
         // Add engagement rate as a custom property
-        ...(metrics as any).customMetrics ? {} : { customMetrics: {} },
+        ...((metrics as any).customMetrics ? {} : { customMetrics: {} }),
         customMetrics: {
           ...(metrics as any).customMetrics,
           engagementRate: Math.round(engagementRate * 10000) / 10000, // 4 decimal places
@@ -73,9 +75,9 @@ export const DEFAULT_AGGREGATION_RULES: DataAggregationRule[] = [
   {
     name: 'hourly-average',
     timeWindow: 60 * 60 * 1000, // 1 hour
-    aggregateFunction: (metrics) => {
+    aggregateFunction: metrics => {
       if (metrics.length === 0) throw new Error('No metrics to aggregate');
-      
+
       const latest = metrics[metrics.length - 1];
       const sum = metrics.reduce(
         (acc, m) => ({
@@ -190,7 +192,9 @@ export class MetricsDataProcessor {
 
   // Create a processing pipeline for metrics
   createMetricsPipeline(): DataPipeline<ProcessedMetrics, ProcessedMetrics> {
-    const pipeline = new DataPipeline<ProcessedMetrics, ProcessedMetrics>(this.cache);
+    const pipeline = new DataPipeline<ProcessedMetrics, ProcessedMetrics>(
+      this.cache
+    );
 
     // Stage 1: Data Validation
     pipeline.addStage({
@@ -201,7 +205,10 @@ export class MetricsDataProcessor {
           throw new Error('Missing required identifiers');
         }
 
-        if (!metrics.platform || !['tiktok', 'instagram'].includes(metrics.platform)) {
+        if (
+          !metrics.platform ||
+          !['tiktok', 'instagram'].includes(metrics.platform)
+        ) {
           throw new Error('Invalid platform');
         }
 
@@ -212,7 +219,10 @@ export class MetricsDataProcessor {
         return metrics;
       },
       onError: async (error, metrics) => {
-        console.error(`Validation failed for metrics: ${error.message}`, metrics);
+        console.error(
+          `Validation failed for metrics: ${error.message}`,
+          metrics
+        );
         return null; // Reject invalid metrics
       },
     });
@@ -245,11 +255,15 @@ export class MetricsDataProcessor {
         if (existing) {
           // Check if this is a duplicate based on timestamp and values
           const existingMetrics = existing as ProcessedMetrics;
-          const timeDiff = Math.abs(metrics.timestamp.getTime() - existingMetrics.timestamp.getTime());
-          
-          if (timeDiff < 30000 && // Within 30 seconds
-              metrics.viewCount === existingMetrics.viewCount &&
-              metrics.likeCount === existingMetrics.likeCount) {
+          const timeDiff = Math.abs(
+            metrics.timestamp.getTime() - existingMetrics.timestamp.getTime()
+          );
+
+          if (
+            timeDiff < 30000 && // Within 30 seconds
+            metrics.viewCount === existingMetrics.viewCount &&
+            metrics.likeCount === existingMetrics.likeCount
+          ) {
             throw new Error('Duplicate metrics detected');
           }
         }
@@ -260,7 +274,9 @@ export class MetricsDataProcessor {
       },
       onError: async (error, metrics) => {
         if (error.message.includes('Duplicate')) {
-          console.log(`Skipping duplicate metrics for ${metrics.platform}:${metrics.postId}`);
+          console.log(
+            `Skipping duplicate metrics for ${metrics.platform}:${metrics.postId}`
+          );
           return null; // Skip duplicates
         }
         throw error; // Re-throw other errors
@@ -277,7 +293,8 @@ export class MetricsDataProcessor {
           processedAt: new Date(),
           customMetrics: {
             ...(metrics as any).customMetrics,
-            totalEngagement: metrics.likeCount + metrics.commentCount + metrics.shareCount,
+            totalEngagement:
+              metrics.likeCount + metrics.commentCount + metrics.shareCount,
             viewsPerHour: this.calculateViewsPerHour(metrics),
           },
         };
@@ -291,7 +308,7 @@ export class MetricsDataProcessor {
       name: 'quality-scoring',
       process: async (metrics: ProcessedMetrics) => {
         const qualityScore = this.calculateQualityScore(metrics);
-        
+
         return {
           ...metrics,
           customMetrics: {
@@ -306,15 +323,19 @@ export class MetricsDataProcessor {
   }
 
   // Process metrics through the pipeline
-  async processMetrics(metrics: ProcessedMetrics): Promise<PipelineResult<ProcessedMetrics>> {
+  async processMetrics(
+    metrics: ProcessedMetrics
+  ): Promise<PipelineResult<ProcessedMetrics>> {
     const pipeline = this.createMetricsPipeline();
     return await pipeline.process(metrics);
   }
 
   // Batch process multiple metrics
-  async batchProcessMetrics(metricsList: ProcessedMetrics[]): Promise<PipelineResult<ProcessedMetrics>[]> {
+  async batchProcessMetrics(
+    metricsList: ProcessedMetrics[]
+  ): Promise<PipelineResult<ProcessedMetrics>[]> {
     const pipeline = this.createMetricsPipeline();
-    
+
     return await Promise.all(
       metricsList.map(metrics => pipeline.process(metrics))
     );
@@ -331,11 +352,13 @@ export class MetricsDataProcessor {
     const startTime = endTime - timeWindow;
 
     // Get metrics from cache within time window
-    const pattern = this.cache.getKeyManager().custom('metrics', promoterId, campaignId, postId, 'history_*');
+    const pattern = this.cache
+      .getKeyManager()
+      .custom('metrics', promoterId, campaignId, postId, 'history_*');
     const keys = await this.cache.keys(pattern);
 
     const metricsInWindow: ProcessedMetrics[] = [];
-    
+
     for (const key of keys) {
       const timestamp = parseInt(key.split('_').pop() || '0');
       if (timestamp >= startTime && timestamp <= endTime) {
@@ -348,7 +371,7 @@ export class MetricsDataProcessor {
 
     // Apply aggregation rules
     const aggregatedResults: ProcessedMetrics[] = [];
-    
+
     for (const rule of this.aggregationRules) {
       if (metricsInWindow.length > 0) {
         try {
@@ -381,11 +404,14 @@ export class MetricsDataProcessor {
 
     // Penalize for suspicious engagement patterns
     if (metrics.viewCount > 0) {
-      const engagementRate = (metrics.likeCount + metrics.commentCount) / metrics.viewCount;
-      
-      if (engagementRate < 0.001) { // Very low engagement
+      const engagementRate =
+        (metrics.likeCount + metrics.commentCount) / metrics.viewCount;
+
+      if (engagementRate < 0.001) {
+        // Very low engagement
         score -= 20;
-      } else if (engagementRate > 0.1) { // Suspiciously high engagement
+      } else if (engagementRate > 0.1) {
+        // Suspiciously high engagement
         score -= 15;
       }
     }
@@ -393,7 +419,8 @@ export class MetricsDataProcessor {
     // Penalize for large deltas (potential bot activity)
     if (metrics.deltaMetrics) {
       const viewsDelta = metrics.deltaMetrics.viewsDelta;
-      if (viewsDelta > 10000) { // Large view spike
+      if (viewsDelta > 10000) {
+        // Large view spike
         score -= 25;
       }
     }
@@ -412,9 +439,10 @@ export class MetricsDataProcessor {
       return 0;
     }
 
-    const timeDiff = metrics.timestamp.getTime() - metrics.previousMetrics.timestamp.getTime();
+    const timeDiff =
+      metrics.timestamp.getTime() - metrics.previousMetrics.timestamp.getTime();
     const hoursDiff = timeDiff / (1000 * 60 * 60);
-    
+
     if (hoursDiff > 0) {
       return Math.round(metrics.deltaMetrics.viewsDelta / hoursDiff);
     }
@@ -424,12 +452,14 @@ export class MetricsDataProcessor {
 
   // Generate duplicate detection key
   private getDuplicateKey(metrics: ProcessedMetrics): string {
-    return this.cache.getKeyManager().custom(
-      'duplicate-check',
-      metrics.promoterId,
-      metrics.campaignId,
-      metrics.postId
-    );
+    return this.cache
+      .getKeyManager()
+      .custom(
+        'duplicate-check',
+        metrics.promoterId,
+        metrics.campaignId,
+        metrics.postId
+      );
   }
 
   // Add custom normalization rule

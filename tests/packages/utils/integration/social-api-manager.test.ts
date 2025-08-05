@@ -34,7 +34,9 @@ describe('SocialMediaAPIManager', () => {
     } as any;
 
     (TikTokAPIClient as jest.Mock).mockImplementation(() => mockTikTokClient);
-    (InstagramAPIClient as jest.Mock).mockImplementation(() => mockInstagramClient);
+    (InstagramAPIClient as jest.Mock).mockImplementation(
+      () => mockInstagramClient
+    );
   });
 
   afterEach(() => {
@@ -46,7 +48,7 @@ describe('SocialMediaAPIManager', () => {
       const config: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'tiktok'
+        platform: 'tiktok',
       };
 
       manager.registerClient('user123', 'tiktok', config);
@@ -54,7 +56,7 @@ describe('SocialMediaAPIManager', () => {
       expect(TikTokAPIClient).toHaveBeenCalledWith(
         config,
         expect.any(Object), // RateLimiter
-        expect.any(Object)  // APIErrorHandler
+        expect.any(Object) // APIErrorHandler
       );
       expect(manager.hasClient('user123', 'tiktok')).toBe(true);
     });
@@ -63,7 +65,7 @@ describe('SocialMediaAPIManager', () => {
       const config: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'instagram'
+        platform: 'instagram',
       };
 
       manager.registerClient('user123', 'instagram', config);
@@ -71,7 +73,7 @@ describe('SocialMediaAPIManager', () => {
       expect(InstagramAPIClient).toHaveBeenCalledWith(
         config,
         expect.any(Object), // RateLimiter
-        expect.any(Object)  // APIErrorHandler
+        expect.any(Object) // APIErrorHandler
       );
       expect(manager.hasClient('user123', 'instagram')).toBe(true);
     });
@@ -80,7 +82,7 @@ describe('SocialMediaAPIManager', () => {
       const config: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'youtube' as any
+        platform: 'youtube' as any,
       };
 
       expect(() => {
@@ -94,7 +96,7 @@ describe('SocialMediaAPIManager', () => {
       const config: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'tiktok'
+        platform: 'tiktok',
       };
 
       manager.registerClient('user123', 'tiktok', config);
@@ -110,7 +112,7 @@ describe('SocialMediaAPIManager', () => {
       const config: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'tiktok'
+        platform: 'tiktok',
       };
       manager.registerClient('user123', 'tiktok', config);
     });
@@ -125,18 +127,23 @@ describe('SocialMediaAPIManager', () => {
           views: 1000,
           likes: 100,
           comments: 10,
-          shares: 5
+          shares: 5,
         },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       mockTikTokClient.getUserMetrics.mockResolvedValue({
         success: true,
-        data: mockMetrics
+        data: mockMetrics,
       });
 
-      const result = await manager.collectMetrics('user123', 'tiktok', 'post123', 'campaign123');
+      const result = await manager.collectMetrics(
+        'user123',
+        'tiktok',
+        'post123',
+        'campaign123'
+      );
 
       expect(result.success).toBe(true);
       expect(result.metrics?.campaignId).toBe('campaign123');
@@ -144,7 +151,12 @@ describe('SocialMediaAPIManager', () => {
     });
 
     it('should handle client not found', async () => {
-      const result = await manager.collectMetrics('user456', 'tiktok', 'post123', 'campaign123');
+      const result = await manager.collectMetrics(
+        'user456',
+        'tiktok',
+        'post123',
+        'campaign123'
+      );
 
       expect(result.success).toBe(false);
       expect(result.error?.message).toContain('No client registered');
@@ -155,11 +167,16 @@ describe('SocialMediaAPIManager', () => {
         success: false,
         error: {
           code: 'RATE_LIMITED',
-          message: 'Rate limit exceeded'
-        }
+          message: 'Rate limit exceeded',
+        },
       });
 
-      const result = await manager.collectMetrics('user123', 'tiktok', 'post123', 'campaign123');
+      const result = await manager.collectMetrics(
+        'user123',
+        'tiktok',
+        'post123',
+        'campaign123'
+      );
 
       expect(result.success).toBe(false);
       expect(result.rateLimited).toBe(true);
@@ -172,12 +189,12 @@ describe('SocialMediaAPIManager', () => {
       const tiktokConfig: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'tiktok'
+        platform: 'tiktok',
       };
       const instagramConfig: APIClientConfig = {
         accessToken: 'token456',
         userId: 'user456',
-        platform: 'instagram'
+        platform: 'instagram',
       };
 
       manager.registerClient('user123', 'tiktok', tiktokConfig);
@@ -192,7 +209,7 @@ describe('SocialMediaAPIManager', () => {
         campaignId: '',
         metrics: { views: 1000, likes: 100, comments: 10, shares: 5 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       const mockInstagramMetrics = {
@@ -202,22 +219,32 @@ describe('SocialMediaAPIManager', () => {
         campaignId: '',
         metrics: { views: 2000, likes: 200, comments: 20, shares: 10 },
         timestamp: new Date(),
-        isValid: true
+        isValid: true,
       };
 
       mockTikTokClient.getUserMetrics.mockResolvedValue({
         success: true,
-        data: mockTikTokMetrics
+        data: mockTikTokMetrics,
       });
 
       mockInstagramClient.getUserMetrics.mockResolvedValue({
         success: true,
-        data: mockInstagramMetrics
+        data: mockInstagramMetrics,
       });
 
       const requests = [
-        { userId: 'user123', platform: 'tiktok' as SocialPlatform, postId: 'post123', campaignId: 'campaign123' },
-        { userId: 'user456', platform: 'instagram' as SocialPlatform, postId: 'post456', campaignId: 'campaign456' }
+        {
+          userId: 'user123',
+          platform: 'tiktok' as SocialPlatform,
+          postId: 'post123',
+          campaignId: 'campaign123',
+        },
+        {
+          userId: 'user456',
+          platform: 'instagram' as SocialPlatform,
+          postId: 'post456',
+          campaignId: 'campaign456',
+        },
       ];
 
       const results = await manager.collectBatchMetrics(requests);
@@ -235,12 +262,12 @@ describe('SocialMediaAPIManager', () => {
       const config1: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'tiktok'
+        platform: 'tiktok',
       };
       const config2: APIClientConfig = {
         accessToken: 'token456',
         userId: 'user456',
-        platform: 'instagram'
+        platform: 'instagram',
       };
 
       manager.registerClient('user123', 'tiktok', config1);
@@ -264,17 +291,17 @@ describe('SocialMediaAPIManager', () => {
       const config1: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'tiktok'
+        platform: 'tiktok',
       };
       const config2: APIClientConfig = {
         accessToken: 'token456',
         userId: 'user123',
-        platform: 'instagram'
+        platform: 'instagram',
       };
       const config3: APIClientConfig = {
         accessToken: 'token789',
         userId: 'user456',
-        platform: 'tiktok'
+        platform: 'tiktok',
       };
 
       manager.registerClient('user123', 'tiktok', config1);
@@ -296,7 +323,7 @@ describe('SocialMediaAPIManager', () => {
       const config: APIClientConfig = {
         accessToken: 'token123',
         userId: 'user123',
-        platform: 'tiktok'
+        platform: 'tiktok',
       };
 
       manager.registerClient('user123', 'tiktok', config);

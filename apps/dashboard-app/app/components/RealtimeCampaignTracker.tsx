@@ -1,9 +1,13 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 // import { trpc } from '../../utils/trpc/client';
 
-export default function RealtimeCampaignTracker({ campaignId }: { campaignId: string }) {
+export default function RealtimeCampaignTracker({
+  campaignId,
+}: {
+  campaignId: string;
+}) {
   const [messages, setMessages] = useState<string[]>([]);
 
   // TODO: Re-enable TRPC when the bundling issue is resolved
@@ -28,11 +32,16 @@ export default function RealtimeCampaignTracker({ campaignId }: { campaignId: st
   };
 
   return (
-    <div style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px', marginTop: '1rem' }}>
+    <div
+      style={{
+        border: '1px solid #ccc',
+        padding: '1rem',
+        borderRadius: '8px',
+        marginTop: '1rem',
+      }}
+    >
       <h3>Real-time Tracker for Campaign: {campaignId}</h3>
-      <button onClick={handleSendMessage}>
-        (Demo) Trigger Manual Update
-      </button>
+      <button onClick={handleSendMessage}>(Demo) Trigger Manual Update</button>
       <div style={{ marginTop: '1rem', fontFamily: 'monospace' }}>
         <h4>Live Feed:</h4>
         <ul>

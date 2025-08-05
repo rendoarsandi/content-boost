@@ -297,7 +297,7 @@ describe('SocialTokenManager', () => {
     it('should handle concurrent refresh attempts', async () => {
       // Mock lock acquisition failure (another process is refreshing)
       (mockCache['client'].set as jest.Mock).mockResolvedValue(null);
-      
+
       const existingToken: SocialToken = {
         accessToken: 'existing_token',
         refreshToken: 'refresh_token',
@@ -356,9 +356,9 @@ describe('SocialTokenManager', () => {
       (mockCache.get as jest.Mock)
         .mockResolvedValueOnce(oldToken)
         .mockResolvedValueOnce(newToken);
-      
+
       (mockAPIManager.validateToken as jest.Mock).mockResolvedValue(true);
-      
+
       // Mock successful refresh
       (mockCache['client'].set as jest.Mock).mockResolvedValue('OK');
       (mockAPIManager.refreshToken as jest.Mock).mockResolvedValue({
@@ -382,7 +382,7 @@ describe('SocialTokenManager', () => {
       };
 
       (mockCache.get as jest.Mock).mockResolvedValue(expiredToken);
-      
+
       // Mock failed refresh
       (mockCache['client'].set as jest.Mock).mockResolvedValue('OK');
       (mockAPIManager.refreshToken as jest.Mock).mockRejectedValue(

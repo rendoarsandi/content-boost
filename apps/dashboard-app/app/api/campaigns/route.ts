@@ -19,12 +19,9 @@ const UpdateCampaignSchema = CreateCampaignSchema.partial();
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only creators can view their campaigns
@@ -37,11 +34,11 @@ export async function GET(request: NextRequest) {
 
     const userCampaigns = await db.campaign.findMany({
       where: {
-        creatorId: (session.user as any).id
+        creatorId: (session.user as any).id,
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: 'desc',
+      },
     });
 
     return NextResponse.json({ campaigns: userCampaigns });
@@ -58,12 +55,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
-    
+
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only creators can create campaigns
@@ -81,24 +75,25 @@ export async function POST(request: NextRequest) {
     const newCampaign = await db.campaign.create({
       data: {
         creatorId: (session.user as any).id,
-        name: validatedData.name,
+        title: validatedData.name,
         budget: validatedData.budget,
-      }
+        ratePerView: 100, // Default rate per view
+      },
     });
 
     return NextResponse.json(
-      { 
+      {
         campaign: newCampaign,
-        message: 'Campaign created successfully'
+        message: 'Campaign created successfully',
       },
       { status: 201 }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation error',
-          details: error.issues
+          details: error.issues,
         },
         { status: 400 }
       );

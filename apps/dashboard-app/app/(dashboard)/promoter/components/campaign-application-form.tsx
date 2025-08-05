@@ -8,7 +8,9 @@ interface CampaignApplicationFormProps {
   campaignId: string;
 }
 
-export function CampaignApplicationForm({ campaignId }: CampaignApplicationFormProps) {
+export function CampaignApplicationForm({
+  campaignId,
+}: CampaignApplicationFormProps) {
   const [submittedContent, setSubmittedContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,15 +23,18 @@ export function CampaignApplicationForm({ campaignId }: CampaignApplicationFormP
     setError(null);
 
     try {
-      const response = await fetch(`/api/promoter/campaigns/${campaignId}/apply`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          submittedContent: submittedContent.trim() || undefined,
-        }),
-      });
+      const response = await fetch(
+        `/api/promoter/campaigns/${campaignId}/apply`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            submittedContent: submittedContent.trim() || undefined,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -52,10 +57,12 @@ export function CampaignApplicationForm({ campaignId }: CampaignApplicationFormP
     return (
       <Alert className="bg-green-50 border-green-200">
         <div className="text-green-800">
-          <h4 className="font-medium mb-2">Application Submitted Successfully!</h4>
+          <h4 className="font-medium mb-2">
+            Application Submitted Successfully!
+          </h4>
           <p className="text-sm">
-            Your application has been submitted and is now pending review by the creator. 
-            You'll be notified once it's reviewed.
+            Your application has been submitted and is now pending review by the
+            creator. You'll be notified once it's reviewed.
           </p>
         </div>
       </Alert>
@@ -74,14 +81,19 @@ export function CampaignApplicationForm({ campaignId }: CampaignApplicationFormP
       )}
 
       <div>
-        <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="content"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Application Message (Optional)
         </label>
         <textarea
           id="content"
           placeholder="Tell the creator why you're interested in this campaign and how you plan to promote it..."
           value={submittedContent}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setSubmittedContent(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            setSubmittedContent(e.target.value)
+          }
           rows={4}
           className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
@@ -94,18 +106,16 @@ export function CampaignApplicationForm({ campaignId }: CampaignApplicationFormP
         <h4 className="font-medium text-blue-900 mb-2">What happens next?</h4>
         <ul className="text-sm text-blue-800 space-y-1">
           <li>• Your application will be reviewed by the creator</li>
-          <li>• You'll receive a notification when it's approved or rejected</li>
+          <li>
+            • You'll receive a notification when it's approved or rejected
+          </li>
           <li>• If approved, you'll get access to campaign materials</li>
           <li>• You can then start promoting and earning from views</li>
         </ul>
       </div>
 
       <div className="flex space-x-3">
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex-1"
-        >
+        <Button type="submit" disabled={isSubmitting} className="flex-1">
           {isSubmitting ? 'Submitting...' : 'Submit Application'}
         </Button>
         <Button

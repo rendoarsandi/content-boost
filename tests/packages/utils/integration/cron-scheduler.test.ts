@@ -38,7 +38,7 @@ describe('CronParser', () => {
     it('should calculate next run time for intervals', () => {
       const now = new Date();
       const nextRun = CronParser.getNextRunTime('5m', now);
-      
+
       expect(nextRun.getTime()).toBe(now.getTime() + 300000);
     });
 
@@ -46,7 +46,7 @@ describe('CronParser', () => {
       const before = Date.now();
       const nextRun = CronParser.getNextRunTime('1m');
       const after = Date.now();
-      
+
       expect(nextRun.getTime()).toBeGreaterThanOrEqual(before + 60000);
       expect(nextRun.getTime()).toBeLessThanOrEqual(after + 60000);
     });
@@ -79,7 +79,7 @@ describe('CronScheduler', () => {
       };
 
       scheduler.addJob(job);
-      
+
       const retrievedJob = scheduler.getJob('test-job');
       expect(retrievedJob).toBeDefined();
       expect(retrievedJob?.name).toBe('Test Job');
@@ -90,7 +90,7 @@ describe('CronScheduler', () => {
 
     it('should schedule job if scheduler is running', () => {
       scheduler.start();
-      
+
       const job = {
         id: 'test-job',
         name: 'Test Job',
@@ -100,10 +100,10 @@ describe('CronScheduler', () => {
       };
 
       scheduler.addJob(job);
-      
+
       // Fast-forward time
       jest.advanceTimersByTime(150);
-      
+
       expect(mockHandler).toHaveBeenCalledTimes(1);
     });
   });
@@ -120,7 +120,7 @@ describe('CronScheduler', () => {
 
       scheduler.addJob(job);
       expect(scheduler.getJob('test-job')).toBeDefined();
-      
+
       const removed = scheduler.removeJob('test-job');
       expect(removed).toBe(true);
       expect(scheduler.getJob('test-job')).toBeUndefined();
@@ -143,12 +143,12 @@ describe('CronScheduler', () => {
       };
 
       scheduler.addJob(job);
-      
+
       // Disable job
       const disabled = scheduler.toggleJob('test-job', false);
       expect(disabled).toBe(true);
       expect(scheduler.getJob('test-job')?.enabled).toBe(false);
-      
+
       // Enable job
       const enabled = scheduler.toggleJob('test-job', true);
       expect(enabled).toBe(true);
@@ -164,10 +164,10 @@ describe('CronScheduler', () => {
   describe('start and stop', () => {
     it('should start and stop the scheduler', () => {
       expect(scheduler.isHealthy()).toBe(false);
-      
+
       scheduler.start();
       expect(scheduler.isHealthy()).toBe(true);
-      
+
       scheduler.stop();
       expect(scheduler.isHealthy()).toBe(false);
     });
@@ -183,12 +183,12 @@ describe('CronScheduler', () => {
 
       scheduler.addJob(job);
       scheduler.start();
-      
+
       // Fast-forward time to trigger job
       jest.advanceTimersByTime(150);
-      
+
       expect(mockHandler).toHaveBeenCalledTimes(1);
-      
+
       const retrievedJob = scheduler.getJob('test-job');
       expect(retrievedJob?.runCount).toBe(1);
       expect(retrievedJob?.lastRun).toBeDefined();
@@ -205,10 +205,10 @@ describe('CronScheduler', () => {
 
       scheduler.addJob(job);
       scheduler.start();
-      
+
       // Fast-forward time
       jest.advanceTimersByTime(150);
-      
+
       expect(mockHandler).not.toHaveBeenCalled();
     });
   });
@@ -216,7 +216,7 @@ describe('CronScheduler', () => {
   describe('job execution', () => {
     it('should handle job errors', async () => {
       const errorHandler = jest.fn().mockRejectedValue(new Error('Test error'));
-      
+
       const job = {
         id: 'error-job',
         name: 'Error Job',
@@ -227,13 +227,13 @@ describe('CronScheduler', () => {
 
       scheduler.addJob(job);
       scheduler.start();
-      
+
       // Fast-forward time to trigger job
       jest.advanceTimersByTime(150);
-      
+
       // Wait for async execution
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       const retrievedJob = scheduler.getJob('error-job');
       expect(retrievedJob?.errorCount).toBe(1);
       expect(retrievedJob?.lastError).toBe('Test error');
@@ -250,12 +250,12 @@ describe('CronScheduler', () => {
 
       scheduler.addJob(job);
       scheduler.start();
-      
+
       // First execution
       jest.advanceTimersByTime(150);
       await new Promise(resolve => setTimeout(resolve, 10));
       expect(mockHandler).toHaveBeenCalledTimes(1);
-      
+
       // Second execution
       jest.advanceTimersByTime(100);
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -263,13 +263,15 @@ describe('CronScheduler', () => {
     });
 
     it('should respect concurrent job limits', () => {
-      const slowHandler = jest.fn().mockImplementation(() => 
-        new Promise(resolve => setTimeout(resolve, 200))
-      );
+      const slowHandler = jest
+        .fn()
+        .mockImplementation(
+          () => new Promise(resolve => setTimeout(resolve, 200))
+        );
 
-      const limitedScheduler = createCronScheduler({ 
+      const limitedScheduler = createCronScheduler({
         maxConcurrentJobs: 1,
-        logLevel: 'error'
+        logLevel: 'error',
       });
 
       const job1 = {
@@ -291,13 +293,13 @@ describe('CronScheduler', () => {
       limitedScheduler.addJob(job1);
       limitedScheduler.addJob(job2);
       limitedScheduler.start();
-      
+
       // Trigger both jobs
       jest.advanceTimersByTime(100);
-      
+
       // Only one should execute due to limit
       expect(slowHandler).toHaveBeenCalledTimes(1);
-      
+
       limitedScheduler.stop();
     });
   });
@@ -322,7 +324,7 @@ describe('CronScheduler', () => {
 
       scheduler.addJob(job1);
       scheduler.addJob(job2);
-      
+
       const allJobs = scheduler.getAllJobs();
       expect(allJobs).toHaveLength(2);
       expect(allJobs.find(j => j.id === 'job1')).toBeDefined();
@@ -350,7 +352,7 @@ describe('CronScheduler', () => {
 
       scheduler.addJob(job1);
       scheduler.addJob(job2);
-      
+
       const stats = scheduler.getStats();
       expect(stats.totalJobs).toBe(2);
       expect(stats.enabledJobs).toBe(1);
@@ -371,10 +373,10 @@ describe('CronScheduler', () => {
       };
 
       scheduler.addJob(job);
-      
+
       const executed = await scheduler.executeJobManually('test-job');
       expect(executed).toBe(true);
-      
+
       // Wait for async execution
       await new Promise(resolve => setTimeout(resolve, 10));
       expect(mockHandler).toHaveBeenCalledTimes(1);
@@ -397,10 +399,10 @@ describe('CronScheduler', () => {
       };
 
       scheduler.addJob(job);
-      
+
       const updated = scheduler.updateJobSchedule('test-job', '30s');
       expect(updated).toBe(true);
-      
+
       const retrievedJob = scheduler.getJob('test-job');
       expect(retrievedJob?.schedule).toBe('30s');
     });

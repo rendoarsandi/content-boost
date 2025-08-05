@@ -3,7 +3,7 @@
 export interface InstagramProfile {
   id: string;
   username: string;
-  account_type: "BUSINESS" | "MEDIA_CREATOR" | "PERSONAL";
+  account_type: 'BUSINESS' | 'MEDIA_CREATOR' | 'PERSONAL';
   media_count: number;
   followers_count?: number;
   follows_count?: number;
@@ -15,7 +15,7 @@ export interface InstagramProfile {
 
 // Instagram provider will be implemented when proper OAuth configuration is available
 export const instagramProvider = {
-  id: "instagram",
-  name: "Instagram",
+  id: 'instagram',
+  name: 'Instagram',
   // Implementation will be added later
 };

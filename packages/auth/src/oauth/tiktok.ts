@@ -39,40 +39,48 @@ export class TikTokOAuth {
 
   // Generate authorization URL
   getAuthorizationUrl(state?: string): string {
-    const authUrl = new URL("https://www.tiktok.com/auth/authorize/");
-    
-    authUrl.searchParams.set("client_key", this.clientId);
-    authUrl.searchParams.set("scope", "user.info.basic,user.info.profile,user.info.stats,video.list");
-    authUrl.searchParams.set("response_type", "code");
-    authUrl.searchParams.set("redirect_uri", this.redirectUri);
-    
+    const authUrl = new URL('https://www.tiktok.com/auth/authorize/');
+
+    authUrl.searchParams.set('client_key', this.clientId);
+    authUrl.searchParams.set(
+      'scope',
+      'user.info.basic,user.info.profile,user.info.stats,video.list'
+    );
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('redirect_uri', this.redirectUri);
+
     if (state) {
-      authUrl.searchParams.set("state", state);
+      authUrl.searchParams.set('state', state);
     }
-    
+
     return authUrl.toString();
   }
 
   // Exchange authorization code for access token
   async exchangeCodeForToken(code: string): Promise<TikTokTokenResponse> {
-    const response = await fetch("https://open-api.tiktok.com/oauth/access_token/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_key: this.clientId,
-        client_secret: this.clientSecret,
-        code,
-        grant_type: "authorization_code",
-        redirect_uri: this.redirectUri,
-      }),
-    });
+    const response = await fetch(
+      'https://open-api.tiktok.com/oauth/access_token/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_key: this.clientId,
+          client_secret: this.clientSecret,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: this.redirectUri,
+        }),
+      }
+    );
 
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(`TikTok OAuth error: ${data.error_description || data.error}`);
+      throw new Error(
+        `TikTok OAuth error: ${data.error_description || data.error}`
+      );
     }
 
     return {
@@ -87,7 +95,7 @@ export class TikTokOAuth {
 
   // Get user information using access token
   async getUserInfo(accessToken: string): Promise<TikTokUserInfo> {
-    const response = await fetch("https://open-api.tiktok.com/v2/user/info/", {
+    const response = await fetch('https://open-api.tiktok.com/v2/user/info/', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -104,23 +112,28 @@ export class TikTokOAuth {
 
   // Refresh access token
   async refreshAccessToken(refreshToken: string): Promise<TikTokTokenResponse> {
-    const response = await fetch("https://open-api.tiktok.com/oauth/refresh_token/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_key: this.clientId,
-        client_secret: this.clientSecret,
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-      }),
-    });
+    const response = await fetch(
+      'https://open-api.tiktok.com/oauth/refresh_token/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_key: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        }),
+      }
+    );
 
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(`TikTok token refresh error: ${data.error_description || data.error}`);
+      throw new Error(
+        `TikTok token refresh error: ${data.error_description || data.error}`
+      );
     }
 
     return {

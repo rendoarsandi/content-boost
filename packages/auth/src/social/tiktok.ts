@@ -44,21 +44,24 @@ export interface TikTokVideoStats {
 }
 
 export class TikTokAPI {
-  private baseURL = "https://open-api.tiktok.com";
-  
+  private baseURL = 'https://open-api.tiktok.com';
+
   constructor(private accessToken: string) {}
-  
+
   private getHeaders(): HeadersInit {
     return {
-      "Authorization": `Bearer ${this.accessToken}`,
-      "Content-Type": "application/json",
+      Authorization: `Bearer ${this.accessToken}`,
+      'Content-Type': 'application/json',
     };
   }
-  
-  private async makeRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
+
+  private async makeRequest<T>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<T> {
     try {
       const headers = this.getHeaders();
-      
+
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         ...options,
         headers: {
@@ -66,29 +69,34 @@ export class TikTokAPI {
           ...options?.headers,
         },
       });
-      
+
       if (!response.ok) {
-        throw new Error(`TikTok API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `TikTok API error: ${response.status} ${response.statusText}`
+        );
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error("TikTok API request failed:", error);
+      console.error('TikTok API request failed:', error);
       throw error;
     }
   }
-  
+
   async getUserInfo(): Promise<TikTokUserInfo> {
     const response = await this.makeRequest<{
       data: {
         user: TikTokUserInfo;
       };
-    }>("/v2/user/info/");
-    
+    }>('/v2/user/info/');
+
     return response.data.user;
   }
-  
-  async getUserVideos(cursor?: string, max_count: number = 20): Promise<{
+
+  async getUserVideos(
+    cursor?: string,
+    max_count: number = 20
+  ): Promise<{
     videos: TikTokVideoInfo[];
     cursor: string;
     has_more: boolean;
@@ -96,11 +104,11 @@ export class TikTokAPI {
     const params = new URLSearchParams({
       max_count: max_count.toString(),
     });
-    
+
     if (cursor) {
-      params.append("cursor", cursor);
+      params.append('cursor', cursor);
     }
-    
+
     const response = await this.makeRequest<{
       data: {
         videos: TikTokVideoInfo[];
@@ -108,62 +116,62 @@ export class TikTokAPI {
         has_more: boolean;
       };
     }>(`/v2/video/list/?${params}`);
-    
+
     return response.data;
   }
-  
+
   async getVideoStats(video_ids: string[]): Promise<TikTokVideoStats[]> {
     const response = await this.makeRequest<{
       data: {
         videos: TikTokVideoStats[];
       };
-    }>("/v2/video/query/", {
-      method: "POST",
+    }>('/v2/video/query/', {
+      method: 'POST',
       body: JSON.stringify({
         video_ids,
-        fields: ["like_count", "comment_count", "share_count", "view_count"],
+        fields: ['like_count', 'comment_count', 'share_count', 'view_count'],
       }),
     });
-    
+
     return response.data.videos;
   }
-  
+
   async getVideoById(video_id: string): Promise<TikTokVideoInfo> {
     const response = await this.makeRequest<{
       data: {
         videos: TikTokVideoInfo[];
       };
-    }>("/v2/video/query/", {
-      method: "POST",
+    }>('/v2/video/query/', {
+      method: 'POST',
       body: JSON.stringify({
         video_ids: [video_id],
         fields: [
-          "video_id",
-          "title", 
-          "video_description",
-          "duration",
-          "height",
-          "width",
-          "cover_image_url",
-          "share_url",
-          "embed_html",
-          "embed_link",
-          "like_count",
-          "comment_count", 
-          "share_count",
-          "view_count",
-          "create_time"
+          'video_id',
+          'title',
+          'video_description',
+          'duration',
+          'height',
+          'width',
+          'cover_image_url',
+          'share_url',
+          'embed_html',
+          'embed_link',
+          'like_count',
+          'comment_count',
+          'share_count',
+          'view_count',
+          'create_time',
         ],
       }),
     });
-    
+
     if (!response.data.videos.length) {
       throw new Error(`Video not found: ${video_id}`);
     }
-    
+
     return response.data.videos[0];
   }
-  
+
   // Utility method to extract video ID from TikTok URL
   static extractVideoId(url: string): string | null {
     const patterns = [
@@ -171,19 +179,22 @@ export class TikTokAPI {
       /tiktok\.com\/v\/(\d+)/,
       /vm\.tiktok\.com\/(\w+)/,
     ];
-    
+
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match) {
         return match[1];
       }
     }
-    
+
     return null;
   }
-  
+
   // Rate limiting helper
-  static async withRateLimit<T>(fn: () => Promise<T>, delay: number = 1000): Promise<T> {
+  static async withRateLimit<T>(
+    fn: () => Promise<T>,
+    delay: number = 1000
+  ): Promise<T> {
     const result = await fn();
     await new Promise(resolve => setTimeout(resolve, delay));
     return result;

@@ -35,7 +35,9 @@ describe('RealTimeBotAnalyzer Playtest', () => {
 
     // 3. Add records to the analyzer
     analyzer.addViewRecords(viewRecords);
-    console.log(`Records added to queue. Queue size: ${analyzer.getStatistics().queueSize}`);
+    console.log(
+      `Records added to queue. Queue size: ${analyzer.getStatistics().queueSize}`
+    );
 
     // 4. Trigger an immediate analysis
     const result = await analyzer.analyzeImmediate(promoterId, campaignId);
@@ -52,7 +54,10 @@ describe('RealTimeBotAnalyzer Playtest', () => {
     expect(result.analysis.botScore).toBeGreaterThan(0);
 
     // 7. Test caching
-    const cachedResult = await analyzer.analyzeImmediate(promoterId, campaignId);
+    const cachedResult = await analyzer.analyzeImmediate(
+      promoterId,
+      campaignId
+    );
     console.log('📊 Cached Analysis Result:', {
       botScore: cachedResult.analysis.botScore,
     });

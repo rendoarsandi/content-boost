@@ -3,18 +3,26 @@ import { redirect, notFound } from 'next/navigation';
 import { db } from '@repo/database';
 // import { campaignApplications, campaigns, users, viewRecords } from '@repo/database';
 // import { eq, and, sum, count } from 'drizzle-orm';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+} from '@repo/ui';
 import Link from 'next/link';
 import { PromoterApplicationActions } from '../../components/promoter-application-actions';
 
 async function getApplicationDetails(applicationId: string, creatorId: string) {
   // Get application with campaign and promoter details using Prisma
-  const applicationData = await db.promotion.findFirst({
+  const applicationData = await db.campaignApplication.findFirst({
     where: {
       id: applicationId,
       campaign: {
-        creatorId: creatorId
-      }
+        creatorId: creatorId,
+      },
     },
     include: {
       campaign: true,
@@ -23,9 +31,11 @@ async function getApplicationDetails(applicationId: string, creatorId: string) {
           id: true,
           name: true,
           email: true,
-        }
-      }
-    }
+        },
+      },
+      viewRecords: true,
+      payouts: true,
+    },
   });
 
   if (!applicationData) {
@@ -33,29 +43,31 @@ async function getApplicationDetails(applicationId: string, creatorId: string) {
   }
 
   // Get performance metrics
+  const totalViews = applicationData.viewRecords.reduce((sum, record) => sum + record.viewCount, 0);
+  const legitimateViews = applicationData.viewRecords.reduce((sum, record) => 
+    sum + (record.isLegitimate ? record.viewCount : 0), 0);
+  const estimatedEarnings = applicationData.payouts.reduce((sum, payout) => sum + payout.amount, 0);
+  
   const metrics = {
-    totalViews: applicationData.views,
-    legitimateViews: applicationData.views, // Simplified for now
-    estimatedEarnings: applicationData.earnings,
+    totalViews,
+    legitimateViews,
+    estimatedEarnings,
   };
 
   return {
     ...applicationData,
     metrics,
-    status: 'APPROVED', // Since there's no status field in Promotion model, defaulting to APPROVED
+    status: applicationData.status, // Use the actual status from CampaignApplication
   };
 }
 
 function getApplicationStatusColor(status: string) {
   switch (status) {
     case 'APPROVED':
-    case 'approved':
       return 'bg-green-100 text-green-800';
     case 'PENDING':
-    case 'pending':
       return 'bg-yellow-100 text-yellow-800';
     case 'REJECTED':
-    case 'rejected':
       return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
@@ -74,7 +86,10 @@ export default async function ApplicationDetailsPage({
   }
 
   const { id } = await params;
-  const applicationDetails = await getApplicationDetails(id, (session.user as any).id);
+  const applicationDetails = await getApplicationDetails(
+    id,
+    (session.user as any).id
+  );
 
   if (!applicationDetails) {
     notFound();
@@ -88,13 +103,16 @@ export default async function ApplicationDetailsPage({
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center space-x-3 mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">Application Details</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Application Details
+            </h1>
             <Badge className={getApplicationStatusColor(application.status)}>
               {application.status}
             </Badge>
           </div>
           <p className="text-gray-600">
-            Application from {promoter.name || 'Unknown User'} for "{campaign.name}"
+            Application from {promoter.name || 'Unknown User'} for "
+            {campaign.title}"
           </p>
         </div>
         <div className="flex space-x-2">
@@ -123,7 +141,9 @@ export default async function ApplicationDetailsPage({
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">{promoter.name || 'Unknown User'}</h3>
+                  <h3 className="text-xl font-semibold">
+                    {promoter.name || 'Unknown User'}
+                  </h3>
                   <p className="text-gray-600">{promoter.email}</p>
                 </div>
               </div>
@@ -138,28 +158,40 @@ export default async function ApplicationDetailsPage({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Created Date</p>
-                  <p className="text-lg">{new Date(application.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Created Date
+                  </p>
+                  <p className="text-lg">
+                    {new Date(application.appliedAt).toLocaleDateString()}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Last Updated</p>
-                  <p className="text-lg">{new Date(application.updatedAt).toLocaleDateString()}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Last Updated
+                  </p>
+                  <p className="text-lg">
+                    {application.reviewedAt ? new Date(application.reviewedAt).toLocaleDateString() : 'Not reviewed'}
+                  </p>
                 </div>
               </div>
 
-              {application.contentUrl && (
+              {application.submittedContent && (
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-2">Content URL</p>
+                  <p className="text-sm font-medium text-gray-600 mb-2">
+                    Content URL
+                  </p>
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <a href={application.contentUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                      {application.contentUrl}
-                    </a>
+                    <p className="text-gray-800">
+                      {application.submittedContent}
+                    </p>
                   </div>
                 </div>
               )}
 
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-2">Promotion ID</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">
+                  Promotion ID
+                </p>
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <code className="text-sm text-gray-700 break-all">
                     {application.id}
@@ -213,18 +245,20 @@ export default async function ApplicationDetailsPage({
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-sm font-medium text-gray-600">Campaign Title</p>
-                <p className="font-semibold">{campaign.name}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Campaign Title
+                </p>
+                <p className="font-semibold">{campaign.title}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Status</p>
-                <Badge className="bg-green-100 text-green-800">
-                  Active
-                </Badge>
+                <Badge className="bg-green-100 text-green-800">Active</Badge>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Budget</p>
-                <p className="font-semibold">Rp {Number(campaign.budget).toLocaleString()}</p>
+                <p className="font-semibold">
+                  Rp {Number(campaign.budget).toLocaleString()}
+                </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Campaign ID</p>
@@ -239,12 +273,13 @@ export default async function ApplicationDetailsPage({
               <CardTitle>Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              {application.status === 'pending' ? (
+              {application.status === 'PENDING' ? (
                 <div className="space-y-3">
                   <p className="text-sm text-gray-600 mb-3">
-                    Review this application and decide whether to approve or reject it.
+                    Review this application and decide whether to approve or
+                    reject it.
                   </p>
-                  <PromoterApplicationActions 
+                  <PromoterApplicationActions
                     applicationId={application.id}
                     currentStatus={application.status}
                   />
@@ -254,17 +289,19 @@ export default async function ApplicationDetailsPage({
                   <p className="text-sm text-gray-600">
                     This application has been {application.status}.
                   </p>
-                  {application.status === 'approved' && (
+                  {application.status === 'APPROVED' && (
                     <div className="p-3 bg-green-50 rounded-lg">
                       <p className="text-sm text-green-800">
-                        ✅ This promoter is now actively working on your campaign.
+                        ✅ This promoter is now actively working on your
+                        campaign.
                       </p>
                     </div>
                   )}
-                  {application.status === 'rejected' && (
+                  {application.status === 'REJECTED' && (
                     <div className="p-3 bg-red-50 rounded-lg">
                       <p className="text-sm text-red-800">
-                        ❌ This application was rejected and the promoter has been notified.
+                        ❌ This application was rejected and the promoter has
+                        been notified.
                       </p>
                     </div>
                   )}

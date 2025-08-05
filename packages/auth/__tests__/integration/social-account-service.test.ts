@@ -51,7 +51,7 @@ describe('SocialAccountService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    
+
     // Dynamic import to avoid module loading issues
     const module = await import('../src/services/social-account');
     SocialAccountService = module.SocialAccountService;
@@ -64,7 +64,7 @@ describe('SocialAccountService', () => {
       (getSocialAccounts as jest.Mock).mockResolvedValue([]);
 
       const result = await service.getConnectedAccounts();
-      
+
       expect(result).toEqual([]);
       expect(getSocialAccounts).toHaveBeenCalledWith(mockUserId);
     });
@@ -89,7 +89,7 @@ describe('SocialAccountService', () => {
       (getSocialAccounts as jest.Mock).mockResolvedValue(mockAccounts);
 
       const result = await service.getConnectedAccounts();
-      
+
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
         platform: 'tiktok',
@@ -126,12 +126,16 @@ describe('SocialAccountService', () => {
       };
 
       const { tiktokOAuth } = await import('../src/oauth/tiktok');
-      (tiktokOAuth.exchangeCodeForToken as jest.Mock).mockResolvedValue(mockTokens);
+      (tiktokOAuth.exchangeCodeForToken as jest.Mock).mockResolvedValue(
+        mockTokens
+      );
       (tiktokOAuth.getUserInfo as jest.Mock).mockResolvedValue(mockUserInfo);
-      (tiktokOAuth.linkToExistingUser as jest.Mock).mockResolvedValue(mockSocialAccount);
+      (tiktokOAuth.linkToExistingUser as jest.Mock).mockResolvedValue(
+        mockSocialAccount
+      );
 
       const result = await service.connectAccount('tiktok', 'test-code');
-      
+
       expect(result.success).toBe(true);
       expect(result.account).toMatchObject({
         platform: 'tiktok',
@@ -164,12 +168,16 @@ describe('SocialAccountService', () => {
       };
 
       const { instagramOAuth } = await import('../src/oauth/instagram');
-      (instagramOAuth.exchangeCodeForToken as jest.Mock).mockResolvedValue(mockTokens);
+      (instagramOAuth.exchangeCodeForToken as jest.Mock).mockResolvedValue(
+        mockTokens
+      );
       (instagramOAuth.getUserInfo as jest.Mock).mockResolvedValue(mockUserInfo);
-      (instagramOAuth.linkToExistingUser as jest.Mock).mockResolvedValue(mockSocialAccount);
+      (instagramOAuth.linkToExistingUser as jest.Mock).mockResolvedValue(
+        mockSocialAccount
+      );
 
       const result = await service.connectAccount('instagram', 'test-code');
-      
+
       expect(result.success).toBe(true);
       expect(result.account).toMatchObject({
         platform: 'instagram',
@@ -189,7 +197,7 @@ describe('SocialAccountService', () => {
       );
 
       const result = await service.connectAccount('tiktok', 'invalid-code');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('OAuth error');
     });
@@ -201,7 +209,7 @@ describe('SocialAccountService', () => {
       (tiktokOAuth.unlinkFromUser as jest.Mock).mockResolvedValue(undefined);
 
       const result = await service.disconnectAccount('tiktok');
-      
+
       expect(result.success).toBe(true);
       expect(tiktokOAuth.unlinkFromUser).toHaveBeenCalledWith(mockUserId);
     });
@@ -211,7 +219,7 @@ describe('SocialAccountService', () => {
       (instagramOAuth.unlinkFromUser as jest.Mock).mockResolvedValue(undefined);
 
       const result = await service.disconnectAccount('instagram');
-      
+
       expect(result.success).toBe(true);
       expect(instagramOAuth.unlinkFromUser).toHaveBeenCalledWith(mockUserId);
     });
@@ -223,7 +231,7 @@ describe('SocialAccountService', () => {
       );
 
       const result = await service.disconnectAccount('tiktok');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('Database error');
     });
@@ -232,20 +240,24 @@ describe('SocialAccountService', () => {
   describe('refreshToken', () => {
     it('should successfully refresh TikTok token', async () => {
       const { tiktokOAuth } = await import('../src/oauth/tiktok');
-      (tiktokOAuth.ensureValidToken as jest.Mock).mockResolvedValue('new-token');
+      (tiktokOAuth.ensureValidToken as jest.Mock).mockResolvedValue(
+        'new-token'
+      );
 
       const result = await service.refreshToken('tiktok');
-      
+
       expect(result.success).toBe(true);
       expect(tiktokOAuth.ensureValidToken).toHaveBeenCalledWith(mockUserId);
     });
 
     it('should successfully refresh Instagram token', async () => {
       const { instagramOAuth } = await import('../src/oauth/instagram');
-      (instagramOAuth.ensureValidToken as jest.Mock).mockResolvedValue('new-token');
+      (instagramOAuth.ensureValidToken as jest.Mock).mockResolvedValue(
+        'new-token'
+      );
 
       const result = await service.refreshToken('instagram');
-      
+
       expect(result.success).toBe(true);
       expect(instagramOAuth.ensureValidToken).toHaveBeenCalledWith(mockUserId);
     });
@@ -257,7 +269,7 @@ describe('SocialAccountService', () => {
       );
 
       const result = await service.refreshToken('tiktok');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('Token refresh failed');
     });
@@ -266,22 +278,30 @@ describe('SocialAccountService', () => {
   describe('getAuthorizationUrl', () => {
     it('should return TikTok authorization URL', () => {
       const { tiktokOAuth } = require('../src/oauth/tiktok');
-      (tiktokOAuth.getAuthorizationUrl as jest.Mock).mockReturnValue('https://tiktok.com/auth');
+      (tiktokOAuth.getAuthorizationUrl as jest.Mock).mockReturnValue(
+        'https://tiktok.com/auth'
+      );
 
       const result = service.getAuthorizationUrl('tiktok', 'test-state');
-      
+
       expect(result).toBe('https://tiktok.com/auth');
-      expect(tiktokOAuth.getAuthorizationUrl).toHaveBeenCalledWith('test-state');
+      expect(tiktokOAuth.getAuthorizationUrl).toHaveBeenCalledWith(
+        'test-state'
+      );
     });
 
     it('should return Instagram authorization URL', () => {
       const { instagramOAuth } = require('../src/oauth/instagram');
-      (instagramOAuth.getAuthorizationUrl as jest.Mock).mockReturnValue('https://instagram.com/auth');
+      (instagramOAuth.getAuthorizationUrl as jest.Mock).mockReturnValue(
+        'https://instagram.com/auth'
+      );
 
       const result = service.getAuthorizationUrl('instagram', 'test-state');
-      
+
       expect(result).toBe('https://instagram.com/auth');
-      expect(instagramOAuth.getAuthorizationUrl).toHaveBeenCalledWith('test-state');
+      expect(instagramOAuth.getAuthorizationUrl).toHaveBeenCalledWith(
+        'test-state'
+      );
     });
 
     it('should throw error for unsupported platform', () => {
@@ -303,10 +323,12 @@ describe('SocialAccountService', () => {
         },
       ];
 
-      jest.spyOn(service, 'getConnectedAccounts').mockResolvedValue(mockAccounts);
+      jest
+        .spyOn(service, 'getConnectedAccounts')
+        .mockResolvedValue(mockAccounts);
 
       const result = await service.getAccountHealth();
-      
+
       expect(result).toHaveLength(2); // TikTok and Instagram
       expect(result[0]).toMatchObject({
         platform: 'tiktok',
@@ -329,10 +351,12 @@ describe('SocialAccountService', () => {
         },
       ];
 
-      jest.spyOn(service, 'getConnectedAccounts').mockResolvedValue(mockAccounts);
+      jest
+        .spyOn(service, 'getConnectedAccounts')
+        .mockResolvedValue(mockAccounts);
 
       const result = await service.getAccountHealth();
-      
+
       const tiktokHealth = result.find(h => h.platform === 'tiktok');
       expect(tiktokHealth?.status).toBe('expired');
     });
@@ -348,10 +372,12 @@ describe('SocialAccountService', () => {
         },
       ];
 
-      jest.spyOn(service, 'getConnectedAccounts').mockResolvedValue(mockAccounts);
+      jest
+        .spyOn(service, 'getConnectedAccounts')
+        .mockResolvedValue(mockAccounts);
 
       const result = await service.getAccountHealth();
-      
+
       const tiktokHealth = result.find(h => h.platform === 'tiktok');
       expect(tiktokHealth?.status).toBe('needs_refresh');
     });
@@ -376,11 +402,13 @@ describe('SocialAccountService', () => {
         },
       ];
 
-      jest.spyOn(service, 'getConnectedAccounts').mockResolvedValue(mockAccounts);
+      jest
+        .spyOn(service, 'getConnectedAccounts')
+        .mockResolvedValue(mockAccounts);
       jest.spyOn(service, 'refreshToken').mockResolvedValue({ success: true });
 
       await service.autoRefreshTokens();
-      
+
       expect(service.refreshToken).toHaveBeenCalledTimes(1);
       expect(service.refreshToken).toHaveBeenCalledWith('tiktok');
     });
@@ -396,8 +424,12 @@ describe('SocialAccountService', () => {
         },
       ];
 
-      jest.spyOn(service, 'getConnectedAccounts').mockResolvedValue(mockAccounts);
-      jest.spyOn(service, 'refreshToken').mockRejectedValue(new Error('Refresh failed'));
+      jest
+        .spyOn(service, 'getConnectedAccounts')
+        .mockResolvedValue(mockAccounts);
+      jest
+        .spyOn(service, 'refreshToken')
+        .mockRejectedValue(new Error('Refresh failed'));
 
       // Should not throw error
       await expect(service.autoRefreshTokens()).resolves.toBeUndefined();
@@ -407,10 +439,12 @@ describe('SocialAccountService', () => {
 
 describe('createSocialAccountService', () => {
   it('should create service instance with user ID', async () => {
-    const { createSocialAccountService } = await import('../src/services/social-account');
-    
+    const { createSocialAccountService } = await import(
+      '../src/services/social-account'
+    );
+
     const service = createSocialAccountService('test-user-id');
-    
+
     expect(service).toBeInstanceOf(Object);
     expect(typeof service.getConnectedAccounts).toBe('function');
     expect(typeof service.connectAccount).toBe('function');

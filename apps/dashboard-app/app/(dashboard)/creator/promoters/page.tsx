@@ -1,23 +1,31 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
 import { db } from '@repo/database';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+} from '@repo/ui';
 import Link from 'next/link';
 
 async function getPromoterPromotions(creatorId: string) {
-  const promotions = await db.promotion.findMany({
+  const promotions = await db.campaignApplication.findMany({
     where: {
       campaign: {
-        creatorId
-      }
+        creatorId,
+      },
     },
     include: {
       campaign: true,
-      promoter: true
+      promoter: true,
     },
     orderBy: {
-      createdAt: 'desc'
-    }
+      appliedAt: 'desc',
+    },
   });
 
   return promotions;
@@ -46,8 +54,12 @@ export default async function PromotersPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Promoter Management</h1>
-          <p className="text-gray-600 mt-2">Review and manage promoter applications</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Promoter Management
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Review and manage promoter applications
+          </p>
         </div>
       </div>
 
@@ -55,7 +67,9 @@ export default async function PromotersPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Pending Review</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Pending Review
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
@@ -67,7 +81,9 @@ export default async function PromotersPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Approved</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Approved
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
@@ -79,7 +95,9 @@ export default async function PromotersPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Rejected</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Rejected
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
@@ -91,7 +109,9 @@ export default async function PromotersPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Applications</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Total Applications
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
@@ -143,9 +163,12 @@ export default async function PromotersPage() {
           {promotions.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <div className="text-6xl mb-4">👥</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No applications yet</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No applications yet
+              </h3>
               <p className="text-gray-600 mb-6">
-                Applications will appear here once promoters apply to your campaigns
+                Applications will appear here once promoters apply to your
+                campaigns
               </p>
               <Link href="/creator/campaigns">
                 <Button>View Your Campaigns</Button>
@@ -153,25 +176,32 @@ export default async function PromotersPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {promotions.map((promotion) => (
-                <div key={promotion.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+              {promotions.map(promotion => (
+                <div
+                  key={promotion.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-medium">
-                        {(promotion.promoter.name || 'U').charAt(0).toUpperCase()}
+                        {(promotion.promoter.name || 'U')
+                          .charAt(0)
+                          .toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium">{promotion.promoter.name || 'Unknown User'}</p>
-                      <p className="text-sm text-gray-600">{promotion.campaign.name}</p>
+                      <p className="font-medium">
+                        {promotion.promoter.name || 'Unknown User'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {promotion.campaign.title}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Badge className={getStatusColor()}>
-                      Active
-                    </Badge>
+                    <Badge className={getStatusColor()}>Active</Badge>
                     <span className="text-sm text-gray-500">
-                      {new Date(promotion.createdAt).toLocaleDateString()}
+                      {new Date(promotion.appliedAt).toLocaleDateString()}
                     </span>
                     <Link href={`/creator/promotions/${promotion.id}`}>
                       <Button variant="outline" size="sm">

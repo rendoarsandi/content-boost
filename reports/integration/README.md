@@ -35,6 +35,7 @@ npm run test:integration
 ```
 
 This will:
+
 1. Run all integration tests for each app
 2. Generate a JSON report in this directory
 3. Display a summary of test results
@@ -45,6 +46,7 @@ Test reports are generated in JSON format with the naming convention:
 `integration-test-report-{timestamp}.json`
 
 Each report contains:
+
 - Timestamp of the test run
 - Summary of test results (total, passed, failed, skipped)
 - Detailed results for each app

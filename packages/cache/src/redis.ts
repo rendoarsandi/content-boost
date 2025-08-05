@@ -1,5 +1,11 @@
 import Redis, { Cluster } from 'ioredis';
-import { RedisConfig, TTLPolicy, CacheKeyConfig, CacheUtilityOptions, CacheStats } from './types';
+import {
+  RedisConfig,
+  TTLPolicy,
+  CacheKeyConfig,
+  CacheUtilityOptions,
+  CacheStats,
+} from './types';
 
 // Default TTL policies (in seconds)
 export const DEFAULT_TTL_POLICIES: TTLPolicy = {
@@ -130,7 +136,7 @@ export class RedisCache {
       console.log('Redis cache connected');
     });
 
-    this.client.on('error', (error) => {
+    this.client.on('error', error => {
       console.error('Redis cache error:', error);
     });
 
@@ -154,7 +160,10 @@ export class RedisCache {
   }
 
   // Basic cache operations
-  async get<T = any>(key: string, options?: CacheUtilityOptions): Promise<T | null> {
+  async get<T = any>(
+    key: string,
+    options?: CacheUtilityOptions
+  ): Promise<T | null> {
     try {
       const value = await this.client.get(key);
       if (value === null) {
@@ -163,7 +172,7 @@ export class RedisCache {
       }
 
       this.stats.hits++;
-      
+
       if (options?.serialize !== false) {
         try {
           return JSON.parse(value);
@@ -171,7 +180,7 @@ export class RedisCache {
           return value as T;
         }
       }
-      
+
       return value as T;
     } catch (error) {
       console.error('Cache get error:', error);
@@ -181,17 +190,16 @@ export class RedisCache {
   }
 
   async set<T = any>(
-    key: string, 
-    value: T, 
+    key: string,
+    value: T,
     options?: CacheUtilityOptions
   ): Promise<void> {
     try {
-      const serializedValue = options?.serialize !== false 
-        ? JSON.stringify(value) 
-        : String(value);
+      const serializedValue =
+        options?.serialize !== false ? JSON.stringify(value) : String(value);
 
       const ttl = options?.ttl || this.ttlPolicies.default;
-      
+
       await this.client.setex(key, ttl, serializedValue);
       this.stats.keys++;
     } catch (error) {
@@ -258,28 +266,34 @@ export class RedisCache {
     return this.del(key);
   }
 
-  async getViewTracking<T = any>(promoterId: string, campaignId: string): Promise<T | null> {
+  async getViewTracking<T = any>(
+    promoterId: string,
+    campaignId: string
+  ): Promise<T | null> {
     const key = this.keyManager.viewTracking(promoterId, campaignId);
     return this.get<T>(key);
   }
 
   async setViewTracking<T = any>(
-    promoterId: string, 
-    campaignId: string, 
+    promoterId: string,
+    campaignId: string,
     data: T
   ): Promise<void> {
     const key = this.keyManager.viewTracking(promoterId, campaignId);
     await this.set(key, data, { ttl: this.ttlPolicies.viewTracking });
   }
 
-  async getBotAnalysis<T = any>(promoterId: string, campaignId: string): Promise<T | null> {
+  async getBotAnalysis<T = any>(
+    promoterId: string,
+    campaignId: string
+  ): Promise<T | null> {
     const key = this.keyManager.botAnalysis(promoterId, campaignId);
     return this.get<T>(key);
   }
 
   async setBotAnalysis<T = any>(
-    promoterId: string, 
-    campaignId: string, 
+    promoterId: string,
+    campaignId: string,
     data: T
   ): Promise<void> {
     const key = this.keyManager.botAnalysis(promoterId, campaignId);
@@ -342,7 +356,7 @@ export class RedisCache {
   async mset(keyValuePairs: Record<string, any>, ttl?: number): Promise<void> {
     try {
       const pipeline = this.client.pipeline();
-      
+
       Object.entries(keyValuePairs).forEach(([key, value]) => {
         const serializedValue = JSON.stringify(value);
         if (ttl) {
@@ -374,7 +388,7 @@ export class RedisCache {
     try {
       const keys = await this.keys(pattern);
       if (keys.length === 0) return 0;
-      
+
       const result = await this.client.del(...keys);
       this.stats.keys = Math.max(0, this.stats.keys - result);
       return result;

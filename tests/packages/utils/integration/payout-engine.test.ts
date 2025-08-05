@@ -1,4 +1,9 @@
-import { PayoutEngine, createPayoutEngine, PayoutBatch, PayoutJob } from '../src/payout-engine';
+import {
+  PayoutEngine,
+  createPayoutEngine,
+  PayoutBatch,
+  PayoutJob,
+} from '../src/payout-engine';
 import { PaymentCalculation } from '../src/payment';
 
 describe('PayoutEngine', () => {
@@ -27,7 +32,7 @@ describe('PayoutEngine', () => {
     it('should calculate payouts for active promotions', async () => {
       // Arrange
       const testDate = new Date('2024-01-15T00:00:00Z');
-      
+
       mockGetActivePromotions.mockResolvedValue([
         {
           promoterId: 'promoter-1',
@@ -44,14 +49,34 @@ describe('PayoutEngine', () => {
       mockGetViewRecords.mockImplementation((promoterId: string) => {
         if (promoterId === 'promoter-1') {
           return Promise.resolve([
-            { viewCount: 100, isLegitimate: true, timestamp: new Date('2024-01-14T10:00:00Z') },
-            { viewCount: 50, isLegitimate: true, timestamp: new Date('2024-01-14T15:00:00Z') },
-            { viewCount: 25, isLegitimate: false, timestamp: new Date('2024-01-14T20:00:00Z') }, // Bot views
+            {
+              viewCount: 100,
+              isLegitimate: true,
+              timestamp: new Date('2024-01-14T10:00:00Z'),
+            },
+            {
+              viewCount: 50,
+              isLegitimate: true,
+              timestamp: new Date('2024-01-14T15:00:00Z'),
+            },
+            {
+              viewCount: 25,
+              isLegitimate: false,
+              timestamp: new Date('2024-01-14T20:00:00Z'),
+            }, // Bot views
           ]);
         } else {
           return Promise.resolve([
-            { viewCount: 200, isLegitimate: true, timestamp: new Date('2024-01-14T12:00:00Z') },
-            { viewCount: 100, isLegitimate: false, timestamp: new Date('2024-01-14T18:00:00Z') }, // Bot views
+            {
+              viewCount: 200,
+              isLegitimate: true,
+              timestamp: new Date('2024-01-14T12:00:00Z'),
+            },
+            {
+              viewCount: 100,
+              isLegitimate: false,
+              timestamp: new Date('2024-01-14T18:00:00Z'),
+            }, // Bot views
           ]);
         }
       });
@@ -99,7 +124,7 @@ describe('PayoutEngine', () => {
     it('should handle minimum payout threshold', async () => {
       // Arrange
       const testDate = new Date('2024-01-15T00:00:00Z');
-      
+
       mockGetActivePromotions.mockResolvedValue([
         {
           promoterId: 'promoter-1',
@@ -109,7 +134,11 @@ describe('PayoutEngine', () => {
       ]);
 
       mockGetViewRecords.mockResolvedValue([
-        { viewCount: 5, isLegitimate: true, timestamp: new Date('2024-01-14T10:00:00Z') },
+        {
+          viewCount: 5,
+          isLegitimate: true,
+          timestamp: new Date('2024-01-14T10:00:00Z'),
+        },
       ]);
 
       // Act
@@ -129,7 +158,7 @@ describe('PayoutEngine', () => {
     it('should handle errors gracefully', async () => {
       // Arrange
       const testDate = new Date('2024-01-15T00:00:00Z');
-      
+
       mockGetActivePromotions.mockResolvedValue([
         {
           promoterId: 'promoter-1',
@@ -138,7 +167,9 @@ describe('PayoutEngine', () => {
         },
       ]);
 
-      mockGetViewRecords.mockRejectedValue(new Error('Database connection failed'));
+      mockGetViewRecords.mockRejectedValue(
+        new Error('Database connection failed')
+      );
 
       // Act
       const batch = await payoutEngine.calculateDailyPayouts(
@@ -176,7 +207,9 @@ describe('PayoutEngine', () => {
       );
 
       // Act & Assert
-      await expect(promise2).rejects.toThrow('Payout calculation is already in progress');
+      await expect(promise2).rejects.toThrow(
+        'Payout calculation is already in progress'
+      );
       await promise1; // Wait for first to complete
     });
   });
@@ -185,19 +218,23 @@ describe('PayoutEngine', () => {
     it('should return true at 00:00 WIB', () => {
       // Create a date that represents 00:00 WIB (17:00 UTC previous day)
       const wibMidnight = new Date('2024-01-15T17:00:00Z'); // This is 00:00 WIB on Jan 16
-      
+
       // Mock the timezone conversion
-      jest.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('1/16/2024, 12:00:00 AM');
-      
+      jest
+        .spyOn(Date.prototype, 'toLocaleString')
+        .mockReturnValue('1/16/2024, 12:00:00 AM');
+
       const result = payoutEngine.isDailyPayoutTime(wibMidnight);
       expect(result).toBe(true);
     });
 
     it('should return false at other times', () => {
       const notMidnight = new Date('2024-01-15T18:30:00Z'); // 01:30 WIB
-      
-      jest.spyOn(Date.prototype, 'toLocaleString').mockReturnValue('1/16/2024, 1:30:00 AM');
-      
+
+      jest
+        .spyOn(Date.prototype, 'toLocaleString')
+        .mockReturnValue('1/16/2024, 1:30:00 AM');
+
       const result = payoutEngine.isDailyPayoutTime(notMidnight);
       expect(result).toBe(false);
     });
@@ -246,7 +283,9 @@ describe('PayoutEngine', () => {
 
       // Assert
       expect(validation.isValid).toBe(false);
-      expect(validation.errors).toContain('Legitimate views cannot exceed total views');
+      expect(validation.errors).toContain(
+        'Legitimate views cannot exceed total views'
+      );
     });
 
     it('should detect high bot percentage warning', () => {
@@ -268,7 +307,9 @@ describe('PayoutEngine', () => {
 
       // Assert
       expect(validation.isValid).toBe(true);
-      expect(validation.warnings).toContain('High bot percentage detected: 70.0%');
+      expect(validation.warnings).toContain(
+        'High bot percentage detected: 70.0%'
+      );
     });
   });
 
