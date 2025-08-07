@@ -2,38 +2,38 @@ import {
   RedisCache,
   CacheKeyManager,
   DEFAULT_TTL_POLICIES,
-  DEFAULT_KEY_CONFIG,
 } from '../src/redis';
 import { RedisConfig } from '../src/types';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
-// Mock ioredis
-jest.mock('ioredis', () => {
+// Mock ioredis using Vitest
+vi.mock('ioredis', () => {
   const mockRedis = {
-    connect: jest.fn().mockResolvedValue(undefined),
-    disconnect: jest.fn().mockResolvedValue(undefined),
-    get: jest.fn(),
-    setex: jest.fn().mockResolvedValue('OK'),
-    del: jest.fn(),
-    exists: jest.fn(),
-    expire: jest.fn(),
-    ttl: jest.fn(),
-    incr: jest.fn(),
-    mget: jest.fn(),
-    keys: jest.fn(),
-    info: jest.fn(),
-    flushall: jest.fn().mockResolvedValue('OK'),
-    ping: jest.fn().mockResolvedValue('PONG'),
-    pipeline: jest.fn(() => ({
-      setex: jest.fn().mockReturnThis(),
-      set: jest.fn().mockReturnThis(),
-      exec: jest.fn().mockResolvedValue([]),
+    connect: vi.fn().mockResolvedValue(undefined),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    get: vi.fn(),
+    setex: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn(),
+    exists: vi.fn(),
+    expire: vi.fn(),
+    ttl: vi.fn(),
+    incr: vi.fn(),
+    mget: vi.fn(),
+    keys: vi.fn(),
+    info: vi.fn(),
+    flushall: vi.fn().mockResolvedValue('OK'),
+    ping: vi.fn().mockResolvedValue('PONG'),
+    pipeline: vi.fn(() => ({
+      setex: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      exec: vi.fn().mockResolvedValue([]),
     })),
-    on: jest.fn(),
+    on: vi.fn(),
     status: 'ready',
   };
 
-  const MockRedisClass = jest.fn(() => mockRedis);
-  MockRedisClass.Cluster = jest.fn(() => mockRedis);
+  const MockRedisClass = vi.fn(() => mockRedis);
+  MockRedisClass.Cluster = vi.fn(() => mockRedis);
 
   return {
     __esModule: true,
@@ -108,7 +108,7 @@ describe('RedisCache', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Connection Management', () => {
@@ -359,9 +359,9 @@ describe('RedisCache', () => {
         key2: { test2: 'data2' },
       };
       const mockPipeline = {
-        setex: jest.fn().mockReturnThis(),
-        set: jest.fn().mockReturnThis(),
-        exec: jest.fn().mockResolvedValue([]),
+        setex: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        exec: vi.fn().mockResolvedValue([]),
       };
       mockClient.pipeline.mockReturnValue(mockPipeline);
 
