@@ -8,15 +8,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './tests/setup.ts', // File setup jika diperlukan
-    include: ['tests/packages/utils/unit/**/*.{test,spec}.{ts,tsx}'],
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      'tests/apps/**',
-      'tests/packages/utils/integration/**',
-      'tests/packages/utils/performance/**',
-      '**/*.spec.ts',
-    ],
+    include: ['**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
     alias: {
       '@repo/ui': path.resolve(__dirname, 'packages/ui/src'),
       '@repo/database': path.resolve(__dirname, 'packages/database/src'),
