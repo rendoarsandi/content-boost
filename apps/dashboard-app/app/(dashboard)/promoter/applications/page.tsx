@@ -58,10 +58,18 @@ async function getPromoterApplications(promoterId: string) {
 
   // Create viewStats structure for compatibility
   const viewStats = promotions.map(promotion => {
-    const totalViews = promotion.viewRecords.reduce((sum, record) => sum + record.viewCount, 0);
-    const legitimateViews = promotion.viewRecords.reduce((sum, record) => 
-      sum + (record.isLegitimate ? record.viewCount : 0), 0);
-    const earnings = promotion.payouts.reduce((sum, payout) => sum + payout.amount, 0);
+    const totalViews = promotion.viewRecords.reduce(
+      (sum, record) => sum + record.viewCount,
+      0
+    );
+    const legitimateViews = promotion.viewRecords.reduce(
+      (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
+      0
+    );
+    const earnings = promotion.payouts.reduce(
+      (sum, payout) => sum + payout.amount,
+      0
+    );
 
     return {
       applicationId: promotion.id,
@@ -339,7 +347,9 @@ export default async function PromoterApplicationsPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="font-semibold">{campaign.title}</h3>
+                              <h3 className="font-semibold">
+                                {campaign.title}
+                              </h3>
                               <Badge
                                 className={getApplicationStatusColor(
                                   application.status
@@ -395,7 +405,9 @@ export default async function PromoterApplicationsPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="font-semibold">{campaign.title}</h3>
+                              <h3 className="font-semibold">
+                                {campaign.title}
+                              </h3>
                               <Badge
                                 className={getApplicationStatusColor(
                                   application.status

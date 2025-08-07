@@ -66,10 +66,18 @@ export async function GET(
     });
 
     // Calculate metrics from related data
-    const totalViews = promotion.viewRecords.reduce((sum, record) => sum + record.viewCount, 0);
-    const legitimateViews = promotion.viewRecords.reduce((sum, record) => 
-      sum + (record.isLegitimate ? record.viewCount : 0), 0);
-    const earnings = promotion.payouts.reduce((sum, payout) => sum + payout.amount, 0);
+    const totalViews = promotion.viewRecords.reduce(
+      (sum, record) => sum + record.viewCount,
+      0
+    );
+    const legitimateViews = promotion.viewRecords.reduce(
+      (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
+      0
+    );
+    const earnings = promotion.payouts.reduce(
+      (sum, payout) => sum + payout.amount,
+      0
+    );
 
     return NextResponse.json({
       campaign: campaignDetails,

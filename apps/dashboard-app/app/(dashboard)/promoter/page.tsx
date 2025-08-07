@@ -29,12 +29,18 @@ async function getPromoterStats(promoterId: string) {
   // Calculate basic stats from promotions
   const totalPromotions = promotions.length;
   const totalViews = promotions.reduce((sum, p) => {
-    const legitimateViews = p.viewRecords.reduce((viewSum, record) => 
-      viewSum + (record.isLegitimate ? record.viewCount : 0), 0);
+    const legitimateViews = p.viewRecords.reduce(
+      (viewSum, record) =>
+        viewSum + (record.isLegitimate ? record.viewCount : 0),
+      0
+    );
     return sum + legitimateViews;
   }, 0);
   const totalEarnings = promotions.reduce((sum, p) => {
-    const earnings = p.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0);
+    const earnings = p.payouts.reduce(
+      (payoutSum, payout) => payoutSum + payout.amount,
+      0
+    );
     return sum + earnings;
   }, 0);
 

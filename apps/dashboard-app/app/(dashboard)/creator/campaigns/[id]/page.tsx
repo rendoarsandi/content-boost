@@ -44,10 +44,21 @@ async function getCampaignDetails(campaignId: string, creatorId: string) {
   }
 
   // Calculate statistics from related data
-  const totalViews = campaign.applications.reduce((sum, app) => 
-    sum + app.viewRecords.reduce((viewSum, record) => viewSum + record.viewCount, 0), 0);
-  const totalEarnings = campaign.applications.reduce((sum, app) => 
-    sum + app.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0), 0);
+  const totalViews = campaign.applications.reduce(
+    (sum, app) =>
+      sum +
+      app.viewRecords.reduce(
+        (viewSum, record) => viewSum + record.viewCount,
+        0
+      ),
+    0
+  );
+  const totalEarnings = campaign.applications.reduce(
+    (sum, app) =>
+      sum +
+      app.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0),
+    0
+  );
 
   // Create applications from promotions
   const applications = campaign.applications.map(promotion => ({

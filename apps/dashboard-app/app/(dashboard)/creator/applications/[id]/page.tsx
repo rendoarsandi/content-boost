@@ -45,11 +45,19 @@ async function getApplicationDetails(applicationId: string, creatorId: string) {
   }
 
   // Get performance metrics
-  const totalViews = applicationData.viewRecords.reduce((sum, record) => sum + record.viewCount, 0);
-  const legitimateViews = applicationData.viewRecords.reduce((sum, record) => 
-    sum + (record.isLegitimate ? record.viewCount : 0), 0);
-  const estimatedEarnings = applicationData.payouts.reduce((sum, payout) => sum + payout.amount, 0);
-  
+  const totalViews = applicationData.viewRecords.reduce(
+    (sum, record) => sum + record.viewCount,
+    0
+  );
+  const legitimateViews = applicationData.viewRecords.reduce(
+    (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
+    0
+  );
+  const estimatedEarnings = applicationData.payouts.reduce(
+    (sum, payout) => sum + payout.amount,
+    0
+  );
+
   const metrics = {
     totalViews,
     legitimateViews,
@@ -172,7 +180,9 @@ export default async function ApplicationDetailsPage({
                     Last Updated
                   </p>
                   <p className="text-lg">
-                    {application.reviewedAt ? new Date(application.reviewedAt).toLocaleDateString() : 'Not reviewed'}
+                    {application.reviewedAt
+                      ? new Date(application.reviewedAt).toLocaleDateString()
+                      : 'Not reviewed'}
                   </p>
                 </div>
               </div>

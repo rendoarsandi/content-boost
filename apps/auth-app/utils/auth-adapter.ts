@@ -6,7 +6,7 @@ export function toFrameworkRequest(nextRequest: NextRequest): FrameworkRequest {
   nextRequest.headers.forEach((value, key) => {
     headers[key] = value;
   });
-  
+
   return {
     url: nextRequest.url,
     method: nextRequest.method,

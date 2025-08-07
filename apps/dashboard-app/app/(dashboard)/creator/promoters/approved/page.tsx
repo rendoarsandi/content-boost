@@ -46,10 +46,18 @@ async function getApprovedPromoters(creatorId: string) {
   const promotersWithMetrics = campaigns.flatMap(campaign =>
     campaign.applications.map(promotion => {
       // Calculate metrics from related data
-      const totalViews = promotion.viewRecords.reduce((sum, record) => sum + record.viewCount, 0);
-      const legitimateViews = promotion.viewRecords.reduce((sum, record) => 
-        sum + (record.isLegitimate ? record.viewCount : 0), 0);
-      const estimatedEarnings = promotion.payouts.reduce((sum, payout) => sum + payout.amount, 0);
+      const totalViews = promotion.viewRecords.reduce(
+        (sum, record) => sum + record.viewCount,
+        0
+      );
+      const legitimateViews = promotion.viewRecords.reduce(
+        (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
+        0
+      );
+      const estimatedEarnings = promotion.payouts.reduce(
+        (sum, payout) => sum + payout.amount,
+        0
+      );
 
       return {
         application: { ...promotion, status: 'APPROVED' },
