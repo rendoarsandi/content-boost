@@ -57,11 +57,19 @@ async function getCampaignApplications(campaignId: string, creatorId: string) {
       let metrics = null;
 
       // Calculate metrics from related data
-      const totalViews = item.viewRecords.reduce((sum, record) => sum + record.viewCount, 0);
-      const legitimateViews = item.viewRecords.reduce((sum, record) => 
-        sum + (record.isLegitimate ? record.viewCount : 0), 0);
-      const estimatedEarnings = item.payouts.reduce((sum, payout) => sum + payout.amount, 0);
-      
+      const totalViews = item.viewRecords.reduce(
+        (sum, record) => sum + record.viewCount,
+        0
+      );
+      const legitimateViews = item.viewRecords.reduce(
+        (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
+        0
+      );
+      const estimatedEarnings = item.payouts.reduce(
+        (sum, payout) => sum + payout.amount,
+        0
+      );
+
       metrics = {
         totalViews,
         legitimateViews,
@@ -321,8 +329,10 @@ export default async function CampaignApplicationsPage({
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             Approved:{' '}
-                            {application.reviewedAt 
-                              ? new Date(application.reviewedAt).toLocaleDateString()
+                            {application.reviewedAt
+                              ? new Date(
+                                  application.reviewedAt
+                                ).toLocaleDateString()
                               : 'Not reviewed'}
                           </p>
                         </div>

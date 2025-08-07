@@ -40,9 +40,12 @@ async function getCreatorAnalytics(creatorId: string) {
     (sum, campaign) =>
       sum +
       campaign.applications.reduce(
-        (campaignSum, application) => 
-          campaignSum + 
-          application.viewRecords.reduce((recordSum, record) => recordSum + record.viewCount, 0),
+        (campaignSum, application) =>
+          campaignSum +
+          application.viewRecords.reduce(
+            (recordSum, record) => recordSum + record.viewCount,
+            0
+          ),
         0
       ),
     0
@@ -52,9 +55,12 @@ async function getCreatorAnalytics(creatorId: string) {
     (sum, campaign) =>
       sum +
       campaign.applications.reduce(
-        (campaignSum, application) => 
-          campaignSum + 
-          application.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0),
+        (campaignSum, application) =>
+          campaignSum +
+          application.payouts.reduce(
+            (payoutSum, payout) => payoutSum + payout.amount,
+            0
+          ),
         0
       ),
     0
@@ -85,11 +91,25 @@ async function getCreatorAnalytics(creatorId: string) {
         budget: campaign.budget,
         ratePerView: campaign.ratePerView,
       },
-      totalViews: campaign.applications.reduce((sum, app) => 
-        sum + app.viewRecords.reduce((viewSum, record) => viewSum + record.viewCount, 0), 0),
-      legitimateViews: campaign.applications.reduce((sum, app) => 
-        sum + app.viewRecords.reduce((viewSum, record) => 
-          viewSum + (record.isLegitimate ? record.viewCount : 0), 0), 0),
+      totalViews: campaign.applications.reduce(
+        (sum, app) =>
+          sum +
+          app.viewRecords.reduce(
+            (viewSum, record) => viewSum + record.viewCount,
+            0
+          ),
+        0
+      ),
+      legitimateViews: campaign.applications.reduce(
+        (sum, app) =>
+          sum +
+          app.viewRecords.reduce(
+            (viewSum, record) =>
+              viewSum + (record.isLegitimate ? record.viewCount : 0),
+            0
+          ),
+        0
+      ),
     })),
     recentViews: {
       totalViews: recentViews.totalViews,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { authClient } from '@repo/auth';
 import {
   Button,
@@ -209,10 +210,12 @@ export default function SocialAccountsPage() {
                     return profile ? (
                       <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                         {profile.profilePictureUrl && (
-                          <img
+                          <Image
                             src={profile.profilePictureUrl}
                             alt={profile.username}
                             className="w-10 h-10 rounded-full"
+                            width={40}
+                            height={40}
                           />
                         )}
                         <div>
@@ -322,10 +325,12 @@ export default function SocialAccountsPage() {
                     return profile ? (
                       <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                         {profile.profilePictureUrl && (
-                          <img
+                          <Image
                             src={profile.profilePictureUrl}
                             alt={profile.username}
                             className="w-10 h-10 rounded-full"
+                            width={40}
+                            height={40}
                           />
                         )}
                         <div>

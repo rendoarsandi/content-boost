@@ -522,29 +522,23 @@ describe('Social Media API Integration', () => {
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest
-            .fn()
-            .mockResolvedValue({
-              error: { code: 'SERVER_ERROR', message: 'Server error' },
-            }),
+          json: jest.fn().mockResolvedValue({
+            error: { code: 'SERVER_ERROR', message: 'Server error' },
+          }),
         })
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest
-            .fn()
-            .mockResolvedValue({
-              error: { code: 'SERVER_ERROR', message: 'Server error' },
-            }),
+          json: jest.fn().mockResolvedValue({
+            error: { code: 'SERVER_ERROR', message: 'Server error' },
+          }),
         })
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest
-            .fn()
-            .mockResolvedValue({
-              error: { code: 'SERVER_ERROR', message: 'Server error' },
-            }),
+          json: jest.fn().mockResolvedValue({
+            error: { code: 'SERVER_ERROR', message: 'Server error' },
+          }),
         });
 
       await expect(
@@ -563,11 +557,9 @@ describe('Social Media API Integration', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 400,
-        json: jest
-          .fn()
-          .mockResolvedValue({
-            error: { code: 'BAD_REQUEST', message: 'Bad request' },
-          }),
+        json: jest.fn().mockResolvedValue({
+          error: { code: 'BAD_REQUEST', message: 'Bad request' },
+        }),
       });
 
       await expect(
@@ -588,20 +580,16 @@ describe('Social Media API Integration', () => {
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest
-            .fn()
-            .mockResolvedValue({
-              error: { code: 'SERVER_ERROR', message: 'Server error' },
-            }),
+          json: jest.fn().mockResolvedValue({
+            error: { code: 'SERVER_ERROR', message: 'Server error' },
+          }),
         })
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          json: jest
-            .fn()
-            .mockResolvedValue({
-              error: { code: 'SERVER_ERROR', message: 'Server error' },
-            }),
+          json: jest.fn().mockResolvedValue({
+            error: { code: 'SERVER_ERROR', message: 'Server error' },
+          }),
         })
         .mockResolvedValueOnce({
           ok: true,

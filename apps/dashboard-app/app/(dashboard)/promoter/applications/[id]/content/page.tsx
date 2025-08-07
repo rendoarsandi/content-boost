@@ -123,7 +123,7 @@ export default async function ContentEditPage({
                 </p>
                 <p className="text-sm text-gray-500">
                   Last reviewed:{' '}
-                  {application.reviewedAt 
+                  {application.reviewedAt
                     ? new Date(application.reviewedAt).toLocaleDateString()
                     : 'Not reviewed'}
                 </p>

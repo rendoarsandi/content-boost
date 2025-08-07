@@ -41,12 +41,18 @@ export async function GET(request: NextRequest) {
 
     // Calculate basic analytics from promotions
     const totalViews = promotions.reduce((sum, p) => {
-      const legitimateViews = p.viewRecords.reduce((viewSum, record) => 
-        viewSum + (record.isLegitimate ? record.viewCount : 0), 0);
+      const legitimateViews = p.viewRecords.reduce(
+        (viewSum, record) =>
+          viewSum + (record.isLegitimate ? record.viewCount : 0),
+        0
+      );
       return sum + legitimateViews;
     }, 0);
     const totalEarnings = promotions.reduce((sum, p) => {
-      const earnings = p.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0);
+      const earnings = p.payouts.reduce(
+        (payoutSum, payout) => payoutSum + payout.amount,
+        0
+      );
       return sum + earnings;
     }, 0);
     const campaignCount = new Set(promotions.map(p => p.campaignId)).size;
@@ -60,10 +66,16 @@ export async function GET(request: NextRequest) {
         promotionsCount: promotions.length,
       },
       applications: promotions.map(promotion => {
-        const legitimateViews = promotion.viewRecords.reduce((viewSum, record) => 
-          viewSum + (record.isLegitimate ? record.viewCount : 0), 0);
-        const earnings = promotion.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0);
-        
+        const legitimateViews = promotion.viewRecords.reduce(
+          (viewSum, record) =>
+            viewSum + (record.isLegitimate ? record.viewCount : 0),
+          0
+        );
+        const earnings = promotion.payouts.reduce(
+          (payoutSum, payout) => payoutSum + payout.amount,
+          0
+        );
+
         return {
           id: promotion.id,
           campaignId: promotion.campaignId,
