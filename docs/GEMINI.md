@@ -1,6 +1,6 @@
 # Project Context: Creator Promotion Platform
 
-This document summarizes the key product, structure, and technical details of the Creator Promotion Platform, based on the original PRD.
+This document summarizes the key product, structure, and technical details of the Creator Promotion Platform.
 
 ## 1. Product Overview
 
@@ -14,24 +14,7 @@ The project is a web platform designed to connect content creators with promoter
 - **Automated Payouts**: Promoters are paid out daily based on verified views.
 - **Multi-Platform Support**: Integrates with TikTok and Instagram via OAuth.
 
-## 2. Project Structure
-
-The project is a Turborepo monorepo with a clear separation between applications and shared packages.
-
-- **`apps/`**: Contains the Next.js applications for different domains:
-  - `landing-page`: The public-facing marketing site.
-  - `auth-app`: Handles all user authentication flows.
-  - `dashboard-app`: The main portal for creators and promoters.
-  - `admin-app`: For platform administration and oversight.
-- **`packages/`**: Contains shared logic and modules:
-  - `@repo/ui`: Shared ShadcnUI components.
-  - `@repo/database`: PostgreSQL schema, migrations (Prisma ORM).
-  - `@repo/cache`: Redis configuration and utilities.
-  - `@repo/auth`: Authentication configuration (BetterAuth) and OAuth logic.
-  - `@repo/utils`: Core business logic, including bot detection algorithms and validation.
-  - `@repo/config`: Shared configuration constants.
-
-## 3. Tech Stack
+## 2. Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript 5.0+
@@ -40,45 +23,85 @@ The project is a Turborepo monorepo with a clear separation between applications
 - **Authentication**: BetterAuth (a library/framework) with TikTok and Instagram OAuth.
 - **UI**: ShadcnUI and Tailwind CSS
 - **Testing**: Jest for unit/integration tests and Playwright for E2E tests.
-- **Deployment**: Railway
+- **Deployment**: Vercel, Supabase
+- **Monorepo**: Turborepo
 
-## 4. Testing Strategy
+## 3. Project Structure
+
+The project is a Turborepo monorepo with a clear separation between applications and shared packages.
+
+```
+creator-promotion-platform/
+├── apps/                    # Next.js Applications
+│   ├── landing-page/        # www.domain.com
+│   ├── auth-app/           # auth.domain.com
+│   ├── dashboard-app/      # dashboard.domain.com
+│   └── admin-app/          # admin.domain.com
+├── packages/               # Shared Packages
+│   ├── ui/                 # ShadcnUI Components
+│   ├── database/           # PostgreSQL Schemas
+│   ├── cache/              # Redis Configuration
+│   ├── auth/               # Authentication logic
+│   ├── utils/              # Shared Utilities
+│   └── config/             # Shared Configuration
+├── docs/                   # Documentation
+├── reports/                # Test & Performance Reports
+├── logs/                   # Application Logs
+└── temp/                   # Temporary Files
+```
+
+## 4. Getting Started
+
+### Prerequisites
+
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Build all packages
+npm run build
+
+# Start development servers
+npm run dev
+```
+
+## 5. Development Workflow
+
+### Available Scripts
+
+- `npm run dev` - Start all development servers with timeout monitoring
+- `npm run dev:app [app-name]` - Start single app with timeout monitoring
+- `npm run dev:bg` - Start development servers in background with auto-restart
+- `npm run build` - Build all applications and packages with timeout monitoring
+- `npm run test` - Run all tests with timeout monitoring
+- `npm run lint` - Lint all code
+- `npm run format` - Format code with Prettier
+- `npm run migrate` - Run database migrations with timeout monitoring
+- `npm run clean` - Clean all build artifacts
+- `npm run type-check` - Run TypeScript type checking
+
+### Environment Variables
+
+Create `.env.local` files in each app with:
+
+```env
+DATABASE_URL=postgresql://...
+REDIS_URL=redis://...
+NEXTAUTH_SECRET=...
+TIKTOK_CLIENT_ID=...
+TIKTOK_CLIENT_SECRET=...
+INSTAGRAM_CLIENT_ID=...
+INSTAGRAM_CLIENT_SECRET=...
+```
+
+## 6. Testing Strategy
 
 - **Unit Tests**: Located in `__tests__/[module].test.ts` within each package/app.
 - **Integration Tests**: Located in `__tests__/integration/[feature].test.ts`.
 - **E2E Tests**: Located in `__tests__/e2e/[journey].spec.ts`.
 - The project uses **Jest** as its primary testing framework.
-
-## 5. Project Cleanup and Build Plan (August 4, 2025)
-
-This section tracks the progress of the project cleanup and build task.
-
-### Original Plan:
-
-- [x] **1. Inspect Project**: Identify `lint`, `format`, and `build` scripts from `package.json`.
-- [x] **2. Run Linting and Formatting (Check-only)**: Execute ESLint and Prettier to identify issues.
-- [ ] **3. Fix Issues Automatically**: Run autofix commands for ESLint and Prettier.
-- [ ] **4. Run Build**: Execute the main build script.
-
-### New Plan: Refactor Database Repository Layer
-
-Due to persistent and cascading type errors in the `@repo/database` package, the original plan is paused. A new plan is in effect to refactor the repository layer to resolve these foundational issues.
-
-- [ ] **1. Delete Existing Repository Files**: Remove all files from `packages/database/src/repositories`.
-- [ ] **2. Recreate `base.ts`**: Establish a correct `BaseRepository` class with a proper transaction client handler.
-- [ ] **3. Recreate Repository Implementations**: Re-implement `campaign.ts`, `payment.ts`, `tracking.ts`, and `user.ts` with correct type annotations and logic.
-- [ ] **4. Verify with Type-Check**: Run `npm run type-check` to ensure all errors are resolved.
-- [ ] **5. Resume Original Plan**: Continue with automated formatting and the final build.
-
-### Log & Issues Encountered:
-
-- **`lint` failed: Missing `typescript-eslint`**: The initial `lint` command failed because the `typescript-eslint` package was not listed in `devDependencies`.
-  - **Solution**: Installed the package using `npm install typescript-eslint --save-dev`.
-- **`lint` failed: `tsconfig.json` misconfiguration in `@repo/database`**: ESLint could not parse files because the `include` path in `packages/database/tsconfig.json` was too restrictive.
-  - **Solution**: Modified `tsconfig.json` to `include` the entire `src` directory.
-- **`lint` failed: `no-prototype-builtins` in `@repo/utils`**: The linter flagged the direct use of `obj.hasOwnProperty(key)`.
-  - **Solution**: Changed the code to the safer `Object.prototype.hasOwnProperty.call(obj, key)`.
-- **`lint` failed: `.js` file in TypeScript project in `@repo/auth`**: A `types.js` file was causing parsing errors.
-  - **Solution**: Replaced the problematic `.js` file with an empty `types.ts` file.
-- **`type-check` failed: Cascading errors in `@repo/database`**: A missing `withClient` method in `base.ts` and widespread implicit `any` types caused a massive type-check failure.
-  - **Solution**: The complexity of fixing these errors individually led to the new refactoring plan.

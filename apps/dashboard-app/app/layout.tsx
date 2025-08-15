@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import React from 'react';
-import './globals.css';
+import '@repo/ui/styles/globals.css';
 import TrpcProvider from '../utils/trpc/TrpcProvider';
 
 export const metadata: Metadata = {

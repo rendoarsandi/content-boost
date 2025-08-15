@@ -9,7 +9,7 @@ import {
   generatePayoutSummary,
   PaymentCalculation,
   PayoutPeriod,
-} from '../src/payment';
+} from '@repo/utils/payment';
 
 describe('Payment Utilities', () => {
   describe('calculatePayout', () => {

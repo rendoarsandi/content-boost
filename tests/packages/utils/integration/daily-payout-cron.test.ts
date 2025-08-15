@@ -2,8 +2,8 @@ import {
   DailyPayoutCron,
   createDailyPayoutCron,
   PayoutCronDependencies,
-} from '../src/daily-payout-cron';
-import { PayoutBatch } from '../src/payout-engine';
+} from '@repo/utils/daily-payout-cron';
+import { PayoutBatch } from '@repo/utils/payout-engine';
 
 describe('DailyPayoutCron', () => {
   let dailyPayoutCron: DailyPayoutCron;

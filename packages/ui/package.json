@@ -6,8 +6,10 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./styles/globals.css": "./src/styles/globals.css",
     "./components/*": "./src/components/ui/*",
-    "./chat": "./src/components/Chat.tsx"
+    "./chat": "./src/components/Chat.tsx",
+    "./lib/utils": "./src/lib/utils.ts"
   },
   "scripts": {
     "build": "tsc",

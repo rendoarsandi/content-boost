@@ -2,19 +2,20 @@ import {
   BotDetectionMonitoringSystem,
   MonitoringSystemConfig,
   SystemAlert,
-} from '../src/bot-detection-monitoring-system';
-import { BotAnalysis } from '../src/bot-detection';
+} from '@repo/utils/bot-detection-monitoring-system';
+import { BotAnalysis } from '@repo/utils/bot-detection';
 import * as fs from 'fs';
 import * as path from 'path';
+import { vi } from 'vitest';
 
 // Mock fs module
-jest.mock('fs', () => ({
+vi.mock('fs', () => ({
   promises: {
-    appendFile: jest.fn(),
-    writeFile: jest.fn(),
+    appendFile: vi.fn(),
+    writeFile: vi.fn(),
   },
-  existsSync: jest.fn(() => true),
-  mkdirSync: jest.fn(),
+  existsSync: vi.fn(() => true),
+  mkdirSync: vi.fn(),
 }));
 
 describe('BotDetectionMonitoringSystem', () => {
@@ -22,7 +23,7 @@ describe('BotDetectionMonitoringSystem', () => {
   let mockConfig: Partial<MonitoringSystemConfig>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     mockConfig = {
       monitoring: {

@@ -1,5 +1,5 @@
-import { RealTimeBotAnalyzer } from '../src/real-time-bot-analyzer';
-import { BotDetectionService, ViewRecord } from '../src/bot-detection';
+import { RealTimeBotAnalyzer } from '@repo/utils/real-time-bot-analyzer';
+import { BotDetectionService, ViewRecord } from '@repo/utils/bot-detection';
 
 /**
  * Playtest for RealTimeBotAnalyzer

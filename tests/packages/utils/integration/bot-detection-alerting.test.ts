@@ -1,18 +1,19 @@
 import {
   BotDetectionAlerting,
   AlertConfig,
-} from '../src/bot-detection-alerting';
-import { BotAnalysis } from '../src/bot-detection';
+} from '@repo/utils/bot-detection-alerting';
+import { BotAnalysis } from '@repo/utils/bot-detection';
 import * as fs from 'fs';
+import { vi } from 'vitest';
 
 // Mock fs module
-jest.mock('fs', () => ({
+vi.mock('fs', () => ({
   promises: {
-    appendFile: jest.fn(),
-    writeFile: jest.fn(),
+    appendFile: vi.fn(),
+    writeFile: vi.fn(),
   },
-  existsSync: jest.fn(() => true),
-  mkdirSync: jest.fn(),
+  existsSync: vi.fn(() => true),
+  mkdirSync: vi.fn(),
 }));
 
 describe('BotDetectionAlerting', () => {
@@ -20,7 +21,7 @@ describe('BotDetectionAlerting', () => {
   let mockConfig: Partial<AlertConfig>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     mockConfig = {
       enabled: true,
@@ -205,7 +206,7 @@ describe('BotDetectionAlerting', () => {
 
       // Should not generate notification for clean activity
       const notificationCalls = (
-        fs.promises.appendFile as jest.Mock
+        fs.promises.appendFile as any
       ).mock.calls.filter(call => call[0].includes('notifications-'));
 
       expect(notificationCalls.length).toBe(0);
@@ -237,7 +238,7 @@ describe('BotDetectionAlerting', () => {
       };
 
       // Mock fs.promises.appendFile to throw an error
-      (fs.promises.appendFile as jest.Mock).mockRejectedValueOnce(
+      (fs.promises.appendFile as any).mockRejectedValueOnce(
         new Error('File write error')
       );
 
@@ -423,7 +424,7 @@ describe('BotDetectionAlerting', () => {
 
       // Should not generate notifications when disabled
       const notificationCalls = (
-        fs.promises.appendFile as jest.Mock
+        fs.promises.appendFile as any
       ).mock.calls.filter(call => call[0].includes('notifications-'));
 
       expect(notificationCalls.length).toBe(0);
@@ -431,7 +432,7 @@ describe('BotDetectionAlerting', () => {
 
     it('should create required directories on initialization', () => {
       // Mock fs.existsSync to return false to trigger directory creation
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
+      (fs.existsSync as any).mockReturnValue(false);
 
       new BotDetectionAlerting(mockConfig);
 

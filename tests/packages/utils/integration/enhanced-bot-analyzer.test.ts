@@ -1,5 +1,5 @@
-import { EnhancedBotAnalyzer } from '../src/enhanced-bot-analyzer';
-import { ViewRecord } from '../src/bot-detection';
+import { EnhancedBotAnalyzer } from '@repo/utils/enhanced-bot-analyzer';
+import { ViewRecord } from '@repo/utils/bot-detection';
 
 /**
  * Playtest for EnhancedBotAnalyzer

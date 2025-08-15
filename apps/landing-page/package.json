@@ -9,7 +9,10 @@
     "start": "next start",
     "type-check": "tsc --noEmit",
     "clean": "rd /s /q .next dist",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "next": "^15.4.4",
@@ -19,6 +22,7 @@
     "@repo/config": "*"
   },
   "devDependencies": {
+    "@playwright/test": "^1.45.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "typescript": "^5.0.0",

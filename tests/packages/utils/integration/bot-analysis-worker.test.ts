@@ -1,5 +1,5 @@
-import { BotAnalysisWorker } from '../src/bot-analysis-worker';
-import { ViewRecord } from '../src/bot-detection';
+import { BotAnalysisWorker } from '@repo/utils/bot-analysis-worker';
+import { ViewRecord } from '@repo/utils/bot-detection';
 
 /**
  * Playtest for BotAnalysisWorker

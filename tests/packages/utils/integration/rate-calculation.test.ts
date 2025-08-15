@@ -6,7 +6,7 @@ import {
   analyzeCompetitiveRates,
   validateRateAndBudget,
   DEFAULT_RATE_CONFIG,
-} from '../src/rate-calculation';
+} from '@repo/utils/rate-calculation';
 
 describe('Rate Calculation Utilities', () => {
   describe('calculateOptimalRate', () => {

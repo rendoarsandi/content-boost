@@ -2,7 +2,7 @@ import {
   CampaignService,
   CampaignError,
   InsufficientBudgetError,
-} from '../src/campaign-service';
+} from '@repo/utils/campaign-service';
 
 describe('CampaignService', () => {
   describe('calculateMaxViews', () => {

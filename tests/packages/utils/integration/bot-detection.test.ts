@@ -1,4 +1,4 @@
-import { BotDetectionService, ViewRecord } from '../src/bot-detection';
+import { BotDetectionService, ViewRecord } from '@repo/utils/bot-detection';
 
 /**
  * Playtest for BotDetectionService

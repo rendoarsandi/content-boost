@@ -4,8 +4,9 @@ module.exports = {
   ...baseConfig,
   displayName: 'utils',
   testMatch: [
-    '**/__tests__/unit/**/*.test.ts',
-    '**/__tests__/integration/**/*.test.ts',
+    '<rootDir>/__tests__/**/*.test.ts',
+    '<rootDir>/__tests__/**/*.spec.ts',
   ],
+  roots: ['<rootDir>/src', '<rootDir>/__tests__'],
   // Per-package specific configurations can be added here
 };

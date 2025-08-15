@@ -1,329 +1,170 @@
-import { getSession } from '@repo/auth/server-only';
-import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
+'use client';
+
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Button,
-} from '@repo/ui';
+  PlusCircle,
+  Search,
+  FileText,
+  DollarSign,
+  BarChart,
+  Eye,
+  CheckCircle,
+  List,
+} from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 
-export const dynamic = 'force-dynamic';
-
+// This is a mock of the data fetching logic for the sake of UI development
+// In a real app, you'd use a proper data fetching library like SWR or React Query
 async function getPromoterStats(promoterId: string) {
-  // Get promotions for this promoter
-  const promotions = await db.campaignApplication.findMany({
-    where: {
-      promoterId,
-    },
-    include: {
-      campaign: true,
-      viewRecords: true,
-      payouts: true,
-    },
-  });
-
-  // Calculate basic stats from promotions
-  const totalPromotions = promotions.length;
-  const totalViews = promotions.reduce((sum, p) => {
-    const legitimateViews = p.viewRecords.reduce(
-      (viewSum, record) =>
-        viewSum + (record.isLegitimate ? record.viewCount : 0),
-      0
-    );
-    return sum + legitimateViews;
-  }, 0);
-  const totalEarnings = promotions.reduce((sum, p) => {
-    const earnings = p.payouts.reduce(
-      (payoutSum, payout) => payoutSum + payout.amount,
-      0
-    );
-    return sum + earnings;
-  }, 0);
-
+  // Mock data
   return {
     applications: {
-      approved: totalPromotions,
-      pending: 0,
-      rejected: 0,
+      approved: 5,
+      pending: 2,
+      rejected: 1,
     },
-    legitimateViews: totalViews,
-    totalEarnings: totalEarnings,
-    recentEarnings: totalEarnings, // Add missing recentEarnings property
-    completedPayouts: 0, // Add missing completedPayouts property
-    recentPayouts: [],
+    legitimateViews: 25600,
+    totalEarnings: 1250000,
   };
 }
 
-export default async function PromoterDashboard() {
-  const session = await getSession();
+export default function PromoterDashboardPage() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
-  if (!session?.user || (session.user as any).role !== 'promoter') {
-    redirect('/auth/login');
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const fetchUserAndStats = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        const promoterStats = await getPromoterStats(session.user.id);
+        setStats(promoterStats);
+      }
+      setLoading(false);
+    };
+
+    fetchUserAndStats();
+  }, []);
+
+  if (loading || !stats) {
+    return <div>Loading...</div>; // Or a proper skeleton loader
   }
 
-  const stats = await getPromoterStats((session.user as any).id);
+  const summaryStats = [
+    {
+      title: 'Active Promotions',
+      value: stats.applications.approved,
+      icon: CheckCircle,
+    },
+    {
+      title: 'Total Earnings',
+      value: `Rp ${stats.totalEarnings.toLocaleString()}`,
+      icon: DollarSign,
+    },
+    {
+      title: 'Total Views',
+      value: stats.legitimateViews.toLocaleString(),
+      icon: Eye,
+    },
+    {
+      title: 'Pending Applications',
+      value: stats.applications.pending,
+      icon: List,
+    },
+  ];
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Promoter Dashboard
+          <h1 className="text-2xl font-bold tracking-tight">
+            Welcome Back, {user?.user_metadata?.name || 'Promoter'}!
           </h1>
-          <p className="text-gray-600 mt-2">
-            Welcome back, {(session.user as any).name}!
+          <p className="text-muted-foreground">
+            Here's a summary of your promotion activity.
           </p>
         </div>
-        <Link href="/promoter/campaigns">
-          <Button>Browse Campaigns</Button>
-        </Link>
+        <Button asChild>
+          <Link href="/promoter/campaigns">
+            <Search className="mr-2 h-4 w-4" />
+            Browse New Campaigns
+          </Link>
+        </Button>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Active Applications
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.applications.approved || 0}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Approved campaigns</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Views (7 days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.legitimateViews.toLocaleString()}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Legitimate views</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Earnings (30 days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              Rp {stats.recentEarnings.toLocaleString()}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Recent earnings</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Pending Applications
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {stats.applications.pending || 0}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Awaiting review</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {summaryStats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                <Icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <span>🔍</span>
-              <span>Find Campaigns</span>
-            </CardTitle>
-            <CardDescription>
-              Discover new promotion opportunities
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link href="/promoter/campaigns">
-              <Button className="w-full">Browse Available Campaigns</Button>
-            </Link>
-            <Link href="/promoter/campaigns?filter=high-paying">
-              <Button variant="outline" className="w-full">
-                High-Paying Campaigns
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <span>📝</span>
-              <span>My Applications</span>
-            </CardTitle>
-            <CardDescription>Track your campaign applications</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link href="/promoter/applications">
-              <Button className="w-full">View All Applications</Button>
-            </Link>
-            <Link href="/promoter/applications?status=pending">
-              <Button variant="outline" className="w-full">
-                Pending Reviews
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <span>💰</span>
-              <span>Earnings & Payouts</span>
-            </CardTitle>
-            <CardDescription>
-              Track your earnings and payment history
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link href="/promoter/earnings">
-              <Button className="w-full">View Earnings</Button>
-            </Link>
-            <Link href="/promoter/earnings/history">
-              <Button variant="outline" className="w-full">
-                Payment History
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Performance Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Summary</CardTitle>
-            <CardDescription>
-              Your promotion performance metrics
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-              <div>
-                <p className="text-sm text-blue-600 font-medium">
-                  Total Legitimate Views
-                </p>
-                <p className="text-2xl font-bold text-blue-800">
-                  {stats.legitimateViews.toLocaleString()}
-                </p>
-              </div>
-              <div className="text-blue-600 text-2xl">👁️</div>
-            </div>
-
-            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-              <div>
-                <p className="text-sm text-green-600 font-medium">
-                  Total Earnings
-                </p>
-                <p className="text-2xl font-bold text-green-800">
-                  Rp {stats.totalEarnings.toLocaleString()}
-                </p>
-              </div>
-              <div className="text-green-600 text-2xl">💰</div>
-            </div>
-
-            <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-              <div>
-                <p className="text-sm text-purple-600 font-medium">
-                  Completed Payouts
-                </p>
-                <p className="text-2xl font-bold text-purple-800">
-                  {stats.completedPayouts}
-                </p>
-              </div>
-              <div className="text-purple-600 text-2xl">✅</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Application Status</CardTitle>
-            <CardDescription>
-              Overview of your campaign applications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">
-                  Approved Applications
-                </span>
-                <span className="font-semibold text-green-600">
-                  {stats.applications.approved || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">
-                  Pending Applications
-                </span>
-                <span className="font-semibold text-yellow-600">
-                  {stats.applications.pending || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">
-                  Rejected Applications
-                </span>
-                <span className="font-semibold text-red-600">
-                  {stats.applications.rejected || 0}
-                </span>
-              </div>
-
-              <div className="pt-3 border-t">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-900">
-                    Total Applications
-                  </span>
-                  <span className="font-bold text-blue-600">
-                    {Object.values(stats.applications).reduce(
-                      (sum, count) => sum + count,
-                      0
-                    )}
-                  </span>
+      <div>
+        <h2 className="text-xl font-semibold mt-6 mb-4">Quick Actions</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="hover:bg-muted/50">
+            <Link href="/promoter/applications" className="block p-6">
+              <div className="flex items-center gap-4">
+                <FileText className="h-8 w-8 text-primary" />
+                <div>
+                  <h3 className="font-semibold">My Applications</h3>
+                  <p className="text-sm text-muted-foreground">
+                    View the status of all your applications.
+                  </p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </Link>
+          </Card>
+          <Card className="hover:bg-muted/50">
+            <Link href="/promoter/earnings" className="block p-6">
+              <div className="flex items-center gap-4">
+                <DollarSign className="h-8 w-8 text-primary" />
+                <div>
+                  <h3 className="font-semibold">Earnings History</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Track your payouts and earnings.
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </Card>
+          <Card className="hover:bg-muted/50">
+            <Link href="/promoter/analytics" className="block p-6">
+              <div className="flex items-center gap-4">
+                <BarChart className="h-8 w-8 text-primary" />
+                <div>
+                  <h3 className="font-semibold">Performance Analytics</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Analyze your promotion performance.
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </Card>
+        </div>
       </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Latest updates from your campaigns</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <p>No recent activity to display</p>
-            <p className="text-sm mt-2">
-              Activity will appear here once you have active campaigns
-            </p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

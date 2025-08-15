@@ -7,410 +7,207 @@ import {
   CardTitle,
   Badge,
 } from '@repo/ui';
+import {
+  Target,
+  Bot,
+  BarChart,
+  PenSquare,
+  DollarSign,
+  Share2,
+  CheckCircle,
+  HelpCircle,
+  Briefcase,
+  Mail,
+  BookOpen,
+  ShieldCheck,
+} from 'lucide-react';
 import Link from 'next/link';
+
+// Helper component for Feature Cards for better reusability
+const FeatureCard = ({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <Card className="bg-card/50 hover:bg-card/90 transition-colors duration-300 ease-in-out shadow-lg hover:shadow-xl">
+    <CardHeader className="flex flex-row items-center gap-4 pb-4">
+      {icon}
+      <CardTitle>{title}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-muted-foreground">{children}</p>
+    </CardContent>
+  </Card>
+);
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-indigo-600">
-                ContentBoost
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="https://auth.domain.com"
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Masuk
-              </Link>
-              <Button asChild>
-                <Link href="https://auth.domain.com">Daftar Sekarang</Link>
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
+          <Link href="#" className="text-xl font-bold text-primary">
+            ContentBoost
+          </Link>
+          <nav className="flex items-center space-x-4">
+            <Button variant="ghost" asChild>
+              <Link href="https://auth.domain.com">Masuk</Link>
+            </Button>
+            <Button asChild>
+              <Link href="https://auth.domain.com">Daftar Sekarang</Link>
+            </Button>
+          </nav>
+        </div>
+      </header>
+
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="py-20 sm:py-28 md:py-32 px-4">
+          <div className="container text-center">
+            <Badge variant="secondary" className="mb-4">
+              Platform Promosi Generasi Berikutnya
+            </Badge>
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
+              Tingkatkan Engagement Konten Anda dengan{' '}
+              <span className="text-primary">Sistem Pay-Per-View</span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+              Platform promosi konten kreator yang memungkinkan Anda memberikan
+              fee kepada promoter berdasarkan views legitimate dengan deteksi
+              bot otomatis dan sistem pembayaran harian.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" asChild>
+                <Link href="https://auth.domain.com">
+                  Mulai Sebagai Creator
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <Link href="https://auth.domain.com">
+                  Bergabung Sebagai Promoter
+                </Link>
               </Button>
             </div>
           </div>
-        </div>
-      </nav>
+        </section>
 
-      {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <Badge className="mb-4 bg-indigo-100 text-indigo-800">
-            Platform Promosi Terdepan
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Tingkatkan Engagement Konten Anda dengan{' '}
-            <span className="text-indigo-600">Sistem Pay-Per-View</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Platform promosi konten kreator yang memungkinkan Anda memberikan
-            fee kepada promoter berdasarkan views legitimate dengan deteksi bot
-            otomatis dan sistem pembayaran harian.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link href="https://auth.domain.com">Mulai Sebagai Creator</Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="https://auth.domain.com">
-                Bergabung Sebagai Promoter
-              </Link>
-            </Button>
+        {/* Features Section */}
+        <section id="features" className="py-16 sm:py-24 px-4 bg-muted/50">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tight">
+                Untuk Content Creators
+              </h2>
+              <p className="text-lg text-muted-foreground mt-2">
+                Tingkatkan reach dan engagement konten Anda dengan mudah
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              <FeatureCard
+                icon={<Target className="w-8 h-8 text-primary" />}
+                title="Campaign Management"
+              >
+                Buat campaign promosi dengan budget dan rate per view yang dapat
+                Anda tentukan sendiri.
+              </FeatureCard>
+              <FeatureCard
+                icon={<Bot className="w-8 h-8 text-primary" />}
+                title="Bot Detection"
+              >
+                Sistem deteksi bot otomatis memastikan Anda hanya membayar untuk
+                views yang legitimate.
+              </FeatureCard>
+              <FeatureCard
+                icon={<BarChart className="w-8 h-8 text-primary" />}
+                title="Real-time Analytics"
+              >
+                Monitor performa campaign secara real-time dari TikTok dan
+                Instagram.
+              </FeatureCard>
+            </div>
+
+            <div className="text-center mt-20 mb-12">
+              <h2 className="text-3xl font-bold tracking-tight">
+                Untuk Promoters
+              </h2>
+              <p className="text-lg text-muted-foreground mt-2">
+                Hasilkan income dengan mempromosikan konten berkualitas
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              <FeatureCard
+                icon={<PenSquare className="w-8 h-8 text-primary" />}
+                title="Content Editing"
+              >
+                Akses materi promosi dari creator dan edit sesuai gaya konten
+                Anda.
+              </FeatureCard>
+              <FeatureCard
+                icon={<DollarSign className="w-8 h-8 text-primary" />}
+                title="Daily Payouts"
+              >
+                Terima pembayaran harian otomatis berdasarkan views legitimate
+                yang transparan.
+              </FeatureCard>
+              <FeatureCard
+                icon={<Share2 className="w-8 h-8 text-primary" />}
+                title="Social Integration"
+              >
+                Hubungkan akun TikTok dan Instagram Anda untuk tracking
+                otomatis.
+              </FeatureCard>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features for Creators */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Untuk Content Creators
+        {/* CTA Section */}
+        <section className="py-16 sm:py-24 px-4 bg-primary text-primary-foreground">
+          <div className="container text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              Siap Meningkatkan Engagement Konten Anda?
             </h2>
-            <p className="text-lg text-gray-600">
-              Tingkatkan reach dan engagement konten Anda dengan mudah
+            <p className="text-xl text-primary-foreground/80 mb-8">
+              Bergabunglah dengan ribuan creator dan promoter yang sudah
+              merasakan manfaatnya.
             </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <span className="text-2xl mr-3">🎯</span>
-                  Campaign Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Buat campaign promosi dengan budget dan rate per view yang
-                  dapat Anda tentukan sendiri. Upload materi promosi dan
-                  tentukan persyaratan khusus.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <span className="text-2xl mr-3">🤖</span>
-                  Bot Detection
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Sistem deteksi bot otomatis dengan algoritma canggih
-                  memastikan Anda hanya membayar untuk views yang legitimate dan
-                  berkualitas.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <span className="text-2xl mr-3">📊</span>
-                  Real-time Analytics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Monitor performa campaign secara real-time dengan analytics
-                  mendalam dari TikTok dan Instagram melalui OAuth integration.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Features for Promoters */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Untuk Promoters
-            </h2>
-            <p className="text-lg text-gray-600">
-              Hasilkan income dengan mempromosikan konten berkualitas
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <span className="text-2xl mr-3">✏️</span>
-                  Content Editing
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Akses materi promosi dari creator dan edit sesuai gaya konten
-                  Anda. Bukan hanya copy-paste, tapi kreativitas yang
-                  sesungguhnya.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <span className="text-2xl mr-3">💰</span>
-                  Daily Payouts
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Terima pembayaran harian otomatis berdasarkan views
-                  legitimate. Sistem pembayaran yang transparan dan dapat
-                  diandalkan.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <span className="text-2xl mr-3">🔗</span>
-                  Social Integration
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Hubungkan akun TikTok dan Instagram Anda melalui OAuth untuk
-                  tracking otomatis dan transparansi penuh.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Pricing yang Transparan
-            </h2>
-            <p className="text-lg text-gray-600">
-              Hanya bayar untuk hasil yang nyata
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="border-2 border-indigo-200">
-              <CardHeader>
-                <CardTitle className="text-center">Untuk Creators</CardTitle>
-                <CardDescription className="text-center">
-                  Buat campaign dan bayar per view
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">Rp 0</span>
-                  <span className="text-gray-600">/bulan</span>
-                </div>
-                <ul className="space-y-3 text-left">
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
-                    Campaign management unlimited
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
-                    Bot detection otomatis
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
-                    Real-time analytics
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
-                    Bayar hanya untuk views legitimate
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-green-200">
-              <CardHeader>
-                <CardTitle className="text-center">Untuk Promoters</CardTitle>
-                <CardDescription className="text-center">
-                  Hasilkan income dari promosi
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-green-600">5%</span>
-                  <span className="text-gray-600"> platform fee</span>
-                </div>
-                <ul className="space-y-3 text-left">
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
-                    Pembayaran harian otomatis
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
-                    Akses ke semua campaign
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
-                    Tools editing konten
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
-                    Tracking performa real-time
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-lg text-gray-600">
-              Pertanyaan yang sering diajukan
-            </p>
-          </div>
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Bagaimana sistem deteksi bot bekerja?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Sistem kami menganalisis rasio views:likes:comments,
-                  mendeteksi spike yang tidak wajar, dan menggunakan algoritma
-                  machine learning untuk memberikan confidence score. Views
-                  dengan bot confidence &gt;90% otomatis ditolak dari
-                  perhitungan pembayaran.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Kapan pembayaran diproses?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Pembayaran diproses setiap hari pada pukul 00:00 WIB. Sistem
-                  akan menghitung total views legitimate dalam 24 jam terakhir
-                  dan memproses pembayaran otomatis dengan retry mechanism jika
-                  terjadi kegagalan.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  Platform social media apa saja yang didukung?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Saat ini kami mendukung TikTok dan Instagram melalui OAuth
-                  integration. Anda perlu menghubungkan akun social media untuk
-                  tracking otomatis dan transparansi data views, likes, dan
-                  comments.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  Berapa minimum budget untuk membuat campaign?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Tidak ada minimum budget yang ditetapkan. Anda dapat mengatur
-                  budget dan rate per view sesuai kebutuhan. Sistem akan
-                  otomatis menghentikan campaign ketika budget habis atau
-                  mencapai target yang ditentukan.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Bagaimana cara menjadi promoter?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Daftar akun, hubungkan social media Anda melalui OAuth, lalu
-                  browse campaign yang tersedia. Submit aplikasi dengan contoh
-                  konten, dan tunggu approval dari creator. Setelah disetujui,
-                  Anda bisa mulai promosi.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-indigo-600">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Siap Meningkatkan Engagement Konten Anda?
-          </h2>
-          <p className="text-xl text-indigo-100 mb-8">
-            Bergabunglah dengan ribuan creator dan promoter yang sudah merasakan
-            manfaatnya
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" asChild>
-              <Link href="https://auth.domain.com">Mulai Sekarang</Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-white border-white hover:bg-white hover:text-indigo-600"
-              asChild
-            >
-              <Link href="#features">Pelajari Lebih Lanjut</Link>
+              <Link href="https://auth.domain.com">Mulai Sekarang Gratis</Link>
             </Button>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <footer className="bg-muted/50 py-12 px-4">
+        <div className="container">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-bold mb-4">ContentBoost</h3>
-              <p className="text-gray-400">
-                Platform promosi konten kreator dengan sistem pay-per-view dan
-                deteksi bot otomatis.
+              <h3 className="text-lg font-bold text-primary mb-4">
+                ContentBoost
+              </h3>
+              <p className="text-muted-foreground">
+                Platform promosi konten kreator dengan sistem pay-per-view.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-muted-foreground">
                 <li>
-                  <Link href="#features" className="hover:text-white">
+                  <Link href="#features" className="hover:text-primary">
                     Features
                   </Link>
                 </li>
                 <li>
-                  <Link href="#pricing" className="hover:text-white">
+                  <Link href="#pricing" className="hover:text-primary">
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link href="#faq" className="hover:text-white">
+                  <Link href="#faq" className="hover:text-primary">
                     FAQ
                   </Link>
                 </li>
@@ -418,47 +215,42 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-muted-foreground">
                 <li>
-                  <Link href="#about" className="hover:text-white">
-                    About
+                  <Link href="#" className="hover:text-primary">
+                    About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="#contact" className="hover:text-white">
+                  <Link href="#" className="hover:text-primary">
                     Contact
                   </Link>
                 </li>
                 <li>
-                  <Link href="#privacy" className="hover:text-white">
-                    Privacy
+                  <Link href="#" className="hover:text-primary">
+                    Privacy Policy
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-muted-foreground">
                 <li>
-                  <Link href="#help" className="hover:text-white">
+                  <Link href="#" className="hover:text-primary">
                     Help Center
                   </Link>
                 </li>
                 <li>
-                  <Link href="#docs" className="hover:text-white">
+                  <Link href="#" className="hover:text-primary">
                     Documentation
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#status" className="hover:text-white">
-                    Status
                   </Link>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 ContentBoost. All rights reserved.</p>
+          <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
+            <p>&copy; 2025 ContentBoost. All rights reserved.</p>
           </div>
         </div>
       </footer>

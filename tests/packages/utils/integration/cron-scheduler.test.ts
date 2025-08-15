@@ -3,7 +3,7 @@ import {
   CronParser,
   createCronScheduler,
   SCHEDULES,
-} from '../src/cron-scheduler';
+} from '@repo/utils/cron-scheduler';
 
 describe('CronParser', () => {
   describe('parseInterval', () => {

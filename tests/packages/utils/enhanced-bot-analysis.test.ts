@@ -1,11 +1,11 @@
-import { createEnhancedBotAnalyzer } from '../src/enhanced-bot-analyzer';
-import { ViewRecord } from '../src/bot-detection';
+import { createEnhancedBotAnalyzer } from '@repo/utils/enhanced-bot-analyzer';
+import { ViewRecord } from '@repo/utils/bot-detection';
 
 describe('Enhanced Bot Analysis Engine', () => {
   const analyzer = createEnhancedBotAnalyzer({
     logging: {
       enabled: false,
-      logPath: '',
+      logPath: 'test-logs/bot-detection',
       auditTrail: false,
       detailedAnalysis: false,
     },
