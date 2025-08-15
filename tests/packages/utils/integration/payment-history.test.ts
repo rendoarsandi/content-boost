@@ -6,7 +6,7 @@ import {
   formatPaymentAmount,
   calculatePaymentDuration,
   getPaymentStatusColor,
-} from '../src/payment-history';
+} from '@repo/utils/payment-history';
 
 // Helper function to generate test UUIDs
 const generateTestUUID = (suffix: string) =>

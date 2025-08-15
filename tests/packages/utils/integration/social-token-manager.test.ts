@@ -1,10 +1,10 @@
 import { RedisCache } from '@repo/cache';
-import { SocialMediaAPIManager } from '../src/social-media-api';
+import { SocialMediaAPIManager } from '@repo/utils/social-media-api';
 import {
   SocialTokenManager,
   createSocialTokenManager,
   SocialToken,
-} from '../src/social-token-manager';
+} from '@repo/utils/social-token-manager';
 
 // Mock dependencies
 const mockCache = {

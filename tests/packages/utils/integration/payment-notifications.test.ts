@@ -5,7 +5,7 @@ import {
   createPaymentFailedNotification,
   NotificationTemplate,
   NotificationRequest,
-} from '../src/payment-notifications';
+} from '@repo/utils/payment-notifications';
 
 describe('PaymentNotificationSystem', () => {
   let notificationSystem: PaymentNotificationSystem;

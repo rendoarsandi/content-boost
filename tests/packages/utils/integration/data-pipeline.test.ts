@@ -6,8 +6,8 @@ import {
   createMetricsDataProcessor,
   DEFAULT_NORMALIZATION_RULES,
   DEFAULT_AGGREGATION_RULES,
-} from '../src/data-pipeline';
-import { ProcessedMetrics } from '../src/metrics-collector';
+} from '@repo/utils/data-pipeline';
+import { ProcessedMetrics } from '@repo/utils/metrics-collector';
 
 // Mock Redis cache
 const mockCache = {

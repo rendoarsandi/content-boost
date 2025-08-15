@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import React from 'react';
-import './globals.css';
+import '@repo/ui/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'ContentBoost - Platform Promosi Konten Kreator',

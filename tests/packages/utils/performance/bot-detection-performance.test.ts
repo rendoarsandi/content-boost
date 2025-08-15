@@ -3,7 +3,7 @@ import {
   detectBot,
   BotDetectionConfig,
   ViewMetrics,
-} from '../src/bot-detection';
+} from '@repo/utils/bot-detection';
 
 /**
  * Performance test for bot detection algorithm

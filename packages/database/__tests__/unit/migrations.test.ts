@@ -1,13 +1,14 @@
 import { MigrationRunner } from '../src/migrations';
+import { vi } from 'vitest';
 
 // Mock the database connection
-jest.mock('../src/connection', () => ({
-  getDatabaseConnection: jest.fn().mockReturnValue({
-    getClient: jest.fn().mockResolvedValue({
-      query: jest.fn(),
-      release: jest.fn(),
+vi.mock('../src/connection', () => ({
+  getDatabaseConnection: vi.fn().mockReturnValue({
+    getClient: vi.fn().mockResolvedValue({
+      query: vi.fn(),
+      release: vi.fn(),
     }),
-    transaction: jest.fn(),
+    transaction: vi.fn(),
   }),
 }));
 
@@ -17,14 +18,14 @@ describe('MigrationRunner', () => {
 
   beforeEach(() => {
     mockClient = {
-      query: jest.fn(),
-      release: jest.fn(),
+      query: vi.fn(),
+      release: vi.fn(),
     };
 
     // Mock the database connection methods
     const mockDb = {
-      getClient: jest.fn().mockResolvedValue(mockClient),
-      transaction: jest.fn().mockImplementation(async callback => {
+      getClient: vi.fn().mockResolvedValue(mockClient),
+      transaction: vi.fn().mockImplementation(async callback => {
         return callback(mockClient);
       }),
     };
@@ -78,7 +79,7 @@ describe('MigrationRunner', () => {
         .mockResolvedValueOnce({ rows: [] }) // getExecutedMigrations
         .mockResolvedValue({ rows: [] }); // migration queries
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
 
       await migrationRunner.runMigrations();
 
@@ -113,7 +114,7 @@ describe('MigrationRunner', () => {
         .mockResolvedValueOnce({ rows: [] }) // ensureMigrationsTable
         .mockResolvedValueOnce({ rows: mockExecutedMigrations }); // getExecutedMigrations
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
 
       await migrationRunner.runMigrations();
 
@@ -137,7 +138,7 @@ describe('MigrationRunner', () => {
         .mockResolvedValueOnce({ rows: [mockExecutedMigration] }) // getExecutedMigrations
         .mockResolvedValue({ rows: [] }); // rollback queries
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation();
 
       await migrationRunner.rollbackMigration(migrationId);
 

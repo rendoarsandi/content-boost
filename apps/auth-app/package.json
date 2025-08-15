@@ -11,7 +11,10 @@
     "type-check": "tsc --noEmit",
     "clean": "rd /s /q .next dist",
     "test": "jest",
-    "test:security": "jest --testMatch='**/__tests__/security/*.test.ts'"
+    "test:security": "jest --testMatch='**/__tests__/security/*.test.ts'",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@repo/auth": "*",
@@ -25,6 +28,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.45.0",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.3.0",
     "@types/cookie": "^0.6.0",

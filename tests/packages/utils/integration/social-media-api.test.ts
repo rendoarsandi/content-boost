@@ -6,7 +6,7 @@ import {
   APIError,
   DEFAULT_RATE_LIMITS,
   createSocialMediaAPIManager,
-} from '../src/social-media-api';
+} from '@repo/utils/social-media-api';
 
 // Mock fetch globally
 const mockFetch = jest.fn();

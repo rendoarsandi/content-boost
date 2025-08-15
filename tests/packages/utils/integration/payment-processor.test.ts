@@ -6,7 +6,7 @@ import {
   PaymentRequest,
   PaymentResponse,
   PaymentNotification,
-} from '../src/payment-processor';
+} from '@repo/utils/payment-processor';
 
 // Helper function to generate test UUIDs
 const generateTestUUID = (suffix: string) => {

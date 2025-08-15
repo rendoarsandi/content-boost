@@ -1,29 +1,30 @@
-import { createPaymentProcessor } from '../src/payment-processor';
-import { createPaymentNotificationSystem } from '../src/payment-notifications';
-import { createPaymentHistoryManager } from '../src/payment-history';
+import { createPaymentProcessor } from '@repo/utils/payment-processor';
+import { createPaymentNotificationSystem } from '@repo/utils/payment-notifications';
+import { createPaymentHistoryManager } from '@repo/utils/payment-history';
+import { vi } from 'vitest';
 
-jest.mock('../src/payment-processor');
-jest.mock('../src/payment-notifications');
-jest.mock('../src/payment-history');
+vi.mock('@repo/utils/payment-processor');
+vi.mock('@repo/utils/payment-notifications');
+vi.mock('@repo/utils/payment-history');
 
 describe('Payment Processing Workflow', () => {
-  const mockProcessPayment = jest.fn();
-  const mockSendNotification = jest.fn();
-  const mockRecordPayment = jest.fn();
-  const mockGetPaymentHistory = jest.fn();
+  const mockProcessPayment = vi.fn();
+  const mockSendNotification = vi.fn();
+  const mockRecordPayment = vi.fn();
+  const mockGetPaymentHistory = vi.fn();
 
   beforeEach(() => {
-    (createPaymentProcessor as jest.Mock).mockReturnValue({
+    (createPaymentProcessor as any).mockReturnValue({
       processPayment: mockProcessPayment,
     });
-    (createPaymentNotificationSystem as jest.Mock).mockReturnValue({
+    (createPaymentNotificationSystem as any).mockReturnValue({
       sendNotification: mockSendNotification,
     });
-    (createPaymentHistoryManager as jest.Mock).mockReturnValue({
+    (createPaymentHistoryManager as any).mockReturnValue({
       recordPayment: mockRecordPayment,
       getPaymentHistory: mockGetPaymentHistory,
     });
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const paymentRequest = {

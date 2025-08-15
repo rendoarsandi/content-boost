@@ -12,7 +12,9 @@ const customJestConfig = {
   testMatch: [
     '**/__tests__/unit/**/*.test.ts',
     '**/__tests__/unit/**/*.test.tsx',
+    '**/__tests__/e2e/**/*.spec.ts',
   ],
+  passWithNoTests: true,
 };
 
 module.exports = createJestConfig(customJestConfig);

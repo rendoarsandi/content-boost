@@ -503,7 +503,12 @@ export class EnhancedBotAnalyzer {
    * Requirement 5.7: Store bot detection score and logs
    */
   private async logAnalysis(analysisLog: AnalysisLog): Promise<void> {
-    if (!this.config.logging.enabled) return;
+    if (
+      !this.config.logging.enabled ||
+      !this.config.logging.logPath ||
+      this.config.logging.logPath.trim() === ''
+    )
+      return;
 
     const timestamp = new Date().toISOString();
     const logEntry = {
@@ -552,6 +557,12 @@ export class EnhancedBotAnalyzer {
     analysis: BotAnalysis,
     message: string
   ): Promise<void> {
+    if (
+      !this.config.logging.logPath ||
+      this.config.logging.logPath.trim() === ''
+    )
+      return;
+
     const timestamp = new Date().toISOString();
     const actionLog = {
       timestamp,
@@ -581,6 +592,12 @@ export class EnhancedBotAnalyzer {
     campaignId: string,
     error: Error
   ): Promise<void> {
+    if (
+      !this.config.logging.logPath ||
+      this.config.logging.logPath.trim() === ''
+    )
+      return;
+
     const timestamp = new Date().toISOString();
     const errorLog = {
       timestamp,
@@ -652,8 +669,13 @@ export class EnhancedBotAnalyzer {
    */
   private ensureLogDirectories(): void {
     try {
-      if (!fs.existsSync(this.config.logging.logPath)) {
-        fs.mkdirSync(this.config.logging.logPath, { recursive: true });
+      if (
+        this.config.logging.logPath &&
+        this.config.logging.logPath.trim() !== ''
+      ) {
+        if (!fs.existsSync(this.config.logging.logPath)) {
+          fs.mkdirSync(this.config.logging.logPath, { recursive: true });
+        }
       }
     } catch (error) {
       console.error(`Failed to create log directory: ${error}`);

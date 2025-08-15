@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import React from 'react';
-import './globals.css';
+import '@repo/ui/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'Authentication - Creator Promotion Platform',

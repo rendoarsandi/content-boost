@@ -3,8 +3,8 @@ import {
   createPayoutEngine,
   PayoutBatch,
   PayoutJob,
-} from '../src/payout-engine';
-import { PaymentCalculation } from '../src/payment';
+} from '@repo/utils/payout-engine';
+import { PaymentCalculation } from '@repo/utils/payment';
 
 describe('PayoutEngine', () => {
   let payoutEngine: PayoutEngine;

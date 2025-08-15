@@ -1,4 +1,4 @@
-import { ApplicationService } from '../src/application-service';
+import { ApplicationService } from '@repo/utils/application-service';
 
 describe('ApplicationService', () => {
   describe('validateApplicationEligibility', () => {

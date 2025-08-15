@@ -1,12 +1,12 @@
 import { RedisCache } from '@repo/cache';
-import { SocialMediaAPIManager } from '../src/social-media-api';
-import { SocialTokenManager } from '../src/social-token-manager';
+import { SocialMediaAPIManager } from '@repo/utils/social-media-api';
+import { SocialTokenManager } from '@repo/utils/social-token-manager';
 import {
   MetricsCollector,
   createMetricsCollector,
   DEFAULT_VALIDATION_RULES,
   DEFAULT_CONFIG,
-} from '../src/metrics-collector';
+} from '@repo/utils/metrics-collector';
 
 // Mock dependencies
 const mockCache = {
