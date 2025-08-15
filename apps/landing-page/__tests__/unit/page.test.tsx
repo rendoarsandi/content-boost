@@ -9,9 +9,9 @@ describe('Landing Page', () => {
     expect(typeof process.env.NODE_ENV).toBe('string');
   });
 
-  it('should export HomePage component', () => {
+  it('should export HomePage component', async () => {
     // Test that the HomePage component can be imported
-    const HomePage = require('../app/page').default;
+    const { default: HomePage } = await import('../../app/page');
     expect(typeof HomePage).toBe('function');
   });
 });

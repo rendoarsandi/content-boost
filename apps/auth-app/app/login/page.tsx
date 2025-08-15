@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { authClient } from '@repo/auth';
+import { createBrowserClient } from '@supabase/ssr';
 import {
   Button,
   Card,
@@ -18,65 +18,34 @@ import { Loader2, Music, Camera } from 'lucide-react';
 function LoginForm() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [session, setSession] = useState<any>(null);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
-  const callbackUrl =
-    searchParams.get('callbackUrl') || 'https://dashboard.domain.com';
-  const error_param = searchParams.get('error');
+  // Create a Supabase client for client-side operations
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  // Handle OAuth errors from URL params
   useEffect(() => {
+    const error_param = searchParams.get('error');
     if (error_param) {
       setError(`Authentication failed: ${error_param}`);
     }
-  }, [error_param]);
-
-  // Check session on component mount
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const currentSession = await authClient.getSession();
-        setSession(currentSession);
-
-        // If user is authenticated, redirect to callback URL
-        if (currentSession?.data?.user) {
-          // For now, just redirect to callback URL
-          // Role checking will be handled by the dashboard app
-          window.location.href = callbackUrl;
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      }
-    };
-
-    checkSession();
-  }, [router, callbackUrl]);
+  }, [searchParams]);
 
   const handleSocialLogin = async (provider: 'tiktok' | 'instagram') => {
-    try {
-      setIsLoading(provider);
-      setError(null);
+    setIsLoading(provider);
+    setError(null);
 
-      // Generate OAuth URLs for TikTok and Instagram
-      const oauthUrls = {
-        tiktok: `https://www.tiktok.com/auth/authorize/?client_key=${process.env.NEXT_PUBLIC_TIKTOK_CLIENT_ID}&scope=user.info.basic,video.list&response_type=code&redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/callback/tiktok')}&state=${encodeURIComponent(callbackUrl)}`,
-        instagram: `https://api.instagram.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/callback/instagram')}&scope=user_profile,user_media&response_type=code&state=${encodeURIComponent(callbackUrl)}`,
-      };
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: provider as any, // Cast to any to allow custom providers
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+      },
+    });
 
-      // For development, use mock OAuth flow
-      if (process.env.NODE_ENV === 'development') {
-        // Simulate OAuth flow by redirecting to callback with mock code
-        const mockCode = `mock_${provider}_code_${Date.now()}`;
-        window.location.href = `/api/auth/callback/${provider}?code=${mockCode}&state=${encodeURIComponent(callbackUrl)}`;
-      } else {
-        // Redirect to actual OAuth provider
-        window.location.href = oauthUrls[provider];
-      }
-    } catch (err) {
-      console.error(`${provider} login error:`, err);
-      setError(`An error occurred during ${provider} login. Please try again.`);
+    if (error) {
+      setError(`Error logging in with ${provider}: ${error.message}`);
       setIsLoading(null);
     }
   };
@@ -85,9 +54,9 @@ function LoginForm() {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
           <CardDescription>
-            Login ke akun Creator Promotion Platform Anda
+            Login to your Creator Promotion Platform account
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -137,11 +106,11 @@ function LoginForm() {
 
           <div className="text-center text-sm text-gray-600">
             <p>
-              Dengan login, Anda menyetujui{' '}
+              By logging in, you agree to our{' '}
               <a href="/terms" className="text-blue-600 hover:underline">
                 Terms of Service
               </a>{' '}
-              dan{' '}
+              and{' '}
               <a href="/privacy" className="text-blue-600 hover:underline">
                 Privacy Policy
               </a>

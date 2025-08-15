@@ -1,1 +1,8 @@
-export { db, getPrismaClient, disconnectPrisma } from './connection';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_ANON_KEY!;
+
+export const db = createClient(supabaseUrl, supabaseKey);
+export const getPrismaClient = () => db;
+export const disconnectPrisma = () => Promise.resolve();

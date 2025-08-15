@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { authClient } from '@repo/auth';
+import { useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserClient } from '@supabase/ssr';
 import {
   Button,
   Card,
@@ -16,7 +16,7 @@ import {
   Alert,
   AlertDescription,
 } from '@repo/ui';
-import { Users, Video, Shield, Loader2 } from 'lucide-react';
+import { Users, Video, Loader2 } from 'lucide-react';
 
 function OnboardingForm() {
   const [selectedRole, setSelectedRole] = useState<
@@ -24,36 +24,11 @@ function OnboardingForm() {
   >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [session, setSession] = useState<any>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const callbackUrl =
-    searchParams.get('callbackUrl') || 'https://dashboard.domain.com';
-
-  // Check session on component mount
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const currentSession = await authClient.getSession();
-        setSession(currentSession);
-
-        // Redirect to login if not authenticated
-        if (!currentSession?.data?.user) {
-          router.push('/login');
-          return;
-        }
-
-        // For now, just check if user exists
-        // Role checking will be implemented when the user schema is properly configured
-      } catch (error) {
-        console.error('Error checking session:', error);
-        router.push('/login');
-      }
-    };
-
-    checkSession();
-  }, [router, callbackUrl]);
+  // The middleware should protect this page, so we can assume a user is logged in.
+  // We might need the user object later for more complex logic.
+  // const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
   const handleRoleSelection = async () => {
     if (!selectedRole) {
@@ -65,30 +40,25 @@ function OnboardingForm() {
       setIsLoading(true);
       setError(null);
 
-      // Update user role via API
+      // This API route will need to be updated to use Supabase admin client
       const response = await fetch('/api/auth/update-role', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({ role: selectedRole }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update role');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update role');
       }
 
-      // Redirect to appropriate dashboard based on role
-      const dashboardUrl =
-        selectedRole === 'creator'
-          ? 'https://dashboard.domain.com/creator'
-          : 'https://dashboard.domain.com/promoter';
-
-      window.location.href = dashboardUrl;
-    } catch (err) {
+      // Redirect to the main dashboard, which will handle role-specific views
+      window.location.href = 'https://dashboard.domain.com'; // Or a relative path to the dashboard app
+    } catch (err: any) {
       console.error('Role update error:', err);
-      setError('Failed to update role. Please try again.');
+      setError(err.message || 'Failed to update role. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -98,14 +68,13 @@ function OnboardingForm() {
     {
       value: 'creator' as const,
       title: 'Content Creator',
-      description: 'Saya ingin membuat campaign dan mempromosikan konten saya',
+      description: 'I want to create campaigns and promote my content',
       icon: Video,
     },
     {
       value: 'promoter' as const,
       title: 'Promoter',
-      description:
-        'Saya ingin mempromosikan konten creator dan mendapat bayaran',
+      description: 'I want to promote content and get paid',
       icon: Users,
     },
   ];
@@ -116,7 +85,7 @@ function OnboardingForm() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Choose Your Role</CardTitle>
           <CardDescription>
-            Pilih peran Anda di Creator Promotion Platform
+            Select your role on the Creator Promotion Platform
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -168,7 +137,7 @@ function OnboardingForm() {
           </Button>
 
           <div className="text-center text-sm text-gray-600">
-            <p>Anda dapat mengubah peran ini nanti di pengaturan akun</p>
+            <p>You can change this role later in your account settings</p>
           </div>
         </CardContent>
       </Card>

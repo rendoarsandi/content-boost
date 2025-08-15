@@ -35,9 +35,10 @@ export default defineConfig({
 
   // Run local dev server before starting the tests
   webServer: {
-    command: 'node ../../scripts/single-app-dev.js dashboard-app',
+    command: 'npm run dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120000, // 2 minutes
+    cwd: './',
   },
 });

@@ -630,13 +630,16 @@ export class MetricsCollector {
 
       // Sort keys by timestamp (newest first)
       const sortedKeys = keys
-        .map(key => ({
+        .map((key: string) => ({
           key,
           timestamp: parseInt(key.split('_').pop() || '0'),
         }))
-        .sort((a, b) => b.timestamp - a.timestamp)
+        .sort(
+          (a: { timestamp: number }, b: { timestamp: number }) =>
+            b.timestamp - a.timestamp
+        )
         .slice(0, limit)
-        .map(item => item.key);
+        .map((item: { key: string }) => item.key);
 
       const metrics: ProcessedMetrics[] = [];
       for (const key of sortedKeys) {

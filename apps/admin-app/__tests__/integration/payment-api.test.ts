@@ -2,8 +2,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { GET as getTransactions } from '../../../app/api/finances/transactions/route';
 import { db } from '@repo/database';
-import { payouts, platformRevenue } from '@repo/database/schemas';
-import { desc } from 'drizzle-orm';
+import { transactions, users } from '@repo/database/schemas';
 
 // Mock Next.js auth
 vi.mock('@repo/auth/server-only', () => ({

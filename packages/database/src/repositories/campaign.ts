@@ -1,194 +1,151 @@
-import { BaseRepository, PaginationOptions, TransactionClient } from './base';
-import {
-  Prisma,
-  Campaign,
-  CampaignMaterial,
-  CampaignApplication,
-} from '@prisma/client';
+import { supabase } from '@repo/config/supabase';
+import { PaginationOptions } from './base';
 
-export class CampaignRepository extends BaseRepository {
-  async findById(id: string, tx?: TransactionClient): Promise<Campaign | null> {
-    return this.getClient(tx).campaign.findUnique({ where: { id } });
-  }
+// Mock-up interfaces based on Prisma schema
+export interface Campaign {
+  id: string;
+  creatorId: string;
+  name: string;
+  description: string;
+  budget: number;
+  status: 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED';
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+}
 
-  async findByCreatorId(
-    creatorId: string,
-    options: PaginationOptions = {},
-    tx?: TransactionClient
-  ): Promise<Campaign[]> {
-    const {
-      limit = 50,
-      offset = 0,
-      orderBy = 'createdAt',
-      orderDirection = 'desc',
-    } = options;
-    return this.getClient(tx).campaign.findMany({
-      where: { creatorId },
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
-  }
+export interface CampaignMaterial {
+  id: string;
+  campaignId: string;
+  type: 'IMAGE' | 'VIDEO' | 'TEXT';
+  url: string;
+  createdAt: string;
+}
+
+export interface CampaignApplication {
+  id: string;
+  campaignId: string;
+  promoterId: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  appliedAt: string;
+}
+
+// Helper for pagination and ordering
+const applyQueryOptions = (query: any, options: PaginationOptions) => {
+  const {
+    limit = 50,
+    offset = 0,
+    orderBy = 'createdAt',
+    orderDirection = 'desc',
+  } = options;
+  return query
+    .range(offset, offset + limit - 1)
+    .order(orderBy, { ascending: orderDirection === 'asc' });
+};
+
+export const campaignRepository = {
+  async findById(id: string) {
+    return supabase.from('campaigns').select('*').eq('id', id).single();
+  },
+
+  async findByCreatorId(creatorId: string, options: PaginationOptions = {}) {
+    let query = supabase
+      .from('campaigns')
+      .select('*')
+      .eq('creatorId', creatorId);
+    return applyQueryOptions(query, options);
+  },
 
   async findByStatus(
     status: Campaign['status'],
-    options: PaginationOptions = {},
-    tx?: TransactionClient
-  ): Promise<Campaign[]> {
-    const {
-      limit = 50,
-      offset = 0,
-      orderBy = 'createdAt',
-      orderDirection = 'desc',
-    } = options;
-    return this.getClient(tx).campaign.findMany({
-      where: { status },
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
-  }
+    options: PaginationOptions = {}
+  ) {
+    let query = supabase.from('campaigns').select('*').eq('status', status);
+    return applyQueryOptions(query, options);
+  },
 
-  async create(
-    data: Prisma.CampaignCreateInput,
-    tx?: TransactionClient
-  ): Promise<Campaign> {
-    return this.getClient(tx).campaign.create({ data });
-  }
+  async create(data: Omit<Campaign, 'id' | 'createdAt'>) {
+    return supabase.from('campaigns').insert(data).select().single();
+  },
 
-  async update(
-    id: string,
-    data: Prisma.CampaignUpdateInput,
-    tx?: TransactionClient
-  ): Promise<Campaign> {
-    return this.getClient(tx).campaign.update({ where: { id }, data });
-  }
+  async update(id: string, data: Partial<Omit<Campaign, 'id'>>) {
+    return supabase
+      .from('campaigns')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+  },
 
-  async delete(id: string, tx?: TransactionClient): Promise<Campaign> {
-    return this.getClient(tx).campaign.delete({ where: { id } });
-  }
+  async delete(id: string) {
+    return supabase.from('campaigns').delete().eq('id', id);
+  },
 
-  async findAll(
-    options: PaginationOptions = {},
-    tx?: TransactionClient
-  ): Promise<Campaign[]> {
-    const {
-      limit = 50,
-      offset = 0,
-      orderBy = 'createdAt',
-      orderDirection = 'desc',
-    } = options;
-    return this.getClient(tx).campaign.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
-  }
+  async findAll(options: PaginationOptions = {}) {
+    let query = supabase.from('campaigns').select('*');
+    return applyQueryOptions(query, options);
+  },
 
-  async findActiveCampaigns(tx?: TransactionClient): Promise<Campaign[]> {
-    return this.getClient(tx).campaign.findMany({
-      where: {
-        status: 'ACTIVE',
-        startDate: { lte: new Date() },
-        endDate: { gte: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-}
+  async findActiveCampaigns() {
+    const now = new Date().toISOString();
+    return supabase
+      .from('campaigns')
+      .select('*')
+      .eq('status', 'ACTIVE')
+      .lte('startDate', now)
+      .gte('endDate', now)
+      .order('createdAt', { ascending: false });
+  },
+};
 
-export class CampaignMaterialRepository extends BaseRepository {
-  async findById(
-    id: string,
-    tx?: TransactionClient
-  ): Promise<CampaignMaterial | null> {
-    return this.getClient(tx).campaignMaterial.findUnique({ where: { id } });
-  }
+export const campaignMaterialRepository = {
+  async findById(id: string) {
+    return supabase
+      .from('campaign_materials')
+      .select('*')
+      .eq('id', id)
+      .single();
+  },
+  async create(data: Omit<CampaignMaterial, 'id' | 'createdAt'>) {
+    return supabase.from('campaign_materials').insert(data).select().single();
+  },
+  async update(id: string, data: Partial<Omit<CampaignMaterial, 'id'>>) {
+    return supabase
+      .from('campaign_materials')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+  },
+  async delete(id: string) {
+    return supabase.from('campaign_materials').delete().eq('id', id);
+  },
+};
 
-  async create(
-    data: Prisma.CampaignMaterialCreateInput,
-    tx?: TransactionClient
-  ): Promise<CampaignMaterial> {
-    return this.getClient(tx).campaignMaterial.create({ data });
-  }
-
-  async update(
-    id: string,
-    data: Prisma.CampaignMaterialUpdateInput,
-    tx?: TransactionClient
-  ): Promise<CampaignMaterial> {
-    return this.getClient(tx).campaignMaterial.update({ where: { id }, data });
-  }
-
-  async delete(id: string, tx?: TransactionClient): Promise<CampaignMaterial> {
-    return this.getClient(tx).campaignMaterial.delete({ where: { id } });
-  }
-
-  async findAll(
-    options: PaginationOptions = {},
-    tx?: TransactionClient
-  ): Promise<CampaignMaterial[]> {
-    const {
-      limit = 50,
-      offset = 0,
-      orderBy = 'createdAt',
-      orderDirection = 'desc',
-    } = options;
-    return this.getClient(tx).campaignMaterial.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
-  }
-}
-
-export class CampaignApplicationRepository extends BaseRepository {
-  async findById(
-    id: string,
-    tx?: TransactionClient
-  ): Promise<CampaignApplication | null> {
-    return this.getClient(tx).campaignApplication.findUnique({ where: { id } });
-  }
-
-  async create(
-    data: Prisma.CampaignApplicationCreateInput,
-    tx?: TransactionClient
-  ): Promise<CampaignApplication> {
-    return this.getClient(tx).campaignApplication.create({ data });
-  }
-
-  async update(
-    id: string,
-    data: Prisma.CampaignApplicationUpdateInput,
-    tx?: TransactionClient
-  ): Promise<CampaignApplication> {
-    return this.getClient(tx).campaignApplication.update({
-      where: { id },
-      data,
-    });
-  }
-
-  async delete(
-    id: string,
-    tx?: TransactionClient
-  ): Promise<CampaignApplication> {
-    return this.getClient(tx).campaignApplication.delete({ where: { id } });
-  }
-
-  async findAll(
-    options: PaginationOptions = {},
-    tx?: TransactionClient
-  ): Promise<CampaignApplication[]> {
-    const {
-      limit = 50,
-      offset = 0,
-      orderBy = 'appliedAt',
-      orderDirection = 'desc',
-    } = options;
-    return this.getClient(tx).campaignApplication.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
-  }
-}
+export const campaignApplicationRepository = {
+  async findById(id: string) {
+    return supabase
+      .from('campaign_applications')
+      .select('*')
+      .eq('id', id)
+      .single();
+  },
+  async create(data: Omit<CampaignApplication, 'id' | 'appliedAt'>) {
+    return supabase
+      .from('campaign_applications')
+      .insert(data)
+      .select()
+      .single();
+  },
+  async update(id: string, data: Partial<Omit<CampaignApplication, 'id'>>) {
+    return supabase
+      .from('campaign_applications')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+  },
+  async delete(id: string) {
+    return supabase.from('campaign_applications').delete().eq('id', id);
+  },
+};

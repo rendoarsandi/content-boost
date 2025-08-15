@@ -1,134 +1,108 @@
-import { BaseRepository, PaginationOptions, TransactionClient } from './base';
-import { Prisma, Payout, PlatformRevenue, Withdrawal } from '@prisma/client';
+import { supabase } from '@repo/config/supabase';
+import { PaginationOptions } from './base';
 
-export class PayoutRepository extends BaseRepository {
-  async findById(id: string, tx?: TransactionClient): Promise<Payout | null> {
-    return this.getClient(tx).payout.findUnique({ where: { id } });
-  }
-
-  async create(
-    data: Prisma.PayoutCreateInput,
-    tx?: TransactionClient
-  ): Promise<Payout> {
-    return this.getClient(tx).payout.create({ data });
-  }
-
-  async update(
-    id: string,
-    data: Prisma.PayoutUpdateInput,
-    tx?: TransactionClient
-  ): Promise<Payout> {
-    return this.getClient(tx).payout.update({ where: { id }, data });
-  }
-
-  async delete(id: string, tx?: TransactionClient): Promise<Payout> {
-    return this.getClient(tx).payout.delete({ where: { id } });
-  }
-
-  async findAll(
-    options: PaginationOptions = {},
-    tx?: TransactionClient
-  ): Promise<Payout[]> {
-    const {
-      limit = 50,
-      offset = 0,
-      orderBy = 'createdAt',
-      orderDirection = 'desc',
-    } = options;
-    return this.getClient(tx).payout.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
-  }
+// Mock-up interfaces
+export interface Payout {
+  id: string;
+  promoterId: string;
+  amount: number;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  createdAt: string;
+  processedAt?: string;
 }
 
-export class PlatformRevenueRepository extends BaseRepository {
-  async findById(
-    id: string,
-    tx?: TransactionClient
-  ): Promise<PlatformRevenue | null> {
-    return this.getClient(tx).platformRevenue.findUnique({ where: { id } });
-  }
-
-  async create(
-    data: Prisma.PlatformRevenueCreateInput,
-    tx?: TransactionClient
-  ): Promise<PlatformRevenue> {
-    return this.getClient(tx).platformRevenue.create({ data });
-  }
-
-  async update(
-    id: string,
-    data: Prisma.PlatformRevenueUpdateInput,
-    tx?: TransactionClient
-  ): Promise<PlatformRevenue> {
-    return this.getClient(tx).platformRevenue.update({ where: { id }, data });
-  }
-
-  async delete(id: string, tx?: TransactionClient): Promise<PlatformRevenue> {
-    return this.getClient(tx).platformRevenue.delete({ where: { id } });
-  }
-
-  async findAll(
-    options: PaginationOptions = {},
-    tx?: TransactionClient
-  ): Promise<PlatformRevenue[]> {
-    const {
-      limit = 50,
-      offset = 0,
-      orderBy = 'createdAt',
-      orderDirection = 'desc',
-    } = options;
-    return this.getClient(tx).platformRevenue.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
-  }
+export interface PlatformRevenue {
+  id: string;
+  campaignId: string;
+  amount: number;
+  createdAt: string;
 }
 
-export class WithdrawalRepository extends BaseRepository {
-  async findById(
-    id: string,
-    tx?: TransactionClient
-  ): Promise<Withdrawal | null> {
-    return this.getClient(tx).withdrawal.findUnique({ where: { id } });
-  }
-
-  async create(
-    data: Prisma.WithdrawalCreateInput,
-    tx?: TransactionClient
-  ): Promise<Withdrawal> {
-    return this.getClient(tx).withdrawal.create({ data });
-  }
-
-  async update(
-    id: string,
-    data: Prisma.WithdrawalUpdateInput,
-    tx?: TransactionClient
-  ): Promise<Withdrawal> {
-    return this.getClient(tx).withdrawal.update({ where: { id }, data });
-  }
-
-  async delete(id: string, tx?: TransactionClient): Promise<Withdrawal> {
-    return this.getClient(tx).withdrawal.delete({ where: { id } });
-  }
-
-  async findAll(
-    options: PaginationOptions = {},
-    tx?: TransactionClient
-  ): Promise<Withdrawal[]> {
-    const {
-      limit = 50,
-      offset = 0,
-      orderBy = 'createdAt',
-      orderDirection = 'desc',
-    } = options;
-    return this.getClient(tx).withdrawal.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: { [orderBy]: orderDirection },
-    });
-  }
+export interface Withdrawal {
+  id: string;
+  promoterId: string;
+  amount: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  requestedAt: string;
+  processedAt?: string;
 }
+
+// Helper for pagination and ordering
+const applyQueryOptions = (query: any, options: PaginationOptions) => {
+  const {
+    limit = 50,
+    offset = 0,
+    orderBy = 'createdAt',
+    orderDirection = 'desc',
+  } = options;
+  return query
+    .range(offset, offset + limit - 1)
+    .order(orderBy, { ascending: orderDirection === 'asc' });
+};
+
+export const payoutRepository = {
+  async findById(id: string) {
+    return supabase.from('payouts').select('*').eq('id', id).single();
+  },
+  async create(data: Omit<Payout, 'id' | 'createdAt'>) {
+    return supabase.from('payouts').insert(data).select().single();
+  },
+  async update(id: string, data: Partial<Omit<Payout, 'id'>>) {
+    return supabase.from('payouts').update(data).eq('id', id).select().single();
+  },
+  async delete(id: string) {
+    return supabase.from('payouts').delete().eq('id', id);
+  },
+  async findAll(options: PaginationOptions = {}) {
+    let query = supabase.from('payouts').select('*');
+    return applyQueryOptions(query, options);
+  },
+};
+
+export const platformRevenueRepository = {
+  async findById(id: string) {
+    return supabase.from('platform_revenue').select('*').eq('id', id).single();
+  },
+  async create(data: Omit<PlatformRevenue, 'id' | 'createdAt'>) {
+    return supabase.from('platform_revenue').insert(data).select().single();
+  },
+  async update(id: string, data: Partial<Omit<PlatformRevenue, 'id'>>) {
+    return supabase
+      .from('platform_revenue')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+  },
+  async delete(id: string) {
+    return supabase.from('platform_revenue').delete().eq('id', id);
+  },
+  async findAll(options: PaginationOptions = {}) {
+    let query = supabase.from('platform_revenue').select('*');
+    return applyQueryOptions(query, options);
+  },
+};
+
+export const withdrawalRepository = {
+  async findById(id: string) {
+    return supabase.from('withdrawals').select('*').eq('id', id).single();
+  },
+  async create(data: Omit<Withdrawal, 'id' | 'requestedAt'>) {
+    return supabase.from('withdrawals').insert(data).select().single();
+  },
+  async update(id: string, data: Partial<Omit<Withdrawal, 'id'>>) {
+    return supabase
+      .from('withdrawals')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+  },
+  async delete(id: string) {
+    return supabase.from('withdrawals').delete().eq('id', id);
+  },
+  async findAll(options: PaginationOptions = {}) {
+    let query = supabase.from('withdrawals').select('*');
+    return applyQueryOptions(query, { ...options, orderBy: 'requestedAt' });
+  },
+};

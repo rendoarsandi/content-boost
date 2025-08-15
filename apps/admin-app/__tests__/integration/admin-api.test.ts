@@ -1,9 +1,8 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { POST as unbanUser } from '../../../app/api/users/[id]/unban/route';
-import { db } from '@repo/database';
+import { db, eq } from '@repo/database';
 import { users } from '@repo/database/schemas';
-import { eq } from 'drizzle-orm';
 
 // Mock Next.js auth
 vi.mock('@repo/auth/server-only', () => ({

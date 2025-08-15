@@ -1,32 +1,40 @@
-// packages/auth/src/server-only.ts
 import 'server-only';
-import type { Session } from './config';
+import { supabase } from '@repo/config/supabase';
+import type { User, Session } from '@supabase/supabase-js';
 
-/**
- * Mengembalikan sesi pengguna palsu untuk tujuan build dan pengembangan.
- * Otentikasi nyata perlu diimplementasikan kembali dengan library yang kompatibel dengan Prisma.
- */
+export const getUser = async (): Promise<User | null> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+};
+
 export const getSession = async (): Promise<Session | null> => {
-  return {
-    user: {
-      id: 'clx5e1a0b0000t7p8h4g9f8d6', // ID pengguna dummy
-      name: 'Test Creator',
-      email: 'creator@example.com',
-      role: 'creator',
-    },
-    expires: new Date(Date.now() + 3600 * 1000), // Kedaluwarsa dalam 1 jam
-  };
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session;
 };
 
-export const getCurrentUser = async () => {
+export const requireAuth = async (): Promise<User> => {
+  const user = await getUser();
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+  return user;
+};
+
+export const requireSession = async (): Promise<Session> => {
   const session = await getSession();
-  return session?.user || null;
+  if (!session) {
+    throw new Error('Unauthorized');
+  }
+  return session;
 };
 
-// Guard palsu yang selalu lolos
-export const requireAuth = async () => {
-  return await getSession();
+export const auth = {
+  getUser,
+  getSession,
+  requireAuth,
+  requireSession,
 };
-
-// Alias for getSession to match expected import
-export const auth = getSession;
