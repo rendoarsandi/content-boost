@@ -10,12 +10,11 @@ import { test, expect } from '@playwright/test';
  * 4. Role selection in onboarding
  * 5. Redirect to appropriate dashboard
  *
- * Note: Uses mocked OAuth flows for testing since real OAuth 
+ * Note: Uses mocked OAuth flows for testing since real OAuth
  * requires approved app credentials and external provider interaction
  */
 
 test.describe('OAuth Authentication E2E Test', () => {
-  
   test.beforeEach(async ({ page }) => {
     // Clear any existing session data
     await page.context().clearCookies();
@@ -27,12 +26,18 @@ test.describe('OAuth Authentication E2E Test', () => {
 
     // Verify page loaded correctly
     await expect(page.locator('h1:has-text("Welcome Back")')).toBeVisible();
-    await expect(page.locator('text=Sign in to manage your campaigns')).toBeVisible();
+    await expect(
+      page.locator('text=Sign in to manage your campaigns')
+    ).toBeVisible();
 
     // Verify OAuth buttons exist and are clickable
-    const tiktokButton = page.locator('button:has-text("Continue with TikTok")');
-    const instagramButton = page.locator('button:has-text("Continue with Instagram")');
-    
+    const tiktokButton = page.locator(
+      'button:has-text("Continue with TikTok")'
+    );
+    const instagramButton = page.locator(
+      'button:has-text("Continue with Instagram")'
+    );
+
     await expect(tiktokButton).toBeVisible();
     await expect(tiktokButton).toBeEnabled();
     await expect(instagramButton).toBeVisible();
@@ -52,8 +57,8 @@ test.describe('OAuth Authentication E2E Test', () => {
       await route.fulfill({
         status: 302,
         headers: {
-          'Location': 'http://localhost:3000/auth/onboarding'
-        }
+          Location: 'http://localhost:3000/auth/onboarding',
+        },
       });
     });
 
@@ -79,8 +84,8 @@ test.describe('OAuth Authentication E2E Test', () => {
       await route.fulfill({
         status: 302,
         headers: {
-          'Location': 'http://localhost:3000/auth/onboarding'
-        }
+          Location: 'http://localhost:3000/auth/onboarding',
+        },
       });
     });
 
@@ -97,18 +102,22 @@ test.describe('OAuth Authentication E2E Test', () => {
     await expect(page.locator('h1:has-text("Choose Your Role")')).toBeVisible();
   });
 
-  test('Should handle onboarding role selection - Creator', async ({ page }) => {
+  test('Should handle onboarding role selection - Creator', async ({
+    page,
+  }) => {
     // Navigate directly to onboarding (simulating successful OAuth)
     await page.goto('http://localhost:3000/auth/onboarding');
 
     // Verify onboarding page elements
     await expect(page.locator('h1:has-text("Choose Your Role")')).toBeVisible();
-    await expect(page.locator('text=Select your role to get started')).toBeVisible();
+    await expect(
+      page.locator('text=Select your role to get started')
+    ).toBeVisible();
 
     // Verify role options exist
     const creatorOption = page.locator('input[value="creator"]');
     const promoterOption = page.locator('input[value="promoter"]');
-    
+
     await expect(creatorOption).toBeVisible();
     await expect(promoterOption).toBeVisible();
 
@@ -116,7 +125,9 @@ test.describe('OAuth Authentication E2E Test', () => {
     await creatorOption.click();
 
     // Verify role selection UI feedback
-    await expect(page.locator('label:has(input[value="creator"])')).toHaveClass(/border-primary/);
+    await expect(page.locator('label:has(input[value="creator"])')).toHaveClass(
+      /border-primary/
+    );
 
     // Submit role selection
     const submitButton = page.locator('button:has-text("Complete Setup")');
@@ -125,24 +136,32 @@ test.describe('OAuth Authentication E2E Test', () => {
 
     // Verify redirect to creator dashboard
     await page.waitForURL('**/creator');
-    await expect(page.locator('h1:has-text("Creator Dashboard")')).toBeVisible();
+    await expect(
+      page.locator('h1:has-text("Creator Dashboard")')
+    ).toBeVisible();
   });
 
-  test('Should handle onboarding role selection - Promoter', async ({ page }) => {
+  test('Should handle onboarding role selection - Promoter', async ({
+    page,
+  }) => {
     await page.goto('http://localhost:3000/auth/onboarding');
 
     // Select promoter role
     await page.click('input[value="promoter"]');
 
     // Verify role selection UI feedback
-    await expect(page.locator('label:has(input[value="promoter"])')).toHaveClass(/border-primary/);
+    await expect(
+      page.locator('label:has(input[value="promoter"])')
+    ).toHaveClass(/border-primary/);
 
     // Submit role selection
     await page.click('button:has-text("Complete Setup")');
 
     // Verify redirect to promoter dashboard
     await page.waitForURL('**/promoter');
-    await expect(page.locator('h1:has-text("Promoter Dashboard")')).toBeVisible();
+    await expect(
+      page.locator('h1:has-text("Promoter Dashboard")')
+    ).toBeVisible();
   });
 
   test('Should validate role selection requirement', async ({ page }) => {
@@ -162,10 +181,14 @@ test.describe('OAuth Authentication E2E Test', () => {
 
     // Verify error message is displayed
     await expect(page.locator('.alert-destructive, .toast')).toBeVisible();
-    
+
     // Verify user can still attempt login
-    await expect(page.locator('button:has-text("Continue with TikTok")')).toBeEnabled();
-    await expect(page.locator('button:has-text("Continue with Instagram")')).toBeEnabled();
+    await expect(
+      page.locator('button:has-text("Continue with TikTok")')
+    ).toBeEnabled();
+    await expect(
+      page.locator('button:has-text("Continue with Instagram")')
+    ).toBeEnabled();
   });
 
   test('Should provide back navigation options', async ({ page }) => {
@@ -178,7 +201,7 @@ test.describe('OAuth Authentication E2E Test', () => {
 
     // Test onboarding back navigation
     await page.goto('http://localhost:3000/auth/onboarding');
-    
+
     const backToLogin = page.locator('a:has-text("Back to Login")');
     await expect(backToLogin).toBeVisible();
     await expect(backToLogin).toHaveAttribute('href', '/login');

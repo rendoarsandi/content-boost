@@ -11,22 +11,26 @@ The project is a web platform designed to connect content creators with promoter
 The platform provides a distinct set of features for each user type:
 
 **For Creators:**
+
 - **Campaign Management:** Create and manage promotional campaigns.
 - **Budget Tracking:** Set and monitor campaign budgets.
 - **Promoter Discovery:** Search, filter, and invite promoters to campaigns.
 - **Analytics Dashboard:** View detailed analytics on campaign performance and ROI.
 
 **For Promoters:**
+
 - **Campaign Application:** Apply to join campaigns that match their niche.
 - **Public Profile & Portfolio:** Showcase their skills, past work, and performance statistics.
 - **Tier System:** Earn performance-based tiers (e.g., Bronze, Silver, Gold) that unlock benefits.
 - **Earnings Dashboard:** Track earnings from various campaigns.
 
 **For Admins:**
+
 - **Dispute Resolution Center:** A dedicated interface to mediate and resolve conflicts between creators and promoters.
 - **User Management:** Oversee all users on the platform.
 
 **Core System Features:**
+
 - **Bot Detection:** An automated system with confidence scoring to identify and filter invalid traffic.
 - **Automated Payouts:** Promoters are paid out daily based on verified views.
 - **Multi-Platform Support:** Integrates with TikTok and Instagram via OAuth.

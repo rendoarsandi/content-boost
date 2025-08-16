@@ -6,7 +6,11 @@ interface StatCardProps {
   valueClassName?: string;
 }
 
-export const StatCard = ({ title, value, valueClassName = '' }: StatCardProps) => {
+export const StatCard = ({
+  title,
+  value,
+  valueClassName = '',
+}: StatCardProps) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <h3 className="text-gray-500 text-sm font-medium">{title}</h3>

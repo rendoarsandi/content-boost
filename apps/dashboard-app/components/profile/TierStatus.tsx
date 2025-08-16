@@ -12,17 +12,20 @@ const tierDetails = {
   Bronze: {
     color: 'text-yellow-700',
     bgColor: 'bg-yellow-100',
-    description: 'You are just getting started. Complete 5 campaigns to reach Silver!',
+    description:
+      'You are just getting started. Complete 5 campaigns to reach Silver!',
   },
   Silver: {
     color: 'text-gray-700',
     bgColor: 'bg-gray-200',
-    description: 'Great work! Consistently deliver high-quality promotions to reach Gold.',
+    description:
+      'Great work! Consistently deliver high-quality promotions to reach Gold.',
   },
   Gold: {
     color: 'text-yellow-500',
     bgColor: 'bg-yellow-50',
-    description: 'You are a top performer! Maintain your status by leading successful campaigns.',
+    description:
+      'You are a top performer! Maintain your status by leading successful campaigns.',
   },
   Platinum: {
     color: 'text-indigo-700',

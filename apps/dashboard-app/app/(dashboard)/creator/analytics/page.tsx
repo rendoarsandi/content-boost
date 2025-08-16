@@ -20,9 +20,27 @@ const getAnalyticsData = async () => {
       { name: 'Jun', views: 5500 },
     ],
     promoterPerformance: [
-      { id: 'usr_123', name: 'TechPromoter', views: '650K', spend: '$2,100', roi: '250%' },
-      { id: 'usr_456', name: 'FashionGuru', views: '450K', spend: '$1,800', roi: '180%' },
-      { id: 'usr_789', name: 'FitLife', views: '100K', spend: '$1,500', roi: '50%' },
+      {
+        id: 'usr_123',
+        name: 'TechPromoter',
+        views: '650K',
+        spend: '$2,100',
+        roi: '250%',
+      },
+      {
+        id: 'usr_456',
+        name: 'FashionGuru',
+        views: '450K',
+        spend: '$1,800',
+        roi: '180%',
+      },
+      {
+        id: 'usr_789',
+        name: 'FitLife',
+        views: '100K',
+        spend: '$1,500',
+        roi: '50%',
+      },
     ],
   };
 };
@@ -38,7 +56,11 @@ const AnalyticsDashboardPage = async () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard title="Total Views" value={data.overallStats.totalViews} />
         <StatCard title="Total Spend" value={data.overallStats.totalSpend} />
-        <StatCard title="Average ROI" value={data.overallStats.averageROI} valueClassName="text-green-500" />
+        <StatCard
+          title="Average ROI"
+          value={data.overallStats.averageROI}
+          valueClassName="text-green-500"
+        />
       </div>
 
       {/* Chart */}

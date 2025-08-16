@@ -41,10 +41,12 @@ const PromoterDiscoveryPage = async () => {
       <div className="mb-6 bg-white p-4 rounded-lg shadow">
         <h2 className="font-semibold mb-2">Filter & Search</h2>
         {/* Search and filter components will go here */}
-        <p className="text-sm text-gray-500">Search by niche or filter by tier. (Coming Soon)</p>
+        <p className="text-sm text-gray-500">
+          Search by niche or filter by tier. (Coming Soon)
+        </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {promoters.map((promoter) => (
+        {promoters.map(promoter => (
           <PromoterCard key={promoter.user_id} promoter={promoter} />
         ))}
       </div>

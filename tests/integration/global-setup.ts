@@ -2,7 +2,7 @@ import { chromium, FullConfig } from '@playwright/test';
 
 /**
  * Global setup for integration tests
- * 
+ *
  * This runs before all integration tests and sets up:
  * - Database seeding for test data
  * - Mock services
@@ -14,10 +14,10 @@ async function globalSetup(config: FullConfig) {
 
   // Setup test database with seed data
   await setupTestDatabase();
-  
+
   // Setup mock OAuth providers
   await setupMockOAuth();
-  
+
   // Setup shared session management
   await setupSessionManagement();
 
@@ -30,7 +30,7 @@ async function setupTestDatabase() {
   // 2. Run migrations
   // 3. Seed with test data
   console.log('📊 Setting up test database...');
-  
+
   // Mock implementation for now
   return Promise.resolve();
 }
@@ -38,7 +38,7 @@ async function setupTestDatabase() {
 async function setupMockOAuth() {
   // Setup mock OAuth providers for TikTok and Instagram
   console.log('🔐 Setting up mock OAuth providers...');
-  
+
   // Mock implementation
   return Promise.resolve();
 }
@@ -46,7 +46,7 @@ async function setupMockOAuth() {
 async function setupSessionManagement() {
   // Setup cross-app session management for tests
   console.log('🔗 Setting up session management...');
-  
+
   // Mock implementation
   return Promise.resolve();
 }

@@ -1,8 +1,17 @@
-import { NextRequest } from 'next/server';
-import { loggingMiddleware } from '@repo/utils/middleware/logging';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  return loggingMiddleware(request, 'landing-page');
+  const start = Date.now();
+  const response = NextResponse.next();
+
+  response.headers.set('x-app-name', 'landing-page');
+
+  // Log request details
+  console.log(
+    `[landing-page] ${request.method} ${request.url} - ${Date.now() - start}ms`
+  );
+
+  return response;
 }
 
 export const config = {

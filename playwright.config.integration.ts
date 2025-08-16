@@ -2,8 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright configuration for cross-app integration tests
- * 
- * This configuration is specifically for testing integration 
+ *
+ * This configuration is specifically for testing integration
  * between multiple apps running simultaneously
  */
 
@@ -42,8 +42,8 @@ export default defineConfig({
   ],
 
   // Global setup for integration tests
-  globalSetup: require.resolve('./tests/integration/global-setup.ts'),
-  globalTeardown: require.resolve('./tests/integration/global-teardown.ts'),
+  globalSetup: './tests/integration/global-setup.ts',
+  globalTeardown: './tests/integration/global-teardown.ts',
 
   // Multiple web servers for different apps
   webServer: [

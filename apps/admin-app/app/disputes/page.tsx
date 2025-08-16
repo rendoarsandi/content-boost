@@ -44,26 +44,45 @@ const DisputesPage = async () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Parties Involved</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Ticket ID
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Parties Involved
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Reason
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {disputes.map((dispute) => (
+            {disputes.map(dispute => (
               <tr key={dispute.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{dispute.id}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {dispute.id}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{`${dispute.creator} vs ${dispute.promoter}`}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{dispute.reason}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {dispute.reason}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[dispute.status]}`}>
+                  <span
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[dispute.status]}`}
+                  >
                     {dispute.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <Link href={`/disputes/${dispute.id}`} className="text-indigo-600 hover:text-indigo-900">
+                  <Link
+                    href={`/disputes/${dispute.id}`}
+                    className="text-indigo-600 hover:text-indigo-900"
+                  >
                     View Details
                   </Link>
                 </td>

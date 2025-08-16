@@ -31,14 +31,18 @@ export const PromoterCard = ({ promoter }: PromoterCardProps) => {
   return (
     <div className="bg-white shadow rounded-lg p-6 flex flex-col">
       <div className="flex-grow">
-        <p className="text-sm font-semibold text-indigo-600 mb-2">{promoter.niche}</p>
+        <p className="text-sm font-semibold text-indigo-600 mb-2">
+          {promoter.niche}
+        </p>
         <p className="text-gray-700 mb-4">{promoter.bio}</p>
       </div>
       <div className="flex justify-between items-center mt-4">
-        <span className={`font-semibold text-sm px-3 py-1 rounded-full ${tierStyles[promoter.tier]}`}>
+        <span
+          className={`font-semibold text-sm px-3 py-1 rounded-full ${tierStyles[promoter.tier]}`}
+        >
           {promoter.tier} Tier
         </span>
-        <button 
+        <button
           onClick={handleInvite}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >

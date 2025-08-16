@@ -7,16 +7,19 @@ Platform promosi konten kreator dengan sistem pay-per-view dan deteksi bot otoma
 Platform ini menyediakan fungsionalitas yang kaya untuk setiap peran dalam ekosistem promosi konten.
 
 #### Untuk Kreator
+
 - **Manajemen Kampanye:** Buat dan kelola kampanye promosi dengan mudah.
 - **Dasbor Analitik:** Dapatkan wawasan mendalam tentang jangkauan, penayangan, dan ROI kampanye.
 - **Penemuan Promotor:** Cari, filter, dan undang promotor yang paling sesuai dengan niche Anda.
 
 #### Untuk Promotor
+
 - **Profil Publik & Portofolio:** Bangun reputasi Anda dengan profil yang dapat disesuaikan yang menampilkan keahlian dan riwayat kerja Anda.
 - **Sistem Tingkatan (Tier):** Naikkan peringkat melalui tingkatan kinerja (Bronze, Silver, Gold) untuk mendapatkan lebih banyak peluang.
 - **Manajemen Kampanye:** Lamar kampanye dan lacak penghasilan Anda dengan mudah.
 
 #### Untuk Admin
+
 - **Pusat Resolusi Sengketa:** Mediasi dan selesaikan sengketa antara kreator dan promotor melalui antarmuka khusus.
 
 ## 🔮 Peta Jalan Masa Depan
