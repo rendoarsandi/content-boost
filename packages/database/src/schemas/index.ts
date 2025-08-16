@@ -52,3 +52,14 @@ export const platformRevenue = {
   source: 'source',
   createdAt: 'created_at',
 };
+
+export const promoterProfiles = {
+  id: 'id',
+  user_id: 'user_id',
+  bio: 'bio',
+  niche: 'niche',
+  portfolio_links: 'portfolio_links',
+  tier: 'tier',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+};
