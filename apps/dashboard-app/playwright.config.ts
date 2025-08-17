@@ -12,7 +12,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3002',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -36,7 +36,7 @@ export default defineConfig({
   // Run local dev server before starting the tests
   webServer: {
     command: 'npm run dev',
-    port: 3000,
+    port: 3002,
     reuseExistingServer: !process.env.CI,
     timeout: 120000, // 2 minutes
     cwd: './',

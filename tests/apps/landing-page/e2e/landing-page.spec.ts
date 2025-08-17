@@ -39,7 +39,7 @@ test.describe('Landing Page E2E Test', () => {
     await expect(
       page.locator('text=Platform Promosi Generasi Berikutnya')
     ).toBeVisible();
-    await expect(page.locator('text=Sistem Pay-Per-View')).toBeVisible();
+    await expect(page.locator('h1').getByText('Sistem Pay-Per-View')).toBeVisible();
 
     // Verify hero description
     await expect(
@@ -75,7 +75,7 @@ test.describe('Landing Page E2E Test', () => {
     // Verify feature descriptions
     await expect(page.locator('text=budget dan rate per view')).toBeVisible();
     await expect(page.locator('text=views yang legitimate')).toBeVisible();
-    await expect(page.locator('text=TikTok dan Instagram')).toBeVisible();
+    await expect(page.locator('p').getByText('TikTok dan Instagram').first()).toBeVisible();
   });
 
   test('Should display promoter features section', async ({ page }) => {
@@ -122,7 +122,7 @@ test.describe('Landing Page E2E Test', () => {
     await expect(page.locator('footer')).toBeVisible();
     await expect(page.locator('h3:has-text("ContentBoost")')).toBeVisible();
     await expect(
-      page.locator('text=Platform promosi konten kreator')
+      page.locator('footer').getByText('Platform promosi konten kreator')
     ).toBeVisible();
 
     // Verify footer navigation sections
@@ -260,7 +260,8 @@ test.describe('Landing Page E2E Test', () => {
     }
 
     // Verify icons are loaded (Lucide icons)
-    await expect(page.locator('svg')).toHaveCount.greaterThan(0);
+    const svgCount = await page.locator('svg').count();
+    expect(svgCount).toBeGreaterThan(0);
   });
 
   test('Should have proper SEO elements', async ({ page }) => {
@@ -271,7 +272,8 @@ test.describe('Landing Page E2E Test', () => {
 
     // Verify heading hierarchy
     await expect(page.locator('h1')).toHaveCount(1);
-    await expect(page.locator('h2')).toHaveCount.greaterThan(0);
+    const h2Count = await page.locator('h2').count();
+    expect(h2Count).toBeGreaterThan(0);
 
     // Verify proper heading structure
     const h1 = page.locator('h1').first();
