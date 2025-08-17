@@ -75,22 +75,23 @@
     "version": "1.54.2",
     "workers": 8,
     "webServer": {
-      "command": "node ../../scripts/single-app-dev.cjs dashboard-app",
-      "port": 3000,
+      "command": "npm run dev",
+      "port": 3002,
       "reuseExistingServer": true,
-      "timeout": 120000
+      "timeout": 120000,
+      "cwd": "./"
     }
   },
   "suites": [],
   "errors": [
     {
-      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
-      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
+      "message": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.",
+      "stack": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments."
     }
   ],
   "stats": {
-    "startTime": "2025-08-15T03:51:34.265Z",
-    "duration": 100.49500000000012,
+    "startTime": "2025-08-17T00:55:47.777Z",
+    "duration": 14.275000000000091,
     "expected": 0,
     "skipped": 0,
     "unexpected": 0,
