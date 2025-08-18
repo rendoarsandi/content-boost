@@ -1,374 +1,80 @@
-import { getSession } from '@repo/auth/server-only';
-import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@repo/ui';
+import React from 'react';
+import { StatCard } from '@/components/analytics/StatCard';
+import { PromoterPerformanceTable } from '@/components/analytics/PromoterPerformanceTable';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-
-async function getCreatorAnalytics(creatorId: string) {
-  // Get date ranges
-  const now = new Date();
-  const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-  // Get campaign performance using Prisma
-  const campaignPerformance = await db.campaign.findMany({
-    where: { creatorId },
-    include: {
-      applications: {
-        include: {
-          viewRecords: true,
-          payouts: true,
-        },
-      },
-      creator: {
-        select: { id: true, name: true },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  // Calculate analytics from applications data
-  const totalViews = campaignPerformance.reduce(
-    (sum, campaign) =>
-      sum +
-      campaign.applications.reduce(
-        (campaignSum, application) =>
-          campaignSum +
-          application.viewRecords.reduce(
-            (recordSum, record) => recordSum + record.viewCount,
-            0
-          ),
-        0
-      ),
-    0
-  );
-
-  const totalEarnings = campaignPerformance.reduce(
-    (sum, campaign) =>
-      sum +
-      campaign.applications.reduce(
-        (campaignSum, application) =>
-          campaignSum +
-          application.payouts.reduce(
-            (payoutSum, payout) => payoutSum + payout.amount,
-            0
-          ),
-        0
-      ),
-    0
-  );
-
-  // Mock data for recent trends (simplified)
-  const recentViews = {
-    totalViews: Math.floor(totalViews * 0.3),
-    legitimateViews: Math.floor(totalViews * 0.25),
-  };
-  const monthlyViews = {
-    totalViews: totalViews,
-    legitimateViews: Math.floor(totalViews * 0.8),
-  };
-
-  // Mock data for spending (since we don't have payouts table yet)
-  const totalSpending = {
-    totalSpent: totalEarnings,
-    totalPayouts: campaignPerformance.length,
-  };
-
+// Mock Data for Analytics
+const getAnalyticsData = async () => {
   return {
-    campaignPerformance: campaignPerformance.map(campaign => ({
-      campaign: {
-        id: campaign.id,
-        title: campaign.title,
-        status: campaign.status.toLowerCase(),
-        budget: campaign.budget,
-        ratePerView: campaign.ratePerView,
+    overallStats: {
+      totalViews: '1.2M',
+      totalSpend: '$5,400',
+      averageROI: '210%',
+    },
+    chartData: [
+      // Placeholder for chart data points
+      { name: 'Jan', views: 4000 },
+      { name: 'Feb', views: 3000 },
+      { name: 'Mar', views: 5000 },
+      { name: 'Apr', views: 4500 },
+      { name: 'May', views: 6000 },
+      { name: 'Jun', views: 5500 },
+    ],
+    promoterPerformance: [
+      {
+        id: 'usr_123',
+        name: 'TechPromoter',
+        views: '650K',
+        spend: '$2,100',
+        roi: '250%',
       },
-      totalViews: campaign.applications.reduce(
-        (sum, app) =>
-          sum +
-          app.viewRecords.reduce(
-            (viewSum, record) => viewSum + record.viewCount,
-            0
-          ),
-        0
-      ),
-      legitimateViews: campaign.applications.reduce(
-        (sum, app) =>
-          sum +
-          app.viewRecords.reduce(
-            (viewSum, record) =>
-              viewSum + (record.isLegitimate ? record.viewCount : 0),
-            0
-          ),
-        0
-      ),
-    })),
-    recentViews: {
-      totalViews: recentViews.totalViews,
-      legitimateViews: recentViews.legitimateViews,
-    },
-    monthlyViews: {
-      totalViews: monthlyViews.totalViews,
-      legitimateViews: monthlyViews.legitimateViews,
-    },
-    totalSpending: {
-      totalSpent: totalSpending.totalSpent,
-      totalPayouts: totalSpending.totalPayouts,
-    },
+      {
+        id: 'usr_456',
+        name: 'FashionGuru',
+        views: '450K',
+        spend: '$1,800',
+        roi: '180%',
+      },
+      {
+        id: 'usr_789',
+        name: 'FitLife',
+        views: '100K',
+        spend: '$1,500',
+        roi: '50%',
+      },
+    ],
   };
-}
+};
 
-export default async function CreatorAnalyticsPage() {
-  const session = await getSession();
-
-  if (!session?.user || (session.user as any).role !== 'creator') {
-    redirect('/auth/login');
-  }
-
-  const analytics = await getCreatorAnalytics((session.user as any).id);
+const AnalyticsDashboardPage = async () => {
+  const data = await getAnalyticsData();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          Analytics Dashboard
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Track your campaign performance and metrics
-        </p>
+    <div className="container mx-auto p-4 space-y-6">
+      <h1 className="text-2xl font-bold">Campaign Analytics</h1>
+
+      {/* Overall Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatCard title="Total Views" value={data.overallStats.totalViews} />
+        <StatCard title="Total Spend" value={data.overallStats.totalSpend} />
+        <StatCard
+          title="Average ROI"
+          value={data.overallStats.averageROI}
+          valueClassName="text-green-500"
+        />
       </div>
 
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Views (7 days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {analytics.recentViews.legitimateViews.toLocaleString()}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Legitimate views</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Views (30 days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {analytics.monthlyViews.legitimateViews.toLocaleString()}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Legitimate views</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Spent
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              Rp {analytics.totalSpending.totalSpent.toLocaleString()}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">All-time spending</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Payouts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {analytics.totalSpending.totalPayouts}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Completed payouts</p>
-          </CardContent>
-        </Card>
+      {/* Chart */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="font-semibold mb-4">Views Over Time</h3>
+        <div className="h-64 bg-gray-100 flex items-center justify-center rounded">
+          <p className="text-gray-500">Chart Placeholder</p>
+        </div>
       </div>
 
-      {/* Campaign Performance */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Campaign Performance</CardTitle>
-          <CardDescription>
-            Performance metrics for all your campaigns
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {analytics.campaignPerformance.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No campaign data available</p>
-              <p className="text-sm mt-2">
-                Create campaigns to see performance metrics
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {analytics.campaignPerformance.map(item => {
-                const totalViews = Number(item.totalViews || 0);
-                const legitimateViews = Number(item.legitimateViews || 0);
-                const budget = Number(item.campaign.budget);
-                const ratePerView = Number(item.campaign.ratePerView);
-                const estimatedSpent = legitimateViews * ratePerView;
-                const budgetUsed =
-                  budget > 0 ? (estimatedSpent / budget) * 100 : 0;
-
-                return (
-                  <div key={item.campaign.id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-semibold text-lg">
-                          {item.campaign.title}
-                        </h3>
-                        <span
-                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                            item.campaign.status === 'active'
-                              ? 'bg-green-100 text-green-800'
-                              : item.campaign.status === 'draft'
-                                ? 'bg-gray-100 text-gray-800'
-                                : item.campaign.status === 'paused'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-blue-100 text-blue-800'
-                          }`}
-                        >
-                          {item.campaign.status}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-600">Legitimate Views</p>
-                        <p className="font-semibold text-lg">
-                          {legitimateViews.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600">Budget Used</p>
-                        <p className="font-semibold text-lg">
-                          {budgetUsed.toFixed(1)}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600">Estimated Spent</p>
-                        <p className="font-semibold text-lg">
-                          Rp {estimatedSpent.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600">Rate per View</p>
-                        <p className="font-semibold text-lg">
-                          Rp {ratePerView.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Budget Progress Bar */}
-                    <div className="mt-4">
-                      <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Budget Progress</span>
-                        <span>
-                          Rp {estimatedSpent.toLocaleString()} / Rp{' '}
-                          {budget.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${
-                            budgetUsed > 90
-                              ? 'bg-red-500'
-                              : budgetUsed > 70
-                                ? 'bg-yellow-500'
-                                : 'bg-green-500'
-                          }`}
-                          style={{ width: `${Math.min(budgetUsed, 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Performance Insights */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Performance Insights</CardTitle>
-          <CardDescription>
-            Key insights from your campaign data
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {analytics.campaignPerformance.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">
-                No insights available yet. Create and launch campaigns to see
-                performance insights.
-              </p>
-            ) : (
-              <>
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">
-                    📈 Growth Trend
-                  </h4>
-                  <p className="text-blue-800 text-sm">
-                    You've received{' '}
-                    {analytics.recentViews.legitimateViews.toLocaleString()}{' '}
-                    legitimate views in the last 7 days and{' '}
-                    {analytics.monthlyViews.legitimateViews.toLocaleString()} in
-                    the last 30 days.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <h4 className="font-medium text-green-900 mb-2">
-                    💰 Spending Efficiency
-                  </h4>
-                  <p className="text-green-800 text-sm">
-                    Total spending: Rp{' '}
-                    {analytics.totalSpending.totalSpent.toLocaleString()}
-                    across {analytics.totalSpending.totalPayouts} completed
-                    payouts.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <h4 className="font-medium text-purple-900 mb-2">
-                    🎯 Campaign Status
-                  </h4>
-                  <p className="text-purple-800 text-sm">
-                    You have {analytics.campaignPerformance.length} total
-                    campaigns. Monitor your active campaigns to optimize
-                    performance.
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Promoter Performance Table */}
+      <PromoterPerformanceTable data={data.promoterPerformance} />
     </div>
   );
-}
+};
+
+export default AnalyticsDashboardPage;

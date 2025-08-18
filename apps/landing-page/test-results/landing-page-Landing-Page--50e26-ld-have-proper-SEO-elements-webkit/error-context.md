@@ -1,0 +1,74 @@
+# Page snapshot
+
+```yaml
+- banner:
+    - link "ContentBoost":
+        - /url: '#'
+    - navigation:
+        - link "Masuk":
+            - /url: https://auth.domain.com
+        - link "Daftar Sekarang":
+            - /url: https://auth.domain.com
+- main:
+    - text: Platform Promosi Generasi Berikutnya
+    - heading "Tingkatkan Engagement Konten Anda dengan Sistem Pay-Per-View" [level=1]
+    - paragraph: Platform promosi konten kreator yang memungkinkan Anda memberikan fee kepada promoter berdasarkan views legitimate dengan deteksi bot otomatis dan sistem pembayaran harian.
+    - link "Mulai Sebagai Creator":
+        - /url: https://auth.domain.com
+    - link "Bergabung Sebagai Promoter":
+        - /url: https://auth.domain.com
+    - heading "Untuk Content Creators" [level=2]
+    - paragraph: Tingkatkan reach dan engagement konten Anda dengan mudah
+    - heading "Campaign Management" [level=3]
+    - paragraph: Buat campaign promosi dengan budget dan rate per view yang dapat Anda tentukan sendiri.
+    - heading "Bot Detection" [level=3]
+    - paragraph: Sistem deteksi bot otomatis memastikan Anda hanya membayar untuk views yang legitimate.
+    - heading "Real-time Analytics" [level=3]
+    - paragraph: Monitor performa campaign secara real-time dari TikTok dan Instagram.
+    - heading "Untuk Promoters" [level=2]
+    - paragraph: Hasilkan income dengan mempromosikan konten berkualitas
+    - heading "Content Editing" [level=3]
+    - paragraph: Akses materi promosi dari creator dan edit sesuai gaya konten Anda.
+    - heading "Daily Payouts" [level=3]
+    - paragraph: Terima pembayaran harian otomatis berdasarkan views legitimate yang transparan.
+    - heading "Social Integration" [level=3]
+    - paragraph: Hubungkan akun TikTok dan Instagram Anda untuk tracking otomatis.
+    - heading "Siap Meningkatkan Engagement Konten Anda?" [level=2]
+    - paragraph: Bergabunglah dengan ribuan creator dan promoter yang sudah merasakan manfaatnya.
+    - link "Mulai Sekarang Gratis":
+        - /url: https://auth.domain.com
+- contentinfo:
+    - heading "ContentBoost" [level=3]
+    - paragraph: Platform promosi konten kreator dengan sistem pay-per-view.
+    - heading "Product" [level=4]
+    - list:
+        - listitem:
+            - link "Features":
+                - /url: '#features'
+        - listitem:
+            - link "Pricing":
+                - /url: '#pricing'
+        - listitem:
+            - link "FAQ":
+                - /url: '#faq'
+    - heading "Company" [level=4]
+    - list:
+        - listitem:
+            - link "About Us":
+                - /url: '#'
+        - listitem:
+            - link "Contact":
+                - /url: '#'
+        - listitem:
+            - link "Privacy Policy":
+                - /url: '#'
+    - heading "Support" [level=4]
+    - list:
+        - listitem:
+            - link "Help Center":
+                - /url: '#'
+        - listitem:
+            - link "Documentation":
+                - /url: '#'
+    - paragraph: © 2025 ContentBoost. All rights reserved.
+```

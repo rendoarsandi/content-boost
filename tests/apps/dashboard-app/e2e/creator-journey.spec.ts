@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
  * 4. Campaign metrics monitoring
  * 5. Payout verification
  *
- * Note: Uses mock OAuth for testing since TikTok/Instagram OAuth 
+ * Note: Uses mock OAuth for testing since TikTok/Instagram OAuth
  * requires real credentials and approval process
  */
 
@@ -29,16 +29,20 @@ test.describe('Creator Journey E2E Test', () => {
     await page.goto('http://localhost:3000/auth/login');
 
     // Verify OAuth login options exist
-    await expect(page.locator('button:has-text("Continue with TikTok")')).toBeVisible();
-    await expect(page.locator('button:has-text("Continue with Instagram")')).toBeVisible();
+    await expect(
+      page.locator('button:has-text("Continue with TikTok")')
+    ).toBeVisible();
+    await expect(
+      page.locator('button:has-text("Continue with Instagram")')
+    ).toBeVisible();
 
-    // Mock OAuth success: Navigate directly to onboarding 
+    // Mock OAuth success: Navigate directly to onboarding
     // (simulating successful OAuth callback)
     await page.goto('http://localhost:3000/auth/onboarding');
 
     // Select creator role in onboarding
     await page.click('input[value="creator"]');
-    
+
     // Submit role selection
     await page.click('button:has-text("Complete Setup")');
 
@@ -46,7 +50,9 @@ test.describe('Creator Journey E2E Test', () => {
     await page.waitForURL('**/creator');
 
     // Verify dashboard loaded correctly with actual UI elements
-    await expect(page.locator('h1:has-text("Creator Dashboard")')).toBeVisible();
+    await expect(
+      page.locator('h1:has-text("Creator Dashboard")')
+    ).toBeVisible();
     await expect(page.locator('text=Total Campaigns')).toBeVisible();
     await expect(page.locator('text=Active Promoters')).toBeVisible();
   });
@@ -56,18 +62,27 @@ test.describe('Creator Journey E2E Test', () => {
     await page.goto('http://localhost:3000/creator/campaigns/new');
 
     // Verify campaign creation page loaded
-    await expect(page.locator('h1:has-text("Create New Campaign")')).toBeVisible();
-    await expect(page.locator('text=Set up a new promotion campaign')).toBeVisible();
+    await expect(
+      page.locator('h1:has-text("Create New Campaign")')
+    ).toBeVisible();
+    await expect(
+      page.locator('text=Set up a new promotion campaign')
+    ).toBeVisible();
 
     // Fill campaign form with actual form fields
     await page.fill('input[name="title"]', 'Test E2E Campaign');
-    await page.fill('textarea[name="description"]', 'This is a test campaign for E2E testing');
+    await page.fill(
+      'textarea[name="description"]',
+      'This is a test campaign for E2E testing'
+    );
     await page.fill('input[name="budget"]', '1000000');
     await page.fill('input[name="ratePerView"]', '1000');
-    
+
     // Set dates
     const today = new Date().toISOString().split('T')[0];
-    const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0];
     await page.fill('input[name="startDate"]', today);
     await page.fill('input[name="endDate"]', endDate);
 
@@ -76,7 +91,10 @@ test.describe('Creator Journey E2E Test', () => {
 
     // Add campaign material
     await page.fill('input[name="materialTitle"]', 'Test Material');
-    await page.fill('input[name="materialUrl"]', 'https://example.com/material');
+    await page.fill(
+      'input[name="materialUrl"]',
+      'https://example.com/material'
+    );
     await page.selectOption('select[name="materialType"]', 'youtube');
     await page.click('button:has-text("Add Material")');
 
@@ -85,15 +103,19 @@ test.describe('Creator Journey E2E Test', () => {
 
     // Wait for success and extract campaign ID
     await page.waitForTimeout(2000); // Allow for form submission
-    
+
     // Verify successful creation (could be redirect or success message)
     const url = page.url();
     if (url.includes('/campaigns/')) {
       campaignId = url.split('/').pop() || '';
-      await expect(page.locator('h1:has-text("Test E2E Campaign")')).toBeVisible();
+      await expect(
+        page.locator('h1:has-text("Test E2E Campaign")')
+      ).toBeVisible();
     } else {
       // Alternative: check for success message on same page
-      await expect(page.locator('.toast, .alert')).toContainText(/success|created/i);
+      await expect(page.locator('.toast, .alert')).toContainText(
+        /success|created/i
+      );
     }
   });
 

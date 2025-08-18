@@ -67,6 +67,9 @@ export interface ViewRecord {
 
 export class BotDetectionService {
   private config: BotDetectionConfig;
+  private cache: Map<string, { result: BotAnalysis; timestamp: number }> =
+    new Map();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   constructor(config?: Partial<BotDetectionConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -77,15 +80,158 @@ export class BotDetectionService {
     campaignId: string,
     viewMetrics: ViewMetrics[]
   ): Promise<BotAnalysis> {
-    return detectBot(promoterId, campaignId, viewMetrics, this.config);
+    // Create cache key
+    const cacheKey = `${promoterId}-${campaignId}-${viewMetrics.length}`;
+
+    // Check cache first
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.result;
+    }
+
+    // For large datasets, use batch processing
+    const result =
+      viewMetrics.length > 1000
+        ? await this.analyzeBatched(promoterId, campaignId, viewMetrics)
+        : detectBot(promoterId, campaignId, viewMetrics, this.config);
+
+    // Cache the result
+    this.cache.set(cacheKey, { result, timestamp: Date.now() });
+
+    // Clean old cache entries periodically
+    this.cleanCache();
+
+    return result;
+  }
+
+  private async analyzeBatched(
+    promoterId: string,
+    campaignId: string,
+    viewMetrics: ViewMetrics[]
+  ): Promise<BotAnalysis> {
+    const batchSize = 500;
+    const batches = [];
+
+    // Split into batches
+    for (let i = 0; i < viewMetrics.length; i += batchSize) {
+      batches.push(viewMetrics.slice(i, i + batchSize));
+    }
+
+    // Process batches and aggregate results
+    const batchResults = batches.map(batch =>
+      detectBot(promoterId, campaignId, batch, this.config)
+    );
+
+    // Aggregate batch results
+    return this.aggregateBatchResults(
+      promoterId,
+      campaignId,
+      batchResults,
+      viewMetrics
+    );
+  }
+
+  private aggregateBatchResults(
+    promoterId: string,
+    campaignId: string,
+    batchResults: BotAnalysis[],
+    originalMetrics: ViewMetrics[]
+  ): BotAnalysis {
+    const totalViews = batchResults.reduce(
+      (sum, batch) => sum + (batch.metrics.totalViews || 0),
+      0
+    );
+    const totalLikes = batchResults.reduce(
+      (sum, batch) => sum + (batch.metrics.totalLikes || 0),
+      0
+    );
+    const totalComments = batchResults.reduce(
+      (sum, batch) => sum + (batch.metrics.totalComments || 0),
+      0
+    );
+
+    const avgBotScore =
+      batchResults.reduce((sum, batch) => sum + batch.botScore, 0) /
+      batchResults.length;
+    const maxBotScore = Math.max(...batchResults.map(batch => batch.botScore));
+
+    // Use the higher of average or max for final score (more conservative)
+    const finalBotScore = Math.max(avgBotScore, maxBotScore * 0.8);
+
+    const viewLikeRatio = totalLikes > 0 ? totalViews / totalLikes : Infinity;
+    const viewCommentRatio =
+      totalComments > 0 ? totalViews / totalComments : Infinity;
+
+    const action = this.determineAction(finalBotScore);
+    const reasons = batchResults
+      .flatMap(batch => batch.reason.split('; '))
+      .filter((v, i, a) => a.indexOf(v) === i);
+
+    return {
+      promoterId,
+      campaignId,
+      analysisWindow: {
+        start: originalMetrics[0]?.timestamp || new Date(),
+        end:
+          originalMetrics[originalMetrics.length - 1]?.timestamp || new Date(),
+      },
+      metrics: {
+        avgViewsPerMinute: 0, // Simplified for batched processing
+        avgLikesPerMinute: 0,
+        avgCommentsPerMinute: 0,
+        viewLikeRatio,
+        viewCommentRatio,
+        spikeDetected: batchResults.some(batch => batch.metrics.spikeDetected),
+        totalViews,
+        totalLikes,
+        totalComments,
+      },
+      botScore: Math.round(finalBotScore),
+      action,
+      reason: reasons.join('; '),
+      confidence: finalBotScore,
+    };
+  }
+
+  private determineAction(
+    botScore: number
+  ): 'none' | 'monitor' | 'warning' | 'ban' {
+    if (botScore >= this.config.confidence.ban) return 'ban';
+    if (botScore >= this.config.confidence.warning) return 'warning';
+    if (botScore >= this.config.confidence.monitor) return 'monitor';
+    return 'none';
+  }
+
+  private cleanCache(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > this.CACHE_TTL) {
+        this.cache.delete(key);
+      }
+    }
   }
 
   updateConfig(config: Partial<BotDetectionConfig>): void {
     this.config = { ...this.config, ...config };
+    // Clear cache when config changes
+    this.cache.clear();
   }
 
   getConfig(): BotDetectionConfig {
     return { ...this.config };
+  }
+
+  // Method to manually clear cache
+  clearCache(): void {
+    this.cache.clear();
+  }
+
+  // Get cache stats for monitoring
+  getCacheStats(): { size: number; hitRate: number } {
+    return {
+      size: this.cache.size,
+      hitRate: 0, // Could implement hit rate tracking if needed
+    };
   }
 }
 
@@ -159,12 +305,19 @@ export function detectBot(
   const viewCommentRatio =
     totalComments > 0 ? totalViews / totalComments : Infinity;
 
-  // Detect spikes
-  const { spikeDetected, spikePercentage } = detectViewSpikes(
-    sortedMetrics,
-    config.thresholds.spikeTimeWindow,
-    config.thresholds.spikePercentage
-  );
+  // Detect spikes - use optimized version for large datasets
+  const { spikeDetected, spikePercentage } =
+    sortedMetrics.length > 1000
+      ? detectViewSpikesOptimized(
+          sortedMetrics,
+          config.thresholds.spikeTimeWindow,
+          config.thresholds.spikePercentage
+        )
+      : detectViewSpikes(
+          sortedMetrics,
+          config.thresholds.spikeTimeWindow,
+          config.thresholds.spikePercentage
+        );
 
   // Calculate bot score
   let botScore = 0;
@@ -294,6 +447,72 @@ function detectViewSpikes(
         spikeDetected = true;
         maxSpikePercentage = Math.max(maxSpikePercentage, percentageIncrease);
       }
+    }
+  }
+
+  return {
+    spikeDetected,
+    spikePercentage: spikeDetected ? maxSpikePercentage : undefined,
+  };
+}
+
+/**
+ * Optimized spike detection for large datasets
+ * Uses sampling and early termination for better performance
+ */
+function detectViewSpikesOptimized(
+  metrics: ViewMetrics[],
+  timeWindowMs: number,
+  thresholdPercentage: number
+): { spikeDetected: boolean; spikePercentage?: number } {
+  if (metrics.length < 3) {
+    return { spikeDetected: false };
+  }
+
+  let maxSpikePercentage = 0;
+  let spikeDetected = false;
+
+  // Calculate baseline using more efficient approach
+  const totalViews = metrics.reduce((sum, m) => sum + m.viewCount, 0);
+  const baselineAvg = totalViews / metrics.length;
+
+  // Use sampling for very large datasets
+  const sampleRate =
+    metrics.length > 5000
+      ? Math.ceil(metrics.length / 2000)
+      : metrics.length > 2000
+        ? Math.ceil(metrics.length / 1000)
+        : 1;
+  const sampledMetrics =
+    sampleRate > 1
+      ? metrics.filter((_, index) => index % sampleRate === 0)
+      : metrics;
+
+  // Use sliding window approach for better performance
+  const windowSize = Math.min(20, Math.floor(sampledMetrics.length / 5));
+
+  for (let i = windowSize; i < sampledMetrics.length && !spikeDetected; i++) {
+    const current = sampledMetrics[i];
+
+    // Calculate moving average of previous window
+    const prevWindow = sampledMetrics.slice(i - windowSize, i);
+    const prevAvg =
+      prevWindow.reduce((sum, m) => sum + m.viewCount, 0) / prevWindow.length;
+
+    // Skip if previous average is too low
+    if (prevAvg < 10) continue;
+
+    // Calculate percentage increase
+    const percentageIncrease = ((current.viewCount - prevAvg) / prevAvg) * 100;
+
+    // Check for spike with relaxed threshold for performance
+    if (
+      percentageIncrease > thresholdPercentage &&
+      current.viewCount > baselineAvg * 1.5
+    ) {
+      spikeDetected = true;
+      maxSpikePercentage = percentageIncrease;
+      break; // Early exit for performance
     }
   }
 
