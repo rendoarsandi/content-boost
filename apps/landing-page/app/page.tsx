@@ -20,8 +20,12 @@ import {
   Mail,
   BookOpen,
   ShieldCheck,
+  UserPlus,
+  TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui';
 
 // Helper component for Feature Cards for better reusability
 const FeatureCard = ({
@@ -42,6 +46,56 @@ const FeatureCard = ({
       <p className="text-muted-foreground">{children}</p>
     </CardContent>
   </Card>
+);
+
+// Helper component for Testimonial Cards
+const TestimonialCard = ({
+  name,
+  role,
+  avatar,
+  children,
+}: {
+  name: string;
+  role: string;
+  avatar: string;
+  children: React.ReactNode;
+}) => (
+  <Card className="bg-card/50 flex flex-col justify-between shadow-lg">
+    <CardContent className="pt-6">
+      <blockquote className="text-muted-foreground">{children}</blockquote>
+    </CardContent>
+    <CardHeader className="flex flex-row items-center gap-4 pt-4">
+      <Avatar>
+        <AvatarImage src={avatar} alt={name} />
+        <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+      </Avatar>
+      <div>
+        <CardTitle className="text-base">{name}</CardTitle>
+        <CardDescription>{role}</CardDescription>
+      </div>
+    </CardHeader>
+  </Card>
+);
+
+// Helper component for Step Cards
+const StepCard = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) => (
+  <div className="relative z-10 flex items-start gap-6">
+    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 border border-primary/20 shadow-sm">
+      {icon}
+    </div>
+    <div>
+      <h4 className="text-xl font-semibold mb-2">{title}</h4>
+      <p className="text-muted-foreground">{description}</p>
+    </div>
+  </div>
 );
 
 export default function HomePage() {
@@ -91,6 +145,40 @@ export default function HomePage() {
                   Bergabung Sebagai Promoter
                 </Link>
               </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-4">
+              Gratis untuk bergabung. Tidak perlu kartu kredit.
+            </p>
+          </div>
+        </section>
+
+        {/* Trusted By Section */}
+        <section className="py-12 bg-background">
+          <div className="container">
+            <p className="text-center text-muted-foreground mb-6">
+              Dipercaya oleh para kreator dan brand terbaik
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-6">
+              <img
+                src="/logos/logo1.svg"
+                alt="Partner Logo 1"
+                className="h-8"
+              />
+              <img
+                src="/logos/logo2.svg"
+                alt="Partner Logo 2"
+                className="h-8"
+              />
+              <img
+                src="/logos/logo3.svg"
+                alt="Partner Logo 3"
+                className="h-8"
+              />
+              <img
+                src="/logos/logo4.svg"
+                alt="Partner Logo 4"
+                className="h-8"
+              />
             </div>
           </div>
         </section>
@@ -161,6 +249,171 @@ export default function HomePage() {
                 otomatis.
               </FeatureCard>
             </div>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section id="how-it-works" className="py-16 sm:py-24 px-4 bg-muted/50">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tight">
+                Bagaimana Cara Kerjanya?
+              </h2>
+              <p className="text-lg text-muted-foreground mt-2">
+                Proses yang sederhana dan transparan untuk semua pengguna.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              <div>
+                <h3 className="text-2xl font-semibold text-center mb-8">
+                  Untuk Kreator
+                </h3>
+                <div className="relative flex flex-col gap-8">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-12 bottom-12 w-px bg-border"></div>
+                  <StepCard
+                    icon={<PenSquare className="w-8 h-8 text-primary" />}
+                    title="1. Buat Kampanye"
+                    description="Tentukan tujuan, budget, dan target audiens Anda hanya dalam beberapa klik."
+                  />
+                  <StepCard
+                    icon={<Share2 className="w-8 h-8 text-primary" />}
+                    title="2. Undang Promotor"
+                    description="Pilih dari ribuan promotor berkualitas atau biarkan mereka yang melamar."
+                  />
+                  <StepCard
+                    icon={<BarChart className="w-8 h-8 text-primary" />}
+                    title="3. Lacak Performa"
+                    description="Pantau hasil kampanye secara real-time dan bayar hanya untuk hasil yang nyata."
+                  />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-center mb-8">
+                  Untuk Promotor
+                </h3>
+                <div className="relative flex flex-col gap-8">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-12 bottom-12 w-px bg-border"></div>
+                  <StepCard
+                    icon={<Briefcase className="w-8 h-8 text-primary" />}
+                    title="1. Lamar Kampanye"
+                    description="Temukan kampanye yang sesuai dengan niche dan audiens Anda."
+                  />
+                  <StepCard
+                    icon={<CheckCircle className="w-8 h-8 text-primary" />}
+                    title="2. Promosikan Konten"
+                    description="Buat konten promosi yang otentik dan bagikan di platform sosial media Anda."
+                  />
+                  <StepCard
+                    icon={<DollarSign className="w-8 h-8 text-primary" />}
+                    title="3. Dapatkan Bayaran"
+                    description="Terima pembayaran harian secara otomatis untuk setiap view yang terverifikasi."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section id="testimonials" className="py-16 sm:py-24 px-4">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tight">
+                Apa Kata Mereka yang Telah Bergabung?
+              </h2>
+              <p className="text-lg text-muted-foreground mt-2">
+                Kisah sukses dari para kreator dan promoter di platform kami.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <TestimonialCard
+                name="Rina Setiawati"
+                role="Content Creator"
+                avatar="/avatars/rina.png"
+              >
+                “Sejak menggunakan ContentBoost, jangkauan konten saya meningkat
+                200%! Sistemnya transparan dan mudah digunakan. Sangat
+                direkomendasikan untuk kreator yang ingin tumbuh.”
+              </TestimonialCard>
+              <TestimonialCard
+                name="Budi Hartono"
+                role="Promoter"
+                avatar="/avatars/budi.png"
+              >
+                “Akhirnya ada platform yang adil bagi para promoter. Pembayaran
+                harian membuat cash flow saya lancar. Saya bisa fokus membuat
+                konten promosi berkualitas.”
+              </TestimonialCard>
+              <TestimonialCard
+                name="Andi Wijaya"
+                role="Content Creator"
+                avatar="/avatars/andi.png"
+              >
+                “Fitur deteksi bot-nya luar biasa. Saya yakin bahwa budget
+                promosi saya hanya digunakan untuk audiens yang nyata. Hasilnya,
+                ROI kampanye saya jauh lebih tinggi.”
+              </TestimonialCard>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="py-16 sm:py-24 px-4">
+          <div className="container max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tight">
+                Pertanyaan yang Sering Diajukan
+              </h2>
+              <p className="text-lg text-muted-foreground mt-2">
+                Tidak menemukan jawaban yang Anda cari? Hubungi tim support
+                kami.
+              </p>
+            </div>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger>
+                  Bagaimana cara kerja deteksi bot?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Sistem kami menganalisis berbagai metrik seperti perilaku
+                  menonton, sumber traffic, dan data teknis lainnya untuk
+                  memberikan skor kepercayaan pada setiap view. Hanya view
+                  dengan skor di atas ambang batas yang dianggap valid dan akan
+                  dikenakan biaya.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-2">
+                <AccordionTrigger>
+                  Kapan saya akan menerima pembayaran sebagai promotor?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Pembayaran diproses secara otomatis setiap hari (24 jam) untuk
+                  semua penghasilan yang terverifikasi dari hari sebelumnya.
+                  Anda dapat melacak semua transaksi di dashboard Anda.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-3">
+                <AccordionTrigger>
+                  Platform sosial media apa saja yang didukung?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Saat ini kami mendukung integrasi penuh dengan TikTok dan
+                  Instagram. Dukungan untuk YouTube Shorts dan platform lainnya
+                  akan segera hadir.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-4">
+                <AccordionTrigger>
+                  Apakah ada biaya tersembunyi?
+                </AccordionTrigger>
+                <AccordionContent>
+                  Tidak. Kami percaya pada transparansi. Kreator membayar sesuai
+                  rate per view yang mereka tentukan, dan promotor menerima
+                  bagiannya setelah dipotong biaya platform yang jelas. Semua
+                  biaya akan terlihat di dashboard Anda.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </section>
 

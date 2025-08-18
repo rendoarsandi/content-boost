@@ -39,7 +39,9 @@ test.describe('Landing Page E2E Test', () => {
     await expect(
       page.locator('text=Platform Promosi Generasi Berikutnya')
     ).toBeVisible();
-    await expect(page.locator('h1').getByText('Sistem Pay-Per-View')).toBeVisible();
+    await expect(
+      page.locator('h1').getByText('Sistem Pay-Per-View')
+    ).toBeVisible();
 
     // Verify hero description
     await expect(
@@ -75,7 +77,9 @@ test.describe('Landing Page E2E Test', () => {
     // Verify feature descriptions
     await expect(page.locator('text=budget dan rate per view')).toBeVisible();
     await expect(page.locator('text=views yang legitimate')).toBeVisible();
-    await expect(page.locator('p').getByText('TikTok dan Instagram').first()).toBeVisible();
+    await expect(
+      page.locator('p').getByText('TikTok dan Instagram').first()
+    ).toBeVisible();
   });
 
   test('Should display promoter features section', async ({ page }) => {
