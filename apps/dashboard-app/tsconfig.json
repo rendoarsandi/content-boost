@@ -4,7 +4,15 @@
     "plugins": [{ "name": "next" }],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@repo/ui": ["../../packages/ui/src"],
+      "@repo/ui/*": ["../../packages/ui/src/*"],
+      "@repo/database": ["../../packages/database/src"],
+      "@repo/database/*": ["../../packages/database/src/*"],
+      "@repo/utils": ["../../packages/utils/src"],
+      "@repo/utils/*": ["../../packages/utils/src/*"],
+      "@repo/config": ["../../packages/config/src"],
+      "@repo/auth": ["../../packages/auth/src"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

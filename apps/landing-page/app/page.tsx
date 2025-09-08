@@ -24,8 +24,15 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@repo/ui';
 
 // Helper component for Feature Cards for better reusability
 const FeatureCard = ({
@@ -159,26 +166,10 @@ export default function HomePage() {
               Dipercaya oleh para kreator dan brand terbaik
             </p>
             <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-6">
-              <img
-                src="/logos/logo1.svg"
-                alt="Partner Logo 1"
-                className="h-8"
-              />
-              <img
-                src="/logos/logo2.svg"
-                alt="Partner Logo 2"
-                className="h-8"
-              />
-              <img
-                src="/logos/logo3.svg"
-                alt="Partner Logo 3"
-                className="h-8"
-              />
-              <img
-                src="/logos/logo4.svg"
-                alt="Partner Logo 4"
-                className="h-8"
-              />
+              <Image src="/logos/logo1.svg" alt="Partner Logo 1" width={120} height={32} className="h-8 w-auto" />
+              <Image src="/logos/logo2.svg" alt="Partner Logo 2" width={120} height={32} className="h-8 w-auto" />
+              <Image src="/logos/logo3.svg" alt="Partner Logo 3" width={120} height={32} className="h-8 w-auto" />
+              <Image src="/logos/logo4.svg" alt="Partner Logo 4" width={120} height={32} className="h-8 w-auto" />
             </div>
           </div>
         </section>
