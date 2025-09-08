@@ -20,7 +20,17 @@ const getDisputeDetails = async (disputeId: string) => {
 };
 
 // A simple form for admin actions - this would be a client component in a real app
-const AdminActionForm = ({ dispute }) => {
+interface DisputeDetails {
+  id: string;
+  creator: string;
+  promoter: string;
+  reason: string;
+  status: string;
+  description: string;
+  timeline: { date: string; event: string }[];
+}
+
+const AdminActionForm = ({ dispute }: { dispute: DisputeDetails }) => {
   // 'use client'; // This would be a client component
   return (
     <div className="mt-6">

@@ -28,7 +28,7 @@ const getDisputes = async () => {
   ];
 };
 
-const statusStyles = {
+const statusStyles: Record<string, string> = {
   Open: 'bg-red-100 text-red-800',
   'Under Review': 'bg-yellow-100 text-yellow-800',
   Closed: 'bg-green-100 text-green-800',

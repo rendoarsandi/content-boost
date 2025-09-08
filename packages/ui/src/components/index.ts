@@ -1,4 +1,4 @@
-export { Chat } from './chat';
+export { Chat } from './Chat';
 export { Button } from './button';
 export { Input } from './input';
 export {

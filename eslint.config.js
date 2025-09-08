@@ -33,6 +33,8 @@ export default tseslint.config(
       ...tseslint.configs.recommended.rules,
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs['core-web-vitals'].rules,
+      // Disable Next.js rule that assumes a Next.js pages directory in non-Next packages
+      '@next/next/no-html-link-for-pages': 'off',
       // Custom rules from old config
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
