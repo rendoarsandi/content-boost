@@ -41,7 +41,7 @@ function startDevServer() {
   console.log('🚀 Starting development server with timeout monitoring...\n');
 
   // Start the development server
-  devProcess = spawn('turbo', ['run', 'dev'], {
+  devProcess = spawn('turbo', ['run', 'dev', '--concurrency', '15'], {
     stdio: 'inherit',
     shell: true,
     cwd: process.cwd(),

@@ -10,7 +10,8 @@
     "./server-only": "./src/server-only.ts",
     "./client": "./src/client.ts",
     "./social": "./src/social/index.ts",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./provider": "./src/provider.tsx"
   },
   "scripts": {
     "build": "tsc",
@@ -23,6 +24,8 @@
   "dependencies": {
     "@repo/database": "*",
     "@supabase/supabase-js": "^2.55.0",
+    "better-auth": "^1.3.4",
+    "react": "^19.1.1",
     "zod": "^4.0.10"
   },
   "devDependencies": {

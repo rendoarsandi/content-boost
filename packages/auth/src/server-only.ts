@@ -1,40 +1,38 @@
-import 'server-only';
-import { supabase } from '@repo/config/supabase';
-import type { User, Session } from '@supabase/supabase-js';
+import { auth } from "./config";
+import { headers } from "next/headers";
 
-export const getUser = async (): Promise<User | null> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-};
-
-export const getSession = async (): Promise<Session | null> => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return session;
-};
-
-export const requireAuth = async (): Promise<User> => {
-  const user = await getUser();
-  if (!user) {
-    throw new Error('Unauthorized');
+export async function getServerSession() {
+  const sessionToken = headers().get("authorization")?.replace("Bearer ", "");
+  
+  if (!sessionToken) {
+    return null;
   }
-  return user;
-};
 
-export const requireSession = async (): Promise<Session> => {
-  const session = await getSession();
+  try {
+    const session = await auth.api.getSession({
+      headers: new Headers({
+        authorization: `Bearer ${sessionToken}`,
+      }),
+    });
+    
+    return session;
+  } catch (error) {
+    console.error("Failed to get server session:", error);
+    return null;
+  }
+}
+
+export async function requireAuth() {
+  const session = await getServerSession();
+  
   if (!session) {
-    throw new Error('Unauthorized');
+    throw new Error("Authentication required");
   }
+  
   return session;
-};
+}
 
-export const auth = {
-  getUser,
-  getSession,
-  requireAuth,
-  requireSession,
-};
+export { auth };
+
+// Alias for backward compatibility
+export const getSession = getServerSession;

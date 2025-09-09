@@ -1,96 +1,67 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Badge,
-} from '@repo/ui';
-import {
-  Target,
-  Bot,
-  BarChart,
-  PenSquare,
-  DollarSign,
-  Share2,
-  CheckCircle,
-  HelpCircle,
-  Briefcase,
-  Mail,
-  BookOpen,
-  ShieldCheck,
-  UserPlus,
-  TrendingUp,
-} from 'lucide-react';
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Disable static generation for this page
+// Completely disable static generation
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Helper component for Feature Cards for better reusability
 const FeatureCard = ({
-  icon,
   title,
   children,
 }: {
-  icon: React.ReactNode;
   title: string;
   children: React.ReactNode;
 }) => (
-  <Card className="bg-card/50 hover:bg-card/90 transition-colors duration-300 ease-in-out shadow-lg hover:shadow-xl">
-    <CardHeader className="flex flex-row items-center gap-4 pb-4">
-      {icon}
-      <CardTitle>{title}</CardTitle>
-    </CardHeader>
-    <CardContent>
+  <div className="bg-card/50 hover:bg-card/90 transition-colors duration-300 ease-in-out shadow-lg hover:shadow-xl rounded-lg border p-6">
+    <div className="flex flex-row items-center gap-4 pb-4">
+      <h3 className="text-xl font-semibold">{title}</h3>
+    </div>
+    <div>
       <p className="text-muted-foreground">{children}</p>
-    </CardContent>
-  </Card>
+    </div>
+  </div>
 );
 
 // Helper component for Testimonial Cards
 const TestimonialCard = ({
   name,
   role,
-  avatar,
   children,
 }: {
   name: string;
   role: string;
-  avatar: string;
   children: React.ReactNode;
 }) => (
-  <Card className="bg-card/50 flex flex-col justify-between shadow-lg">
-    <CardContent className="pt-6">
+  <div className="bg-card/50 flex flex-col justify-between shadow-lg rounded-lg border p-6">
+    <div className="pt-6">
       <blockquote className="text-muted-foreground">{children}</blockquote>
-    </CardContent>
-    <CardHeader className="flex flex-row items-center gap-4 pt-4">
+    </div>
+    <div className="flex flex-row items-center gap-4 pt-4">
       <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
         <span className="font-semibold">{name.charAt(0)}</span>
       </div>
       <div>
-        <CardTitle className="text-base">{name}</CardTitle>
-        <CardDescription>{role}</CardDescription>
+        <h4 className="text-base font-semibold">{name}</h4>
+        <p className="text-sm text-muted-foreground">{role}</p>
       </div>
-    </CardHeader>
-  </Card>
+    </div>
+  </div>
 );
 
 // Helper component for Step Cards
 const StepCard = ({
-  icon,
   title,
   description,
 }: {
-  icon: React.ReactNode;
   title: string;
   description: string;
 }) => (
   <div className="relative z-10 flex items-start gap-6">
     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 border border-primary/20 shadow-sm">
-      {icon}
+      <div className="w-8 h-8 bg-primary/20 rounded-full"></div>
     </div>
     <div>
       <h4 className="text-xl font-semibold mb-2">{title}</h4>
@@ -129,9 +100,9 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="py-20 sm:py-28 md:py-32 px-4">
           <div className="container text-center">
-            <Badge variant="secondary" className="mb-4">
+            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 mb-4">
               Platform Promosi Generasi Berikutnya
-            </Badge>
+            </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
               Tingkatkan Engagement Konten Anda dengan{' '}
               <span className="text-primary">Sistem Pay-Per-View</span>
@@ -213,21 +184,18 @@ export default function HomePage() {
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               <FeatureCard
-                icon={<Target className="w-8 h-8 text-primary" />}
                 title="Campaign Management"
               >
                 Buat campaign promosi dengan budget dan rate per view yang dapat
                 Anda tentukan sendiri.
               </FeatureCard>
               <FeatureCard
-                icon={<Bot className="w-8 h-8 text-primary" />}
                 title="Bot Detection"
               >
                 Sistem deteksi bot otomatis memastikan Anda hanya membayar untuk
                 views yang legitimate.
               </FeatureCard>
               <FeatureCard
-                icon={<BarChart className="w-8 h-8 text-primary" />}
                 title="Real-time Analytics"
               >
                 Monitor performa campaign secara real-time dari TikTok dan
@@ -245,21 +213,18 @@ export default function HomePage() {
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               <FeatureCard
-                icon={<PenSquare className="w-8 h-8 text-primary" />}
                 title="Content Editing"
               >
                 Akses materi promosi dari creator dan edit sesuai gaya konten
                 Anda.
               </FeatureCard>
               <FeatureCard
-                icon={<DollarSign className="w-8 h-8 text-primary" />}
                 title="Daily Payouts"
               >
                 Terima pembayaran harian otomatis berdasarkan views legitimate
                 yang transparan.
               </FeatureCard>
               <FeatureCard
-                icon={<Share2 className="w-8 h-8 text-primary" />}
                 title="Social Integration"
               >
                 Hubungkan akun TikTok dan Instagram Anda untuk tracking
@@ -288,17 +253,14 @@ export default function HomePage() {
                 <div className="relative flex flex-col gap-8">
                   <div className="absolute left-1/2 -translate-x-1/2 top-12 bottom-12 w-px bg-border"></div>
                   <StepCard
-                    icon={<PenSquare className="w-8 h-8 text-primary" />}
                     title="1. Buat Kampanye"
                     description="Tentukan tujuan, budget, dan target audiens Anda hanya dalam beberapa klik."
                   />
                   <StepCard
-                    icon={<Share2 className="w-8 h-8 text-primary" />}
                     title="2. Undang Promotor"
                     description="Pilih dari ribuan promotor berkualitas atau biarkan mereka yang melamar."
                   />
                   <StepCard
-                    icon={<BarChart className="w-8 h-8 text-primary" />}
                     title="3. Lacak Performa"
                     description="Pantau hasil kampanye secara real-time dan bayar hanya untuk hasil yang nyata."
                   />
@@ -311,17 +273,14 @@ export default function HomePage() {
                 <div className="relative flex flex-col gap-8">
                   <div className="absolute left-1/2 -translate-x-1/2 top-12 bottom-12 w-px bg-border"></div>
                   <StepCard
-                    icon={<Briefcase className="w-8 h-8 text-primary" />}
                     title="1. Lamar Kampanye"
                     description="Temukan kampanye yang sesuai dengan niche dan audiens Anda."
                   />
                   <StepCard
-                    icon={<CheckCircle className="w-8 h-8 text-primary" />}
                     title="2. Promosikan Konten"
                     description="Buat konten promosi yang otentik dan bagikan di platform sosial media Anda."
                   />
                   <StepCard
-                    icon={<DollarSign className="w-8 h-8 text-primary" />}
                     title="3. Dapatkan Bayaran"
                     description="Terima pembayaran harian secara otomatis untuk setiap view yang terverifikasi."
                   />
@@ -346,7 +305,6 @@ export default function HomePage() {
               <TestimonialCard
                 name="Rina Setiawati"
                 role="Content Creator"
-                avatar="/avatars/rina.png"
               >
                 “Sejak menggunakan ContentBoost, jangkauan konten saya meningkat
                 200%! Sistemnya transparan dan mudah digunakan. Sangat
@@ -355,7 +313,6 @@ export default function HomePage() {
               <TestimonialCard
                 name="Budi Hartono"
                 role="Promoter"
-                avatar="/avatars/budi.png"
               >
                 “Akhirnya ada platform yang adil bagi para promoter. Pembayaran
                 harian membuat cash flow saya lancar. Saya bisa fokus membuat
@@ -364,7 +321,6 @@ export default function HomePage() {
               <TestimonialCard
                 name="Andi Wijaya"
                 role="Content Creator"
-                avatar="/avatars/andi.png"
               >
                 “Fitur deteksi bot-nya luar biasa. Saya yakin bahwa budget
                 promosi saya hanya digunakan untuk audiens yang nyata. Hasilnya,
