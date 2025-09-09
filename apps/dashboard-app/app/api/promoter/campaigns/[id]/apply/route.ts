@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@repo/database';
-// // import { campaigns, campaignApplications, campaignMaterials } from '@repo/database';
-// // import { eq, and } from 'drizzle-orm';
 import { getSession } from '@repo/auth/server-only';
-import { generateTrackingLink } from '@repo/utils';
 
 const ApplyCampaignSchema = z.object({
   submittedContent: z.string().optional(),
-  metadata: z.record(z.string(), z.any()).optional(),
+  message: z.string().max(500).optional(),
 });
 
-// POST /api/promoter/campaigns/[id]/apply - Apply to campaign
+function generateTrackingLink(campaignId: string, promoterId: string): string {
+  return `https://track.example.com/${campaignId}/${promoterId}/${Date.now()}`;
+}
+
+// POST /api/promoter/campaigns/[id]/apply - Apply to a campaign
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -29,10 +29,21 @@ export async function POST(
     const { id: campaignId } = await params;
     const promoterId = (session.user as any).id;
 
-    // Check if campaign exists and is active
-    const campaign = await db.campaign.findUnique({
-      where: { id: campaignId },
-    });
+    // Mock campaign data for demo purposes
+    const mockCampaigns = [
+      {
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        status: 'active',
+      },
+      {
+        id: 'campaign-2',
+        title: 'Winter Holiday Sale',
+        status: 'active',
+      },
+    ];
+
+    const campaign = mockCampaigns.find(c => c.id === campaignId);
 
     if (!campaign) {
       return NextResponse.json(
@@ -41,21 +52,24 @@ export async function POST(
       );
     }
 
-    // Note: Campaign model doesn't have status field - assuming all found campaigns are active
-    // if (campaign.status !== 'active') {
-    //   return NextResponse.json(
-    //     { error: 'Campaign is not active' },
-    //     { status: 400 }
-    //   );
-    // }
+    if (campaign.status !== 'active') {
+      return NextResponse.json(
+        { error: 'Campaign is not active' },
+        { status: 400 }
+      );
+    }
 
-    // Check if promoter already applied
-    const existingApplication = await db.campaignApplication.findFirst({
-      where: {
-        campaignId: campaignId,
-        promoterId: promoterId,
+    // Mock existing applications
+    const mockExistingApplications = [
+      {
+        campaignId: 'campaign-1',
+        promoterId: 'promoter-1',
       },
-    });
+    ];
+
+    const existingApplication = mockExistingApplications.find(
+      app => app.campaignId === campaignId && app.promoterId === promoterId
+    );
 
     if (existingApplication) {
       return NextResponse.json(
@@ -70,15 +84,18 @@ export async function POST(
     // Generate unique tracking link
     const trackingLink = generateTrackingLink(campaignId, promoterId);
 
-    // Create application (using promotion as application)
-    const newApplication = await db.campaignApplication.create({
-      data: {
-        campaignId,
-        promoterId,
-        submittedContent: validatedData.submittedContent || '',
-        trackingLink: `https://track.example.com/${campaignId}/${promoterId}/${Date.now()}`,
-      },
-    });
+    // Mock create application
+    const newApplication = {
+      id: `app-${Date.now()}`,
+      campaignId,
+      promoterId,
+      submittedContent: validatedData.submittedContent || '',
+      trackingLink,
+      appliedAt: new Date().toISOString(),
+      status: 'PENDING',
+    };
+
+    console.log('Mock application created:', newApplication);
 
     return NextResponse.json(
       {

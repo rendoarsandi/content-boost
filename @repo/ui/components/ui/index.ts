@@ -1,4 +1,4 @@
-export { Chat } from './chat';
+export { Chat } from './Chat';
 export { Button } from './button';
 export { Input } from './input';
 export {
@@ -19,6 +19,12 @@ export { GamificationDashboard } from './gamification-dashboard';
 export { Progress } from './progress';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
-export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
+export {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './select';
 export { Switch } from './switch';
 export { Textarea } from './textarea';

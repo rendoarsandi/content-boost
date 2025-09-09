@@ -1,3 +1,6 @@
+// Client-side logging implementation
+// For browsers, we use simplified console-based logging
+
 export const appLogger = {
   info: console.log,
   warn: console.warn,

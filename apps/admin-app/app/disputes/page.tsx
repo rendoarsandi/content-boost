@@ -1,8 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
 
+// Type definitions
+type DisputeStatus = 'Open' | 'Under Review' | 'Closed';
+
+type DisputeData = {
+  id: string;
+  creator: string;
+  promoter: string;
+  reason: string;
+  status: DisputeStatus;
+};
+
 // Mock data for dispute tickets
-const getDisputes = async () => {
+const getDisputes = async (): Promise<DisputeData[]> => {
   return [
     {
       id: 'd_001',
@@ -28,7 +39,7 @@ const getDisputes = async () => {
   ];
 };
 
-const statusStyles = {
+const statusStyles: Record<DisputeStatus, string> = {
   Open: 'bg-red-100 text-red-800',
   'Under Review': 'bg-yellow-100 text-yellow-800',
   Closed: 'bg-green-100 text-green-800',

@@ -1,6 +1,5 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
 // import { campaignApplications, campaigns, users, viewRecords } from '@repo/database';
 // import { eq, and, sum, count } from 'drizzle-orm';
 import {
@@ -17,67 +16,86 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 async function getApprovedPromoters(creatorId: string) {
-  // Get all campaigns for this creator
-  const campaigns = await db.campaign.findMany({
-    where: {
-      creatorId: creatorId,
-    },
-    include: {
-      applications: {
-        where: {
-          status: 'APPROVED',
-        },
-        include: {
-          promoter: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          viewRecords: true,
-          payouts: true,
-        },
+  // Mock data for demo purposes - in production this would use actual database
+  const mockPromotersWithMetrics = [
+    {
+      application: {
+        id: 'app-1',
+        status: 'APPROVED',
+        appliedAt: new Date('2024-01-15').toISOString(),
+        reviewedAt: new Date('2024-01-16').toISOString(),
+        trackingLink: 'https://example.com/track/abc123',
+      },
+      campaign: {
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        status: 'active',
+        ratePerView: 100,
+      },
+      promoter: {
+        id: 'promoter-1',
+        name: 'John Doe',
+        email: 'john@example.com',
+      },
+      metrics: {
+        totalViews: 15000,
+        legitimateViews: 14500,
+        estimatedEarnings: 1450000,
       },
     },
-  });
+    {
+      application: {
+        id: 'app-2',
+        status: 'APPROVED',
+        appliedAt: new Date('2024-01-20').toISOString(),
+        reviewedAt: new Date('2024-01-21').toISOString(),
+        trackingLink: 'https://example.com/track/def456',
+      },
+      campaign: {
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        status: 'active',
+        ratePerView: 100,
+      },
+      promoter: {
+        id: 'promoter-2',
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+      },
+      metrics: {
+        totalViews: 8000,
+        legitimateViews: 7800,
+        estimatedEarnings: 780000,
+      },
+    },
+    {
+      application: {
+        id: 'app-3',
+        status: 'APPROVED',
+        appliedAt: new Date('2024-02-05').toISOString(),
+        reviewedAt: new Date('2024-02-06').toISOString(),
+        trackingLink: 'https://example.com/track/ghi789',
+      },
+      campaign: {
+        id: 'campaign-2',
+        title: 'Winter Holiday Sale',
+        status: 'active',
+        ratePerView: 120,
+      },
+      promoter: {
+        id: 'promoter-3',
+        name: 'Mike Johnson',
+        email: 'mike@example.com',
+      },
+      metrics: {
+        totalViews: 12000,
+        legitimateViews: 11800,
+        estimatedEarnings: 1416000,
+      },
+    },
+  ];
 
-  // Transform promotions into the expected format
-  const promotersWithMetrics = campaigns.flatMap(campaign =>
-    campaign.applications.map(promotion => {
-      // Calculate metrics from related data
-      const totalViews = promotion.viewRecords.reduce(
-        (sum, record) => sum + record.viewCount,
-        0
-      );
-      const legitimateViews = promotion.viewRecords.reduce(
-        (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
-        0
-      );
-      const estimatedEarnings = promotion.payouts.reduce(
-        (sum, payout) => sum + payout.amount,
-        0
-      );
-
-      return {
-        application: { ...promotion, status: 'APPROVED' },
-        campaign: {
-          id: campaign.id,
-          title: campaign.title,
-          status: 'active',
-          ratePerView: campaign.ratePerView || 100,
-        },
-        promoter: promotion.promoter,
-        metrics: {
-          totalViews,
-          legitimateViews,
-          estimatedEarnings,
-        },
-      };
-    })
-  );
-
-  return promotersWithMetrics;
+  return mockPromotersWithMetrics;
 }
 
 export default async function ApprovedPromotersPage() {

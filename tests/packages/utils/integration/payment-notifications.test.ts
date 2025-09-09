@@ -1,3 +1,4 @@
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 import {
   PaymentNotificationSystem,
   createPaymentNotificationSystem,
@@ -14,12 +15,12 @@ describe('PaymentNotificationSystem', () => {
     notificationSystem = createPaymentNotificationSystem();
 
     // Mock console methods to avoid noise in tests
-    jest.spyOn(console, 'info').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('constructor', () => {

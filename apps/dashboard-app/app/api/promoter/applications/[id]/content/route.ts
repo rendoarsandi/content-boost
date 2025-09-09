@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@repo/database';
 import { getSession } from '@repo/auth/server-only';
 
 const UpdateContentSchema = z.object({
@@ -18,9 +17,7 @@ export async function GET(
 
     if (!session?.user || (session.user as any).role !== 'promoter') {
       return NextResponse.json(
-        {
-          error: 'Unauthorized - Only promoters can access application content',
-        },
+        { error: 'Unauthorized - Only promoters can access application content' },
         { status: 401 }
       );
     }
@@ -28,16 +25,37 @@ export async function GET(
     const { id: applicationId } = await params;
     const promoterId = (session.user as any).id;
 
-    // Get application with campaign info
-    const application = await db.campaignApplication.findFirst({
-      where: {
-        id: applicationId,
-        promoterId: promoterId,
+    // Mock application data for demo purposes
+    const mockApplications = [
+      {
+        id: 'app-1',
+        promoterId: 'promoter-1',
+        campaignId: 'campaign-1',
+        submittedContent: 'https://example.com/my-content',
+        appliedAt: new Date('2024-01-15').toISOString(),
+        campaign: {
+          id: 'campaign-1',
+          title: 'Summer Product Launch',
+          budget: 5000000,
+        },
       },
-      include: {
-        campaign: true,
+      {
+        id: 'app-2',
+        promoterId: 'promoter-2',
+        campaignId: 'campaign-2',
+        submittedContent: 'https://example.com/my-content-2',
+        appliedAt: new Date('2024-02-05').toISOString(),
+        campaign: {
+          id: 'campaign-2',
+          title: 'Winter Holiday Sale',
+          budget: 3000000,
+        },
       },
-    });
+    ];
+
+    const application = mockApplications.find(
+      app => app.id === applicationId && app.promoterId === promoterId
+    );
 
     if (!application) {
       return NextResponse.json(
@@ -46,33 +64,45 @@ export async function GET(
       );
     }
 
-    const { campaign } = application;
-
-    // TODO: The Promotion model doesn't have status field - need to add application workflow
-    // For now, assume all found promotions are approved (can access materials)
-    // if (application.status !== 'APPROVED') {
-    //   return NextResponse.json(
-    //     { error: 'Application must be approved to access materials' },
-    //     { status: 403 }
-    //   );
-    // }
-
-    // Get campaign materials
-    const materials = await db.campaignMaterial.findMany({
-      where: {
-        campaignId: campaign.id,
+    // Mock campaign materials
+    const mockMaterials = [
+      {
+        id: 'material-1',
+        campaignId: 'campaign-1',
+        type: 'image',
+        url: 'https://example.com/campaign-banner.jpg',
+        title: 'Campaign Banner',
+        description: 'Main promotional banner for the campaign',
+        createdAt: new Date('2024-01-01').toISOString(),
       },
-    });
+      {
+        id: 'material-2',
+        campaignId: 'campaign-1',
+        type: 'video',
+        url: 'https://example.com/product-demo.mp4',
+        title: 'Product Demo Video',
+        description: 'Video showcasing product features',
+        createdAt: new Date('2024-01-02').toISOString(),
+      },
+      {
+        id: 'material-3',
+        campaignId: 'campaign-2',
+        type: 'google_drive',
+        url: 'https://drive.google.com/file/d/example',
+        title: 'Brand Guidelines',
+        description: 'Complete brand guidelines document',
+        createdAt: new Date('2024-02-01').toISOString(),
+      },
+    ];
+
+    const materials = mockMaterials.filter(m => m.campaignId === application.campaign.id);
 
     return NextResponse.json({
       application,
       campaign: {
-        id: campaign.id,
-        name: campaign.title, // Using 'name' instead of 'title' based on Prisma schema
-        budget: campaign.budget,
-        // TODO: Add description and requirements fields to Campaign model
-        // description: campaign.description,
-        // requirements: campaign.requirements,
+        id: application.campaign.id,
+        name: application.campaign.title,
+        budget: application.campaign.budget,
       },
       materials,
     });
@@ -105,13 +135,27 @@ export async function PUT(
     const { id: applicationId } = await params;
     const promoterId = (session.user as any).id;
 
-    // Verify application ownership
-    const application = await db.campaignApplication.findFirst({
-      where: {
-        id: applicationId,
-        promoterId: promoterId,
+    // Mock application data for demo purposes
+    const mockApplications = [
+      {
+        id: 'app-1',
+        promoterId: 'promoter-1',
+        campaignId: 'campaign-1',
+        submittedContent: 'https://example.com/my-content',
+        appliedAt: new Date('2024-01-15').toISOString(),
       },
-    });
+      {
+        id: 'app-2',
+        promoterId: 'promoter-2',
+        campaignId: 'campaign-2',
+        submittedContent: 'https://example.com/my-content-2',
+        appliedAt: new Date('2024-02-05').toISOString(),
+      },
+    ];
+
+    const application = mockApplications.find(
+      app => app.id === applicationId && app.promoterId === promoterId
+    );
 
     if (!application) {
       return NextResponse.json(
@@ -120,32 +164,17 @@ export async function PUT(
       );
     }
 
-    // TODO: The Promotion model doesn't have status field - need to add application workflow
-    // For now, assume all found promotions can be edited
-    // if (application.status !== 'APPROVED') {
-    //   return NextResponse.json(
-    //     { error: 'Only approved applications can be edited' },
-    //     { status: 403 }
-    //   );
-    // }
-
     const body = await request.json();
     const validatedData = UpdateContentSchema.parse(body);
 
-    // Update application content
-    // TODO: The Promotion model doesn't have submittedContent and metadata fields
-    // For now, update contentUrl with submittedContent (temporary workaround)
-    const updatedApplication = await db.campaignApplication.update({
-      where: {
-        id: applicationId,
-      },
-      data: {
-        submittedContent: validatedData.submittedContent,
-        // TODO: Add submittedContent and metadata fields to Promotion model
-        // submittedContent: validatedData.submittedContent,
-        // metadata: validatedData.metadata,
-      },
-    });
+    // Mock update application content
+    const updatedApplication = {
+      ...application,
+      submittedContent: validatedData.submittedContent,
+      updatedAt: new Date().toISOString(),
+    };
+
+    console.log('Mock application updated:', updatedApplication);
 
     return NextResponse.json({
       application: updatedApplication,

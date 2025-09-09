@@ -21,9 +21,10 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
-    }
+      "@/*": ["src/*"]
+    },
+    "rootDir": "src"
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/.next/types/**/*.ts"],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }

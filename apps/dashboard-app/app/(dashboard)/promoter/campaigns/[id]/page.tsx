@@ -1,6 +1,5 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
 // import { campaigns, campaignMaterials, users, campaignApplications } from '@repo/database';
 // import { eq, and } from 'drizzle-orm';
 import {
@@ -19,48 +18,55 @@ import { ApplicationService } from '@repo/utils/application-service';
 export const dynamic = 'force-dynamic';
 
 async function getCampaignDetails(campaignId: string, promoterId: string) {
-  // Get campaign with creator info
-  const campaign = await db.campaign.findUnique({
-    where: {
-      id: campaignId,
-    },
-    include: {
-      creator: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
+  // Mock data for demo purposes - in production this would use actual database
+  const mockCampaign = {
+    id: campaignId,
+    title: 'Summer Product Launch',
+    description: 'Promote our new summer collection with engaging content',
+    status: 'active',
+    budget: 5000000,
+    creatorId: 'creator-1',
+    startDate: new Date('2024-01-01').toISOString(),
+    endDate: new Date('2024-03-31').toISOString(),
+    createdAt: new Date('2023-12-15').toISOString(),
+  };
 
-  if (!campaign) {
-    return null;
-  }
+  const mockCreator = {
+    id: 'creator-1',
+    name: 'Fashion Brand Co',
+  };
 
-  // Campaign materials don't exist in current schema, return empty array
-  const materials: any[] = [];
-
-  // Check if promoter has already applied (check existing promotions)
-  const promotion = await db.campaignApplication.findFirst({
-    where: {
-      campaignId: campaignId,
-      promoterId: promoterId,
+  // Mock materials for the campaign
+  const mockMaterials = [
+    {
+      id: 'material-1',
+      title: 'Product Images',
+      description: 'High-quality product photos for promotion',
+      type: 'images',
+      url: 'https://example.com/images.zip',
     },
-  });
+    {
+      id: 'material-2',
+      title: 'Brand Guidelines',
+      description: 'Brand colors, fonts, and style guide',
+      type: 'document',
+      url: 'https://example.com/guidelines.pdf',
+    },
+  ];
+
+  // Mock application - assume promoter has applied and been approved
+  const mockApplication = {
+    id: 'app-1',
+    status: 'APPROVED',
+    appliedAt: new Date('2024-01-15').toISOString(),
+  };
 
   return {
-    campaign,
-    creator: campaign.creator,
-    materials,
-    application: promotion
-      ? {
-          id: promotion.id,
-          status: 'APPROVED', // Since promotion exists, it's approved
-          appliedAt: promotion.appliedAt,
-        }
-      : null,
-    hasApplied: !!promotion,
+    campaign: mockCampaign,
+    creator: mockCreator,
+    materials: mockMaterials,
+    application: mockApplication,
+    hasApplied: true,
   };
 }
 

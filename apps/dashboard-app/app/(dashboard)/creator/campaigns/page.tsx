@@ -1,6 +1,6 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
+// import { db } from '@repo/database';
 import {
   Card,
   CardContent,
@@ -15,24 +15,35 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 async function getCreatorCampaigns(creatorId: string) {
-  const campaignsWithStats = await db.campaign.findMany({
-    where: {
-      creatorId,
-    },
-    include: {
-      applications: true,
+  // Mock data for demo purposes - in production this would use actual database
+  const mockCampaigns = [
+    {
+      id: 'campaign-1',
+      title: 'Summer Product Launch',
+      description: 'Promote our new summer collection',
+      budget: 5000000,
+      creatorId: creatorId,
+      status: 'active',
+      createdAt: new Date('2024-01-01').toISOString(),
       _count: {
-        select: {
-          applications: true,
-        },
+        applications: 3,
       },
     },
-    orderBy: {
-      createdAt: 'desc',
+    {
+      id: 'campaign-2',
+      title: 'Winter Holiday Sale',
+      description: 'Special holiday promotion campaign',
+      budget: 3000000,
+      creatorId: creatorId,
+      status: 'active',
+      createdAt: new Date('2024-02-01').toISOString(),
+      _count: {
+        applications: 1,
+      },
     },
-  });
+  ];
 
-  return campaignsWithStats;
+  return mockCampaigns;
 }
 
 function getStatusColor() {

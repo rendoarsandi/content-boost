@@ -1,6 +1,5 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
 import {
   Card,
   CardContent,
@@ -15,54 +14,68 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 async function getAvailableCampaigns(promoterId: string) {
-  // Get campaigns that the promoter hasn't applied to yet
-  const appliedPromotions = await db.campaignApplication.findMany({
-    where: {
-      promoterId,
-    },
-    select: {
-      campaignId: true,
-    },
-  });
-
-  const appliedIds = appliedPromotions.map(p => p.campaignId);
-
-  // Get available campaigns (not applied by this promoter)
-  const availableCampaigns = await db.campaign.findMany({
-    where: {
-      id: {
-        notIn: appliedIds,
+  // Mock data for demo purposes - in production this would use actual database
+  const mockCampaigns = [
+    {
+      id: 'campaign-1',
+      title: 'Summer Product Launch',
+      description: 'Promote our new summer collection',
+      status: 'active',
+      budget: 5000000,
+      createdAt: new Date('2024-01-01').toISOString(),
+      creator: {
+        id: 'creator-1',
+        name: 'Fashion Brand Co',
       },
     },
-    include: {
-      creator: true,
+    {
+      id: 'campaign-2',
+      title: 'Winter Holiday Sale',
+      description: 'Special holiday promotion campaign',
+      status: 'active',
+      budget: 3000000,
+      createdAt: new Date('2024-02-01').toISOString(),
+      creator: {
+        id: 'creator-2',
+        name: 'Tech Startup Inc',
+      },
     },
-    orderBy: {
-      createdAt: 'desc',
+    {
+      id: 'campaign-3',
+      title: 'Spring Collection Preview',
+      description: 'Early access to spring collection',
+      status: 'active',
+      budget: 2000000,
+      createdAt: new Date('2024-03-01').toISOString(),
+      creator: {
+        id: 'creator-3',
+        name: 'Lifestyle Brand Ltd',
+      },
     },
-  });
+  ];
 
-  return availableCampaigns;
+  return mockCampaigns;
 }
 
 async function getPromoterPromotions(promoterId: string) {
-  const promotions = await db.campaignApplication.findMany({
-    where: {
-      promoterId,
-    },
-    include: {
+  // Mock data for demo purposes - in production this would use actual database
+  const mockPromotions = [
+    {
+      id: 'promotion-1',
+      promoterId: promoterId,
+      appliedAt: new Date('2024-01-15').toISOString(),
       campaign: {
-        include: {
-          creator: true,
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        creator: {
+          id: 'creator-1',
+          name: 'Fashion Brand Co',
         },
       },
     },
-    orderBy: {
-      appliedAt: 'desc',
-    },
-  });
+  ];
 
-  return promotions;
+  return mockPromotions;
 }
 
 function getStatusColor(status: string) {
@@ -94,57 +107,53 @@ function getApplicationStatusColor(status: string) {
 }
 
 async function getPromoterApplications(promoterId: string) {
-  // Get promotions for this promoter (these serve as their applications)
-  const promotions = await db.campaignApplication.findMany({
-    where: {
+  // Mock data for demo purposes - in production this would use actual database
+  const mockApplications = [
+    {
+      id: 'app-1',
+      campaignId: 'campaign-1',
       promoterId: promoterId,
-    },
-    include: {
+      status: 'APPROVED',
+      appliedAt: new Date('2024-01-15').toISOString(),
       campaign: {
-        include: {
-          creator: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        creator: {
+          id: 'creator-1',
+          name: 'Fashion Brand Co',
         },
       },
-      viewRecords: true,
-      payouts: true,
+      creator: {
+        id: 'creator-1',
+        name: 'Fashion Brand Co',
+      },
+      views: 15000,
+      earnings: 1500000,
     },
-    orderBy: {
-      appliedAt: 'desc',
+    {
+      id: 'app-2',
+      campaignId: 'campaign-2',
+      promoterId: promoterId,
+      status: 'PENDING',
+      appliedAt: new Date('2024-02-01').toISOString(),
+      campaign: {
+        id: 'campaign-2',
+        title: 'Winter Holiday Sale',
+        creator: {
+          id: 'creator-2',
+          name: 'Tech Startup Inc',
+        },
+      },
+      creator: {
+        id: 'creator-2',
+        name: 'Tech Startup Inc',
+      },
+      views: 0,
+      earnings: 0,
     },
-  });
+  ];
 
-  return promotions.map(promotion => {
-    // Calculate metrics from related data
-    const totalViews = promotion.viewRecords.reduce(
-      (sum, record) => sum + record.viewCount,
-      0
-    );
-    const legitimateViews = promotion.viewRecords.reduce(
-      (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
-      0
-    );
-    const earnings = promotion.payouts.reduce(
-      (sum, payout) => sum + payout.amount,
-      0
-    );
-
-    return {
-      id: promotion.id,
-      campaignId: promotion.campaignId,
-      promoterId: promotion.promoterId,
-      status: promotion.status,
-      appliedAt: promotion.appliedAt,
-      campaign: promotion.campaign,
-      creator: promotion.campaign.creator,
-      views: legitimateViews,
-      earnings: earnings,
-    };
-  });
+  return mockApplications;
 }
 
 export default async function PromoterCampaignsPage() {

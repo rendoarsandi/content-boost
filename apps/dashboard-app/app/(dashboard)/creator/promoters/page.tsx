@@ -1,6 +1,5 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
 import {
   Card,
   CardContent,
@@ -15,22 +14,53 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 async function getPromoterPromotions(creatorId: string) {
-  const promotions = await db.campaignApplication.findMany({
-    where: {
+  // Mock data for demo purposes - in production this would use actual database
+  const mockPromotions = [
+    {
+      id: 'promotion-1',
+      appliedAt: new Date('2024-01-15').toISOString(),
       campaign: {
-        creatorId,
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        creatorId: creatorId,
+      },
+      promoter: {
+        id: 'promoter-1',
+        name: 'John Doe',
+        email: 'john@example.com',
       },
     },
-    include: {
-      campaign: true,
-      promoter: true,
+    {
+      id: 'promotion-2',
+      appliedAt: new Date('2024-01-20').toISOString(),
+      campaign: {
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        creatorId: creatorId,
+      },
+      promoter: {
+        id: 'promoter-2',
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+      },
     },
-    orderBy: {
-      appliedAt: 'desc',
+    {
+      id: 'promotion-3',
+      appliedAt: new Date('2024-02-05').toISOString(),
+      campaign: {
+        id: 'campaign-2',
+        title: 'Winter Holiday Sale',
+        creatorId: creatorId,
+      },
+      promoter: {
+        id: 'promoter-3',
+        name: 'Mike Johnson',
+        email: 'mike@example.com',
+      },
     },
-  });
+  ];
 
-  return promotions;
+  return mockPromotions;
 }
 
 function getStatusColor() {

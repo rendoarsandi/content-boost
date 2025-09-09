@@ -21,10 +21,19 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const getSupabaseClient = () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  };
+
+  const supabase = getSupabaseClient();
 
   useEffect(() => {
     const error_param = searchParams.get('error');
@@ -34,6 +43,11 @@ function LoginForm() {
   }, [searchParams]);
 
   const handleSocialLogin = async (provider: 'tiktok' | 'instagram') => {
+    if (!supabase) {
+      setError('Authentication service not configured. Please check environment variables.');
+      return;
+    }
+    
     setIsLoading(provider);
     setError(null);
 

@@ -41,6 +41,19 @@ interface SocialProfile {
   profilePictureUrl?: string;
 }
 
+// Helper function to check if environment variables are available
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Supabase environment variables not configured');
+    return null;
+  }
+  
+  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+}
+
 export default function SocialAccountsPage() {
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [profiles, setProfiles] = useState<SocialProfile[]>([]);
@@ -48,10 +61,7 @@ export default function SocialAccountsPage() {
   const [error, setError] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = getSupabaseClient();
 
   useEffect(() => {
     // Middleware handles unauthenticated users.
@@ -87,6 +97,11 @@ export default function SocialAccountsPage() {
   };
 
   const handleConnect = async (provider: 'tiktok' | 'instagram') => {
+    if (!supabase) {
+      setError('Authentication service not configured. Please check environment variables.');
+      return;
+    }
+    
     await supabase.auth.signInWithOAuth({
       provider: provider as any, // Cast to any to allow custom providers
       options: {

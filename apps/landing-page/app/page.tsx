@@ -24,8 +24,10 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui';
+// Disable static generation for this page
+export const dynamic = 'force-dynamic';
 
 // Helper component for Feature Cards for better reusability
 const FeatureCard = ({
@@ -65,10 +67,9 @@ const TestimonialCard = ({
       <blockquote className="text-muted-foreground">{children}</blockquote>
     </CardContent>
     <CardHeader className="flex flex-row items-center gap-4 pt-4">
-      <Avatar>
-        <AvatarImage src={avatar} alt={name} />
-        <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-      </Avatar>
+      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+        <span className="font-semibold">{name.charAt(0)}</span>
+      </div>
       <div>
         <CardTitle className="text-base">{name}</CardTitle>
         <CardDescription>{role}</CardDescription>
@@ -108,12 +109,18 @@ export default function HomePage() {
             ContentBoost
           </Link>
           <nav className="flex items-center space-x-4">
-            <Button variant="ghost" asChild>
-              <Link href="https://auth.domain.com">Masuk</Link>
-            </Button>
-            <Button asChild>
-              <Link href="https://auth.domain.com">Daftar Sekarang</Link>
-            </Button>
+            <Link 
+              href="https://auth.domain.com"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+            >
+              Masuk
+            </Link>
+            <Link 
+              href="https://auth.domain.com"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+            >
+              Daftar Sekarang
+            </Link>
           </nav>
         </div>
       </header>
@@ -135,16 +142,18 @@ export default function HomePage() {
               bot otomatis dan sistem pembayaran harian.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
-                <Link href="https://auth.domain.com">
-                  Mulai Sebagai Creator
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link href="https://auth.domain.com">
-                  Bergabung Sebagai Promoter
-                </Link>
-              </Button>
+              <Link 
+                href="https://auth.domain.com"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8"
+              >
+                Mulai Sebagai Creator
+              </Link>
+              <Link 
+                href="https://auth.domain.com"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8"
+              >
+                Bergabung Sebagai Promoter
+              </Link>
             </div>
             <p className="text-sm text-muted-foreground mt-4">
               Gratis untuk bergabung. Tidak perlu kartu kredit.
@@ -159,25 +168,33 @@ export default function HomePage() {
               Dipercaya oleh para kreator dan brand terbaik
             </p>
             <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-6">
-              <img
+              <Image
                 src="/logos/logo1.svg"
                 alt="Partner Logo 1"
                 className="h-8"
+                width={128}
+                height={32}
               />
-              <img
+              <Image
                 src="/logos/logo2.svg"
                 alt="Partner Logo 2"
                 className="h-8"
+                width={128}
+                height={32}
               />
-              <img
+              <Image
                 src="/logos/logo3.svg"
                 alt="Partner Logo 3"
                 className="h-8"
+                width={128}
+                height={32}
               />
-              <img
+              <Image
                 src="/logos/logo4.svg"
                 alt="Partner Logo 4"
                 className="h-8"
+                width={128}
+                height={32}
               />
             </div>
           </div>
@@ -369,51 +386,43 @@ export default function HomePage() {
                 kami.
               </p>
             </div>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger>
-                  Bagaimana cara kerja deteksi bot?
-                </AccordionTrigger>
-                <AccordionContent>
+            <div className="space-y-4">
+              <div className="border rounded-lg p-6">
+                <h3 className="font-semibold mb-2">Bagaimana cara kerja deteksi bot?</h3>
+                <p className="text-muted-foreground">
                   Sistem kami menganalisis berbagai metrik seperti perilaku
                   menonton, sumber traffic, dan data teknis lainnya untuk
                   memberikan skor kepercayaan pada setiap view. Hanya view
                   dengan skor di atas ambang batas yang dianggap valid dan akan
                   dikenakan biaya.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-2">
-                <AccordionTrigger>
-                  Kapan saya akan menerima pembayaran sebagai promotor?
-                </AccordionTrigger>
-                <AccordionContent>
+                </p>
+              </div>
+              <div className="border rounded-lg p-6">
+                <h3 className="font-semibold mb-2">Kapan saya akan menerima pembayaran sebagai promotor?</h3>
+                <p className="text-muted-foreground">
                   Pembayaran diproses secara otomatis setiap hari (24 jam) untuk
                   semua penghasilan yang terverifikasi dari hari sebelumnya.
                   Anda dapat melacak semua transaksi di dashboard Anda.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-3">
-                <AccordionTrigger>
-                  Platform sosial media apa saja yang didukung?
-                </AccordionTrigger>
-                <AccordionContent>
+                </p>
+              </div>
+              <div className="border rounded-lg p-6">
+                <h3 className="font-semibold mb-2">Platform sosial media apa saja yang didukung?</h3>
+                <p className="text-muted-foreground">
                   Saat ini kami mendukung integrasi penuh dengan TikTok dan
                   Instagram. Dukungan untuk YouTube Shorts dan platform lainnya
                   akan segera hadir.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-4">
-                <AccordionTrigger>
-                  Apakah ada biaya tersembunyi?
-                </AccordionTrigger>
-                <AccordionContent>
+                </p>
+              </div>
+              <div className="border rounded-lg p-6">
+                <h3 className="font-semibold mb-2">Apakah ada biaya tersembunyi?</h3>
+                <p className="text-muted-foreground">
                   Tidak. Kami percaya pada transparansi. Kreator membayar sesuai
                   rate per view yang mereka tentukan, dan promotor menerima
                   bagiannya setelah dipotong biaya platform yang jelas. Semua
                   biaya akan terlihat di dashboard Anda.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -427,9 +436,12 @@ export default function HomePage() {
               Bergabunglah dengan ribuan creator dan promoter yang sudah
               merasakan manfaatnya.
             </p>
-            <Button size="lg" variant="secondary" asChild>
-              <Link href="https://auth.domain.com">Mulai Sekarang Gratis</Link>
-            </Button>
+            <Link 
+              href="https://auth.domain.com"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-11 rounded-md px-8"
+            >
+              Mulai Sekarang Gratis
+            </Link>
           </div>
         </section>
       </main>

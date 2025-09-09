@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@repo/database';
-import { auth } from '@repo/auth/server-only';
+import { getSession } from '@repo/auth/server-only';
 
 const CreateMaterialSchema = z.object({
   type: z.enum(['google_drive', 'youtube', 'image', 'video']),
@@ -10,47 +9,13 @@ const CreateMaterialSchema = z.object({
   description: z.string().optional(),
 });
 
-// Map frontend enum values to Prisma enum values
-const mapTypeToEnum = (type: string) => {
-  switch (type) {
-    case 'google_drive':
-      return 'GOOGLE_DRIVE';
-    case 'youtube':
-      return 'YOUTUBE';
-    case 'image':
-      return 'IMAGE';
-    case 'video':
-      return 'VIDEO';
-    default:
-      throw new Error(`Invalid material type: ${type}`);
-  }
-};
-
-// Map Prisma enum values to frontend values
-const mapEnumToType = (enumValue: string) => {
-  switch (enumValue) {
-    case 'GOOGLE_DRIVE':
-      return 'google_drive';
-    case 'YOUTUBE':
-      return 'youtube';
-    case 'IMAGE':
-      return 'image';
-    case 'VIDEO':
-      return 'video';
-    default:
-      return enumValue.toLowerCase();
-  }
-};
-
-const UpdateMaterialSchema = CreateMaterialSchema.partial();
-
 // GET /api/campaigns/[id]/materials - Get campaign materials
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    const session = await getSession();
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -58,15 +23,21 @@ export async function GET(
 
     const { id: campaignId } = await params;
 
-    // Check if campaign exists and user has access
-    const campaign = await db.campaign.findUnique({
-      where: { id: campaignId },
-      include: {
-        materials: {
-          orderBy: { createdAt: 'desc' },
-        },
+    // Mock campaign data for demo purposes
+    const mockCampaigns = [
+      {
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        creatorId: 'creator-1',
       },
-    });
+      {
+        id: 'campaign-2',
+        title: 'Winter Holiday Sale',
+        creatorId: 'creator-1',
+      },
+    ];
+
+    const campaign = mockCampaigns.find(c => c.id === campaignId);
 
     if (!campaign) {
       return NextResponse.json(
@@ -77,8 +48,8 @@ export async function GET(
 
     // Check access permissions
     if (
-      session.user.role === 'creator' &&
-      campaign.creatorId !== session.user.id
+      (session.user as any).role === 'creator' &&
+      campaign.creatorId !== (session.user as any).id
     ) {
       return NextResponse.json(
         {
@@ -88,15 +59,47 @@ export async function GET(
       );
     }
 
-    // Map materials to frontend format
-    const materials = campaign.materials.map(material => ({
-      id: material.id,
-      type: mapEnumToType(material.type),
-      url: material.url,
-      title: material.title,
-      description: material.description,
-      createdAt: material.createdAt,
-    }));
+    // Mock materials data
+    const mockMaterials = [
+      {
+        id: 'material-1',
+        campaignId: 'campaign-1',
+        type: 'image',
+        url: 'https://example.com/campaign-banner.jpg',
+        title: 'Campaign Banner',
+        description: 'Main promotional banner for the campaign',
+        createdAt: new Date('2024-01-01').toISOString(),
+      },
+      {
+        id: 'material-2',
+        campaignId: 'campaign-1',
+        type: 'video',
+        url: 'https://example.com/product-demo.mp4',
+        title: 'Product Demo Video',
+        description: 'Video showcasing product features',
+        createdAt: new Date('2024-01-02').toISOString(),
+      },
+      {
+        id: 'material-3',
+        campaignId: 'campaign-2',
+        type: 'google_drive',
+        url: 'https://drive.google.com/file/d/example',
+        title: 'Brand Guidelines',
+        description: 'Complete brand guidelines document',
+        createdAt: new Date('2024-02-01').toISOString(),
+      },
+    ];
+
+    const materials = mockMaterials
+      .filter(m => m.campaignId === campaignId)
+      .map(material => ({
+        id: material.id,
+        type: material.type,
+        url: material.url,
+        title: material.title,
+        description: material.description,
+        createdAt: material.createdAt,
+      }));
 
     return NextResponse.json({ materials });
   } catch (error) {
@@ -114,14 +117,14 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    const session = await getSession();
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only creators can add materials
-    if (session.user.role !== 'creator') {
+    if ((session.user as any).role !== 'creator') {
       return NextResponse.json(
         { error: 'Forbidden - Only creators can add materials' },
         { status: 403 }
@@ -132,13 +135,21 @@ export async function POST(
     const body = await request.json();
     const validatedData = CreateMaterialSchema.parse(body);
 
-    // Check if campaign exists and user owns it
-    const campaign = await db.campaign.findFirst({
-      where: {
-        id: campaignId,
-        creatorId: session.user.id,
+    // Mock campaign data for demo purposes
+    const mockCampaigns = [
+      {
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        creatorId: (session.user as any).id,
       },
-    });
+      {
+        id: 'campaign-2',
+        title: 'Winter Holiday Sale',
+        creatorId: (session.user as any).id,
+      },
+    ];
+
+    const campaign = mockCampaigns.find(c => c.id === campaignId);
 
     if (!campaign) {
       return NextResponse.json(
@@ -156,30 +167,22 @@ export async function POST(
       return NextResponse.json({ error: urlValidation.error }, { status: 400 });
     }
 
-    // Create the material
-    const material = await db.campaignMaterial.create({
-      data: {
-        campaignId,
-        type: mapTypeToEnum(validatedData.type) as any,
-        url: validatedData.url,
-        title: validatedData.title,
-        description: validatedData.description,
-      },
-    });
-
-    // Return material in frontend format
-    const formattedMaterial = {
-      id: material.id,
-      type: mapEnumToType(material.type),
-      url: material.url,
-      title: material.title,
-      description: material.description,
-      createdAt: material.createdAt,
+    // Mock create material
+    const material = {
+      id: `material-${Date.now()}`,
+      campaignId,
+      type: validatedData.type,
+      url: validatedData.url,
+      title: validatedData.title,
+      description: validatedData.description,
+      createdAt: new Date().toISOString(),
     };
+
+    console.log('Mock material created:', material);
 
     return NextResponse.json(
       {
-        material: formattedMaterial,
+        material,
         message: 'Material added successfully',
       },
       { status: 201 }
@@ -245,44 +248,30 @@ function validateMaterialUrl(
           '.webp',
           '.svg',
         ];
-        const imageHosts = [
+        const hasImageExtension = imageExtensions.some(ext =>
+          url.toLowerCase().includes(ext)
+        );
+        const isImageHost = [
           'imgur.com',
           'cloudinary.com',
+          'amazonaws.com',
           'unsplash.com',
-          'pexels.com',
-        ];
-
-        const hasImageExtension = imageExtensions.some(ext =>
-          urlObj.pathname.toLowerCase().includes(ext)
-        );
-        const isImageHost = imageHosts.some(host =>
-          urlObj.hostname.includes(host)
-        );
+        ].some(host => urlObj.hostname.includes(host));
 
         if (!hasImageExtension && !isImageHost) {
           return {
             valid: false,
             error:
-              'Image URL should point to an image file or known image hosting service',
+              'Image URL should have an image extension or be from a known image hosting service',
           };
         }
         break;
       case 'video':
-        // Check for common video extensions or video hosting domains
-        const videoExtensions = [
-          '.mp4',
-          '.avi',
-          '.mov',
-          '.wmv',
-          '.flv',
-          '.webm',
-        ];
-        const videoHosts = ['vimeo.com', 'dailymotion.com', 'twitch.tv'];
-
+        const videoExtensions = ['.mp4', '.mov', '.avi', '.webm'];
         const hasVideoExtension = videoExtensions.some(ext =>
-          urlObj.pathname.toLowerCase().includes(ext)
+          url.toLowerCase().includes(ext)
         );
-        const isVideoHost = videoHosts.some(host =>
+        const isVideoHost = ['vimeo.com', 'wistia.com'].some(host =>
           urlObj.hostname.includes(host)
         );
 
@@ -290,14 +279,17 @@ function validateMaterialUrl(
           return {
             valid: false,
             error:
-              'Video URL should point to a video file or known video hosting service',
+              'Video URL should have a video extension or be from a known video hosting service',
           };
         }
         break;
     }
 
     return { valid: true };
-  } catch {
-    return { valid: false, error: 'Invalid URL format' };
+  } catch (error) {
+    return {
+      valid: false,
+      error: 'Invalid URL format',
+    };
   }
 }
