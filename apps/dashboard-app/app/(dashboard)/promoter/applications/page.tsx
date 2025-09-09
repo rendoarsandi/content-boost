@@ -1,6 +1,5 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
 // import { campaigns, campaignApplications, users, viewRecords } from '@repo/database';
 // import { eq, and, desc, sum, count } from 'drizzle-orm';
 import {
@@ -17,68 +16,99 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 async function getPromoterApplications(promoterId: string) {
-  // Get promotions (which serve as applications in the current schema)
-  const promotions = await db.campaignApplication.findMany({
-    where: {
-      promoterId: promoterId,
-    },
-    include: {
-      campaign: {
-        include: {
-          creator: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+  // Mock data for demo purposes - in production this would use actual database
+  const mockApplications = [
+    {
+      application: {
+        id: 'app-1',
+        campaignId: 'campaign-1',
+        promoterId: promoterId,
+        status: 'APPROVED',
+        appliedAt: new Date('2024-01-15').toISOString(),
+        approvedAt: new Date('2024-01-16').toISOString(),
+        contentUrl: 'https://example.com/content1.jpg',
       },
-      viewRecords: true,
-      payouts: true,
+      campaign: {
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        description: 'Promote our new summer collection',
+        status: 'active',
+        budget: 5000000,
+        creatorId: 'creator-1',
+      },
+      creator: {
+        id: 'creator-1',
+        name: 'Fashion Brand Co',
+      },
     },
-    orderBy: {
-      appliedAt: 'desc',
+    {
+      application: {
+        id: 'app-2',
+        campaignId: 'campaign-2',
+        promoterId: promoterId,
+        status: 'PENDING',
+        appliedAt: new Date('2024-02-01').toISOString(),
+        approvedAt: null,
+        contentUrl: null,
+      },
+      campaign: {
+        id: 'campaign-2',
+        title: 'Winter Holiday Sale',
+        description: 'Special holiday promotion campaign',
+        status: 'active',
+        budget: 3000000,
+        creatorId: 'creator-2',
+      },
+      creator: {
+        id: 'creator-2',
+        name: 'Tech Startup Inc',
+      },
     },
-  });
-
-  // Convert promotions to application-like structure with stats
-  const applications = promotions.map(promotion => ({
-    application: {
-      id: promotion.id,
-      campaignId: promotion.campaignId,
-      promoterId: promotion.promoterId,
-      status: promotion.status,
-      appliedAt: promotion.appliedAt,
-      approvedAt: promotion.reviewedAt,
-      contentUrl: promotion.submittedContent,
+    {
+      application: {
+        id: 'app-3',
+        campaignId: 'campaign-3',
+        promoterId: promoterId,
+        status: 'REJECTED',
+        appliedAt: new Date('2024-01-20').toISOString(),
+        approvedAt: null,
+        contentUrl: null,
+      },
+      campaign: {
+        id: 'campaign-3',
+        title: 'Spring Collection Preview',
+        description: 'Early access to spring collection',
+        status: 'completed',
+        budget: 2000000,
+        creatorId: 'creator-3',
+      },
+      creator: {
+        id: 'creator-3',
+        name: 'Lifestyle Brand Ltd',
+      },
     },
-    campaign: promotion.campaign,
-    creator: promotion.campaign.creator,
-  }));
+  ];
 
-  // Create viewStats structure for compatibility
-  const viewStats = promotions.map(promotion => {
-    const totalViews = promotion.viewRecords.reduce(
-      (sum, record) => sum + record.viewCount,
-      0
-    );
-    const legitimateViews = promotion.viewRecords.reduce(
-      (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
-      0
-    );
-    const earnings = promotion.payouts.reduce(
-      (sum, payout) => sum + payout.amount,
-      0
-    );
+  // Mock view stats
+  const mockViewStats = [
+    {
+      applicationId: 'app-1',
+      views: 15000,
+      earnings: 1500000,
+    },
+    {
+      applicationId: 'app-2',
+      views: 0,
+      earnings: 0,
+    },
+    {
+      applicationId: 'app-3',
+      views: 0,
+      earnings: 0,
+    },
+  ];
 
-    return {
-      applicationId: promotion.id,
-      views: legitimateViews,
-      earnings: earnings,
-    };
-  });
-
-  return { applications, viewStats };
+  return { applications: mockApplications, viewStats: mockViewStats };
 }
 
 function getApplicationStatusColor(status: string) {

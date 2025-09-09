@@ -323,8 +323,10 @@ export class PromoterRecommendationService {
           analytics.reduce((sum: number, a: any) => sum + (a.roi || 0), 0) /
           analytics.length;
         const avgConversionRate =
-          analytics.reduce((sum: number, a: any) => sum + (a.conversion_rate || 0), 0) /
-          analytics.length;
+          analytics.reduce(
+            (sum: number, a: any) => sum + (a.conversion_rate || 0),
+            0
+          ) / analytics.length;
 
         performanceScore = Math.min((avgROI + avgConversionRate) / 20, 1); // normalize
       }

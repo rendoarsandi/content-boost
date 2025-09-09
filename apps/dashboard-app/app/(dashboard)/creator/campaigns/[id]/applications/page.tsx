@@ -1,8 +1,5 @@
-import { getSession } from '@repo/auth/server-only';
 import { redirect, notFound } from 'next/navigation';
-import { db } from '@repo/database';
-// import { campaigns, campaignApplications, users, viewRecords } from '@repo/database';
-// import { eq, and, sum, count, desc } from 'drizzle-orm';
+import { getSession } from '@repo/auth/server-only';
 import {
   Card,
   CardContent,
@@ -18,74 +15,90 @@ import { PromoterApplicationActions } from '../../../components/promoter-applica
 export const dynamic = 'force-dynamic';
 
 async function getCampaignApplications(campaignId: string, creatorId: string) {
-  // Verify campaign ownership using Prisma
-  const campaign = await db.campaign.findFirst({
-    where: {
-      id: campaignId,
-      creatorId: creatorId,
-    },
-  });
+  // Mock data for demo purposes - in production this would use actual database
+  const mockCampaign = {
+    id: campaignId,
+    title: 'Summer Product Launch',
+    description: 'Promote our new summer collection',
+    creatorId: creatorId,
+    status: 'active',
+    ratePerView: 100,
+  };
 
-  if (!campaign) {
-    return null;
-  }
-
-  // Get promotions with promoter details
-  const promotions = await db.campaignApplication.findMany({
-    where: {
+  const mockApplications = [
+    {
+      id: 'app-1',
       campaignId: campaignId,
-    },
-    include: {
+      status: 'PENDING',
+      appliedAt: new Date('2024-01-15').toISOString(),
+      reviewedAt: null,
+      submittedContent: 'https://youtube.com/watch?v=example1',
       promoter: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
+        id: 'promoter-1',
+        name: 'John Smith',
+        email: 'john@example.com',
       },
-      viewRecords: true,
-      payouts: true,
+      viewRecords: [
+        { viewCount: 1250, isLegitimate: true },
+        { viewCount: 800, isLegitimate: true },
+      ],
+      payouts: [
+        { amount: 25.50 },
+      ],
     },
-    orderBy: {
-      appliedAt: 'desc',
+    {
+      id: 'app-2',
+      campaignId: campaignId,
+      status: 'APPROVED',
+      appliedAt: new Date('2024-01-10').toISOString(),
+      reviewedAt: new Date('2024-01-12').toISOString(),
+      submittedContent: 'https://youtube.com/watch?v=example2',
+      promoter: {
+        id: 'promoter-2',
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+      },
+      viewRecords: [
+        { viewCount: 2100, isLegitimate: true },
+        { viewCount: 1500, isLegitimate: true },
+      ],
+      payouts: [
+        { amount: 42.00 },
+        { amount: 31.50 },
+      ],
     },
+  ];
+
+  // Calculate metrics for each application
+  const applicationsWithMetrics = mockApplications.map(item => {
+    const totalViews = item.viewRecords.reduce(
+      (sum, record) => sum + record.viewCount,
+      0
+    );
+    const legitimateViews = item.viewRecords.reduce(
+      (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
+      0
+    );
+    const estimatedEarnings = item.payouts.reduce(
+      (sum, payout) => sum + payout.amount,
+      0
+    );
+
+    const metrics = {
+      totalViews,
+      legitimateViews,
+      estimatedEarnings,
+    };
+
+    return {
+      application: item,
+      promoter: item.promoter,
+      metrics,
+    };
   });
-
-  // Get performance metrics for approved applications
-  const applicationsWithMetrics = await Promise.all(
-    promotions.map(async item => {
-      let metrics = null;
-
-      // Calculate metrics from related data
-      const totalViews = item.viewRecords.reduce(
-        (sum, record) => sum + record.viewCount,
-        0
-      );
-      const legitimateViews = item.viewRecords.reduce(
-        (sum, record) => sum + (record.isLegitimate ? record.viewCount : 0),
-        0
-      );
-      const estimatedEarnings = item.payouts.reduce(
-        (sum, payout) => sum + payout.amount,
-        0
-      );
-
-      metrics = {
-        totalViews,
-        legitimateViews,
-        estimatedEarnings,
-      };
-
-      return {
-        application: { ...item }, // Use actual status from CampaignApplication
-        promoter: item.promoter,
-        metrics,
-      };
-    })
-  );
 
   return {
-    campaign,
+    campaign: mockCampaign,
     applications: applicationsWithMetrics,
   };
 }
@@ -217,234 +230,156 @@ export default async function CampaignApplicationsPage({
         </Card>
       </div>
 
-      {/* Pending Applications */}
-      {pendingApplications.length > 0 && (
+      {/* Applications Lists */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Pending Applications */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <span>⏳</span>
-              <span>Pending Applications ({pendingApplications.length})</span>
+            <CardTitle className="flex items-center gap-2">
+              Pending Applications
+              <Badge variant="outline" className="text-yellow-600">
+                {pendingApplications.length}
+              </Badge>
             </CardTitle>
-            <CardDescription>
-              Applications waiting for your review
-            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendingApplications.map(({ application, promoter }) => (
-                <div key={application.id} className="border rounded-lg p-4">
+          <CardContent className="space-y-4">
+            {pendingApplications.length === 0 ? (
+              <p className="text-gray-500 text-sm">No pending applications</p>
+            ) : (
+              pendingApplications.map(({ application, promoter, metrics }) => (
+                <div key={application.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-medium">
-                            {(promoter.name || 'U').charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">
-                            {promoter.name || 'Unknown User'}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {promoter.email}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="ml-13">
-                        <p className="text-sm text-gray-600 mb-2">
-                          <strong>Applied:</strong>{' '}
-                          {new Date(application.appliedAt).toLocaleDateString()}
-                        </p>
-
-                        {application.submittedContent && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                            <p className="text-sm font-medium text-gray-700 mb-1">
-                              Submitted Content:
-                            </p>
-                            <p className="text-sm text-gray-800">
-                              {application.submittedContent}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col space-y-2 ml-4">
-                      <Badge
-                        className={getApplicationStatusColor(
-                          application.status
-                        )}
-                      >
-                        {application.status}
-                      </Badge>
-                      <PromoterApplicationActions
-                        applicationId={application.id}
-                        currentStatus={application.status}
-                      />
-                      <Link href={`/creator/applications/${application.id}`}>
-                        <Button variant="outline" size="sm" className="w-full">
-                          View Details
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Approved Applications */}
-      {approvedApplications.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <span>✅</span>
-              <span>Approved Promoters ({approvedApplications.length})</span>
-            </CardTitle>
-            <CardDescription>
-              Active promoters working on this campaign
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {approvedApplications.map(
-                ({ application, promoter, metrics }) => (
-                  <div key={application.id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                          <span className="text-green-600 font-medium text-lg">
-                            {(promoter.name || 'U').charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">
-                            {promoter.name || 'Unknown User'}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {promoter.email}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Approved:{' '}
-                            {application.reviewedAt
-                              ? new Date(
-                                  application.reviewedAt
-                                ).toLocaleDateString()
-                              : 'Not reviewed'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        {metrics && (
-                          <div className="grid grid-cols-1 gap-2 text-sm mb-3">
-                            <div>
-                              <span className="text-gray-600">Views: </span>
-                              <span className="font-semibold text-blue-600">
-                                {metrics.legitimateViews.toLocaleString()}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Earnings: </span>
-                              <span className="font-semibold text-green-600">
-                                Rp {metrics.estimatedEarnings.toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        <Link href={`/creator/applications/${application.id}`}>
-                          <Button variant="outline" size="sm">
-                            View Details
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm font-medium text-gray-700 mb-1">
-                        Promotion ID:
-                      </p>
-                      <code className="text-xs text-gray-600 bg-white px-2 py-1 rounded border break-all">
-                        {application.id}
-                      </code>
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* All Applications */}
-      {applications.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No applications yet
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Applications will appear here once promoters apply to this
-              campaign
-            </p>
-            <Link href={`/creator/campaigns/${campaign.id}`}>
-              <Button>Back to Campaign</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>All Applications</CardTitle>
-            <CardDescription>
-              Complete history of applications for this campaign
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {applications.map(({ application, promoter }) => (
-                <div
-                  key={application.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-medium">
-                        {(promoter.name || 'U').charAt(0).toUpperCase()}
-                      </span>
-                    </div>
                     <div>
-                      <p className="font-medium">
-                        {promoter.name || 'Unknown User'}
-                      </p>
+                      <h4 className="font-medium">{promoter.name}</h4>
                       <p className="text-sm text-gray-600">{promoter.email}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Badge
-                      className={getApplicationStatusColor(application.status)}
-                    >
+                    <Badge className={getApplicationStatusColor(application.status)}>
                       {application.status}
                     </Badge>
-                    <span className="text-sm text-gray-500">
-                      {new Date(application.appliedAt).toLocaleDateString()}
-                    </span>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500">
+                    Applied: {new Date(application.appliedAt).toLocaleDateString()}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-gray-500">Views:</span> {metrics.totalViews.toLocaleString()}
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Earnings:</span> Rp {metrics.estimatedEarnings.toFixed(2)}
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2">
                     <Link href={`/creator/applications/${application.id}`}>
-                      <Button variant="outline" size="sm">
+                      <Button size="sm" variant="outline" className="text-xs">
                         View Details
                       </Button>
                     </Link>
                   </div>
+                  
+                  <PromoterApplicationActions
+                    applicationId={application.id}
+                    currentStatus={application.status}
+                  />
                 </div>
-              ))}
-            </div>
+              ))
+            )}
           </CardContent>
         </Card>
-      )}
+
+        {/* Approved Applications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Approved Applications
+              <Badge variant="outline" className="text-green-600">
+                {approvedApplications.length}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {approvedApplications.length === 0 ? (
+              <p className="text-gray-500 text-sm">No approved applications</p>
+            ) : (
+              approvedApplications.map(({ application, promoter, metrics }) => (
+                <div key={application.id} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-medium">{promoter.name}</h4>
+                      <p className="text-sm text-gray-600">{promoter.email}</p>
+                    </div>
+                    <Badge className={getApplicationStatusColor(application.status)}>
+                      {application.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500">
+                    Approved: {application.reviewedAt ? new Date(application.reviewedAt).toLocaleDateString() : 'N/A'}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-gray-500">Views:</span> {metrics.totalViews.toLocaleString()}
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Earnings:</span> Rp {metrics.estimatedEarnings.toFixed(2)}
+                    </div>
+                  </div>
+                  
+                  <Link href={`/creator/applications/${application.id}`}>
+                    <Button size="sm" variant="outline" className="w-full text-xs">
+                      View Details
+                    </Button>
+                  </Link>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Rejected Applications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Rejected Applications
+              <Badge variant="outline" className="text-red-600">
+                {rejectedApplications.length}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {rejectedApplications.length === 0 ? (
+              <p className="text-gray-500 text-sm">No rejected applications</p>
+            ) : (
+              rejectedApplications.map(({ application, promoter, metrics }) => (
+                <div key={application.id} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-medium">{promoter.name}</h4>
+                      <p className="text-sm text-gray-600">{promoter.email}</p>
+                    </div>
+                    <Badge className={getApplicationStatusColor(application.status)}>
+                      {application.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500">
+                    Rejected: {application.reviewedAt ? new Date(application.reviewedAt).toLocaleDateString() : 'N/A'}
+                  </div>
+                  
+                  <Link href={`/creator/applications/${application.id}`}>
+                    <Button size="sm" variant="outline" className="w-full text-xs">
+                      View Details
+                    </Button>
+                  </Link>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

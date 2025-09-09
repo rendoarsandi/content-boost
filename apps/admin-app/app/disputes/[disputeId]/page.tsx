@@ -1,7 +1,18 @@
 import React from 'react';
 
+// Type definition for dispute data
+type DisputeData = {
+  id: string;
+  creator: string;
+  promoter: string;
+  reason: string;
+  status: string;
+  description: string;
+  timeline: Array<{ date: string; event: string }>;
+};
+
 // Mock data fetching for a single dispute
-const getDisputeDetails = async (disputeId: string) => {
+const getDisputeDetails = async (disputeId: string): Promise<DisputeData> => {
   // In a real app, fetch from your database based on the ID
   console.log(`Fetching details for dispute: ${disputeId}`);
   return {
@@ -20,7 +31,7 @@ const getDisputeDetails = async (disputeId: string) => {
 };
 
 // A simple form for admin actions - this would be a client component in a real app
-const AdminActionForm = ({ dispute }) => {
+const AdminActionForm = ({ dispute }: { dispute: DisputeData }) => {
   // 'use client'; // This would be a client component
   return (
     <div className="mt-6">
@@ -71,9 +82,10 @@ const AdminActionForm = ({ dispute }) => {
 const DisputeDetailPage = async ({
   params,
 }: {
-  params: { disputeId: string };
+  params: Promise<{ disputeId: string }>;
 }) => {
-  const dispute = await getDisputeDetails(params.disputeId);
+  const { disputeId } = await params;
+  const dispute = await getDisputeDetails(disputeId);
 
   return (
     <div className="container mx-auto p-4">

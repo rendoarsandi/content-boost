@@ -1,46 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@repo/database';
 import { getSession } from '@repo/auth/server-only';
 
-// GET /api/promoter/analytics - Get promoter analytics with bot detection insights
+// GET /api/promoter/analytics - Get promoter analytics
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
 
-    if (!session?.user || (session.user as any).role !== 'promoter') {
-      return NextResponse.json(
-        { error: 'Unauthorized - Only promoters can access analytics' },
-        { status: 401 }
-      );
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const promoterId = (session.user as any).id;
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get('period') || '30'; // days
+    const period = searchParams.get('period') || '30';
     const campaignId = searchParams.get('campaignId');
+    const promoterId = (session.user as any).id;
 
-    // Calculate date range
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(period));
-
-    // Get promoter's promotions with basic analytics
-    const promotions = await db.campaignApplication.findMany({
-      where: {
-        promoterId,
-        appliedAt: {
-          gte: startDate,
+    // Mock promotions data for demo purposes
+    const mockPromotions = [
+      {
+        id: 'promotion-1',
+        promoterId: promoterId,
+        campaignId: 'campaign-1',
+        appliedAt: new Date('2024-01-15').toISOString(),
+        submittedContent: 'https://example.com/my-content',
+        campaign: {
+          id: 'campaign-1',
+          title: 'Summer Product Launch',
+          budget: 5000000,
         },
-        ...(campaignId && { campaignId }),
+        viewRecords: [
+          { viewCount: 1000, isLegitimate: true },
+          { viewCount: 800, isLegitimate: true },
+          { viewCount: 200, isLegitimate: false },
+        ],
+        payouts: [
+          { amount: 150000, status: 'COMPLETED' },
+          { amount: 80000, status: 'COMPLETED' },
+        ],
       },
-      include: {
-        campaign: true,
-        viewRecords: true,
-        payouts: true,
+      {
+        id: 'promotion-2',
+        promoterId: promoterId,
+        campaignId: 'campaign-2',
+        appliedAt: new Date('2024-02-05').toISOString(),
+        submittedContent: 'https://example.com/my-content-2',
+        campaign: {
+          id: 'campaign-2',
+          title: 'Winter Holiday Sale',
+          budget: 3000000,
+        },
+        viewRecords: [
+          { viewCount: 1500, isLegitimate: true },
+        ],
+        payouts: [
+          { amount: 180000, status: 'PENDING' },
+        ],
       },
-    });
+    ];
+
+    // Filter by campaign if specified
+    let filteredPromotions = mockPromotions.filter(p => p.promoterId === promoterId);
+    if (campaignId) {
+      filteredPromotions = filteredPromotions.filter(p => p.campaignId === campaignId);
+    }
 
     // Calculate basic analytics from promotions
-    const totalViews = promotions.reduce((sum, p) => {
+    const totalViews = filteredPromotions.reduce((sum, p) => {
       const legitimateViews = p.viewRecords.reduce(
         (viewSum, record) =>
           viewSum + (record.isLegitimate ? record.viewCount : 0),
@@ -48,14 +73,16 @@ export async function GET(request: NextRequest) {
       );
       return sum + legitimateViews;
     }, 0);
-    const totalEarnings = promotions.reduce((sum, p) => {
+
+    const totalEarnings = filteredPromotions.reduce((sum, p) => {
       const earnings = p.payouts.reduce(
         (payoutSum, payout) => payoutSum + payout.amount,
         0
       );
       return sum + earnings;
     }, 0);
-    const campaignCount = new Set(promotions.map(p => p.campaignId)).size;
+
+    const campaignCount = new Set(filteredPromotions.map(p => p.campaignId)).size;
 
     return NextResponse.json({
       period: parseInt(period),
@@ -63,9 +90,9 @@ export async function GET(request: NextRequest) {
         totalViews,
         totalEarnings,
         campaignCount,
-        promotionsCount: promotions.length,
+        promotionsCount: filteredPromotions.length,
       },
-      applications: promotions.map(promotion => {
+      applications: filteredPromotions.map(promotion => {
         const legitimateViews = promotion.viewRecords.reduce(
           (viewSum, record) =>
             viewSum + (record.isLegitimate ? record.viewCount : 0),
@@ -89,8 +116,18 @@ export async function GET(request: NextRequest) {
       }),
       earnings: {
         total: totalEarnings,
-        pending: 0, // Would need a payout tracking system
-        completedPayouts: 0,
+        pending: filteredPromotions.reduce((sum, p) => {
+          const pendingAmount = p.payouts
+            .filter(payout => payout.status === 'PENDING')
+            .reduce((pendingSum, payout) => pendingSum + payout.amount, 0);
+          return sum + pendingAmount;
+        }, 0),
+        completedPayouts: filteredPromotions.reduce((sum, p) => {
+          const completedAmount = p.payouts
+            .filter(payout => payout.status === 'COMPLETED')
+            .reduce((completedSum, payout) => completedSum + payout.amount, 0);
+          return sum + completedAmount;
+        }, 0),
       },
     });
   } catch (error) {

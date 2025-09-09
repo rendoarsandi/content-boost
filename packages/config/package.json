@@ -2,6 +2,7 @@
   "name": "@repo/config",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -11,7 +12,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "eslint src/",
+    "lint": "eslint --config eslint.config.js src/",
     "type-check": "tsc --noEmit",
     "clean": "rd /s /q dist",
     "test": "jest"

@@ -3,6 +3,8 @@ import { ProfileEditForm } from '@/components/profile/ProfileEditForm';
 import { TierStatus } from '@/components/profile/TierStatus';
 
 // Mock data for promoter profile
+type Tier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+
 const getPromoterProfile = async () => {
   // In a real app, you would fetch this from your API
   return {
@@ -10,7 +12,7 @@ const getPromoterProfile = async () => {
     bio: "Experienced content promoter specializing in tech and gaming. Let's make your campaign a success!",
     niche: 'Tech, Gaming',
     portfolio_links: 'https://example.com/portfolio',
-    tier: 'Gold',
+    tier: 'Gold' as Tier,
   };
 };
 

@@ -5,21 +5,21 @@ const nextConfig = {
     '@repo/config',
     '@repo/database',
     '@repo/cache',
+    '@repo/convex',
   ],
   output: 'standalone',
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
+    NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

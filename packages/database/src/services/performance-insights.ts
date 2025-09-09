@@ -104,7 +104,8 @@ export class PerformanceInsightsService {
       }
 
       // Get performance data (views, clicks, conversions)
-      const campaignIds = applications?.map((app: any) => app.campaign_id) || [];
+      const campaignIds =
+        applications?.map((app: any) => app.campaign_id) || [];
       let performanceData: any[] = [];
 
       if (campaignIds.length > 0) {
@@ -119,7 +120,8 @@ export class PerformanceInsightsService {
 
       // Calculate metrics
       const completedCampaigns =
-        applications?.filter((app: any) => app.status === 'completed').length || 0;
+        applications?.filter((app: any) => app.status === 'completed').length ||
+        0;
       const totalViews = performanceData.reduce(
         (sum, p) => sum + (p.views || 0),
         0

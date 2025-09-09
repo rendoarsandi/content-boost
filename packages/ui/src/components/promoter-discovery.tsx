@@ -8,7 +8,11 @@ interface PromoterDiscoveryProps {
   supabaseKey: string;
 }
 
-export function PromoterDiscovery({ creatorId, supabaseUrl, supabaseKey }: PromoterDiscoveryProps) {
+export function PromoterDiscovery({
+  creatorId,
+  supabaseUrl,
+  supabaseKey,
+}: PromoterDiscoveryProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -18,8 +22,12 @@ export function PromoterDiscovery({ creatorId, supabaseUrl, supabaseKey }: Promo
         </div>
       </div>
       <div className="bg-white p-6 rounded-lg border">
-        <p className="text-center text-gray-500">Promoter Discovery - Component placeholder</p>
-        <p className="text-sm text-gray-400 text-center">Creator: {creatorId}</p>
+        <p className="text-center text-gray-500">
+          Promoter Discovery - Component placeholder
+        </p>
+        <p className="text-sm text-gray-400 text-center">
+          Creator: {creatorId}
+        </p>
       </div>
     </div>
   );

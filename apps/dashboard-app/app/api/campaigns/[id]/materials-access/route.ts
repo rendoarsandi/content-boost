@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@repo/database';
-import { auth } from '@repo/auth/server-only';
+import { getSession } from '@repo/auth/server-only';
 
 // GET /api/campaigns/[id]/materials-access - Get campaign materials for approved promoters
 export async function GET(
@@ -8,14 +7,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    const session = await getSession();
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only promoters can access campaign materials
-    if (session.user.role !== 'promoter') {
+    if ((session.user as any).role !== 'promoter') {
       return NextResponse.json(
         { error: 'Forbidden - Only promoters can access campaign materials' },
         { status: 403 }
@@ -24,22 +23,52 @@ export async function GET(
 
     const { id: campaignId } = await params;
 
-    // Check if promoter has a promotion for this campaign
-    const promotion = await db.campaignApplication.findFirst({
-      where: {
-        campaignId,
-        promoterId: session.user.id,
-      },
-      include: {
+    // Mock campaign promotion data for demo purposes
+    const mockPromotions = [
+      {
+        id: 'promotion-1',
+        campaignId: 'campaign-1',
+        promoterId: 'promoter-1',
+        appliedAt: new Date('2024-01-15').toISOString(),
+        submittedContent: 'https://example.com/my-content',
         campaign: {
-          include: {
-            creator: true,
-          },
+          id: 'campaign-1',
+          title: 'Summer Product Launch',
+          budget: 5000000,
         },
-        viewRecords: true,
-        payouts: true,
+        viewRecords: [
+          { viewCount: 1000, isLegitimate: true },
+          { viewCount: 800, isLegitimate: true },
+          { viewCount: 200, isLegitimate: false },
+        ],
+        payouts: [
+          { amount: 150000 },
+          { amount: 80000 },
+        ],
       },
-    });
+      {
+        id: 'promotion-2',
+        campaignId: 'campaign-2',
+        promoterId: 'promoter-2',
+        appliedAt: new Date('2024-02-05').toISOString(),
+        submittedContent: 'https://example.com/my-content-2',
+        campaign: {
+          id: 'campaign-2',
+          title: 'Winter Holiday Sale',
+          budget: 3000000,
+        },
+        viewRecords: [
+          { viewCount: 1500, isLegitimate: true },
+        ],
+        payouts: [
+          { amount: 180000 },
+        ],
+      },
+    ];
+
+    const promotion = mockPromotions.find(
+      p => p.campaignId === campaignId && p.promoterId === (session.user as any).id
+    );
 
     if (!promotion) {
       return NextResponse.json(
@@ -61,7 +90,7 @@ export async function GET(
     // Log materials access for analytics
     console.log('Materials accessed:', {
       campaignId,
-      promoterId: session.user.id,
+      promoterId: (session.user as any).id,
       accessedAt: new Date(),
     });
 

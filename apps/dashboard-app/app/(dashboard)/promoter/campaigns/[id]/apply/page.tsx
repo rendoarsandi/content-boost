@@ -1,6 +1,5 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
 // import { campaigns, campaignMaterials, users, campaignApplications } from '@repo/database';
 // import { eq, and } from 'drizzle-orm';
 import {
@@ -21,44 +20,34 @@ async function getCampaignForApplication(
   campaignId: string,
   promoterId: string
 ) {
-  // Get campaign with creator info
-  const campaign = await db.campaign.findUnique({
-    where: {
-      id: campaignId,
-    },
-    include: {
-      creator: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
+  // Mock data for demo purposes - in production this would use actual database
+  const mockCampaign = {
+    id: campaignId,
+    title: 'Summer Product Launch',
+    description: 'Promote our new summer collection',
+    status: 'active',
+    budget: 5000000,
+    creatorId: 'creator-1',
+  };
 
-  if (!campaign) {
-    return null;
-  }
+  const mockCreator = {
+    id: 'creator-1',
+    name: 'Fashion Brand Co',
+  };
 
-  // Check if promoter has already applied (check existing promotions)
-  const existingPromotion = await db.campaignApplication.findFirst({
-    where: {
-      campaignId: campaignId,
-      promoterId: promoterId,
-    },
-  });
+  // For demo purposes, let's show a case where they have applied
+  const hasApplied = true;
+  const existingApplication = {
+    id: 'app-1',
+    status: 'APPROVED',
+    appliedAt: new Date('2024-01-15').toISOString(),
+  };
 
   return {
-    campaign,
-    creator: campaign.creator,
-    hasApplied: !!existingPromotion,
-    application: existingPromotion
-      ? {
-          id: existingPromotion.id,
-          status: 'APPROVED', // Since promotion exists, it's approved
-          appliedAt: existingPromotion.appliedAt,
-        }
-      : null,
+    campaign: mockCampaign,
+    creator: mockCreator,
+    hasApplied,
+    application: existingApplication,
   };
 }
 

@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: './tests/setup.ts', // File setup jika diperlukan
+    setupFiles: './tests/setup.ts',
     include: ['**/*.{test,spec}.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
     alias: {
@@ -18,5 +18,16 @@ export default defineConfig({
       '@repo/config': path.resolve(__dirname, 'packages/config/src'),
       '@repo/auth': path.resolve(__dirname, 'packages/auth/src'),
     },
+    // Jest compatibility
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
+  },
+  define: {
+    // Provide jest globals for compatibility
+    global: 'globalThis',
   },
 });

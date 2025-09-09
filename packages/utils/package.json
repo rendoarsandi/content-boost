@@ -2,12 +2,42 @@
   "name": "@repo/utils",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./alerting": {
+      "import": "./dist/alerting.js",
+      "types": "./dist/alerting.d.ts"
+    },
+    "./application-service": {
+      "import": "./dist/application-service.js",
+      "types": "./dist/application-service.d.ts"
+    },
+    "./payment-notifications": {
+      "import": "./dist/payment-notifications.js",
+      "types": "./dist/payment-notifications.d.ts"
+    },
+    "./bot-detection": {
+      "import": "./dist/bot-detection.js",
+      "types": "./dist/bot-detection.d.ts"
+    },
+    "./performance": {
+      "import": "./dist/performance.js",
+      "types": "./dist/performance.d.ts"
+    }
+  },
+  "browser": {
+    "./src/logging.ts": "./src/logging.client.ts"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "eslint src/",
+    "lint": "eslint --config eslint.config.js src/",
     "type-check": "tsc --noEmit",
     "clean": "rd /s /q dist",
     "test": "jest",

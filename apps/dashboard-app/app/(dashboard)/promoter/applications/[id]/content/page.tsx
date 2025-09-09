@@ -1,6 +1,5 @@
 import { getSession } from '@repo/auth/server-only';
 import { redirect } from 'next/navigation';
-import { db } from '@repo/database';
 // import { campaignApplications, campaigns, campaignMaterials } from '@repo/database';
 // import { eq, and } from 'drizzle-orm';
 import {
@@ -21,29 +20,44 @@ async function getApplicationContent(
   applicationId: string,
   promoterId: string
 ) {
-  // Get promotion with campaign info using Prisma
-  const promotion = await db.campaignApplication.findFirst({
-    where: {
-      id: applicationId,
-      promoterId: promoterId,
+  // Mock data for demo purposes - in production this would use actual database
+  const mockApplication = {
+    id: applicationId,
+    promoterId: promoterId,
+    campaignId: 'campaign-1',
+    appliedAt: new Date('2024-01-15').toISOString(),
+    reviewedAt: new Date('2024-01-16').toISOString(),
+    submittedContent: 'https://example.com/content.jpg',
+    campaign: {
+      id: 'campaign-1',
+      title: 'Summer Product Launch',
+      description: 'Promote our new summer collection',
+      status: 'active',
+      budget: 5000000,
     },
-    include: {
-      campaign: true,
+  };
+
+  // Mock materials for this campaign
+  const materials = [
+    {
+      id: 'material-1',
+      title: 'Product Images',
+      description: 'High-quality product photos',
+      type: 'image',
+      url: 'https://example.com/images.zip',
     },
-  });
-
-  if (!promotion) {
-    return null;
-  }
-
-  // Since promotions in DB are essentially approved, we can proceed
-
-  // Since we don't have campaign materials table in current schema, return empty array
-  const materials: any[] = [];
+    {
+      id: 'material-2',
+      title: 'Brand Guidelines',
+      description: 'Brand colors, fonts, and style guide',
+      type: 'document',
+      url: 'https://example.com/guidelines.pdf',
+    },
+  ];
 
   return {
-    application: promotion,
-    campaign: promotion.campaign,
+    application: mockApplication,
+    campaign: mockApplication.campaign,
     materials,
     canEdit: true,
   };

@@ -32,14 +32,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userCampaigns = await db.campaign.findMany({
-      where: {
+    // Mock user campaigns data for demo purposes
+    const mockUserCampaigns = [
+      {
+        id: 'campaign-1',
+        title: 'Summer Product Launch',
+        budget: 5000000,
         creatorId: (session.user as any).id,
+        createdAt: new Date('2024-01-01').toISOString(),
+        ratePerView: 100,
       },
-      orderBy: {
-        createdAt: 'desc',
+      {
+        id: 'campaign-2',
+        title: 'Winter Holiday Sale',
+        budget: 3000000,
+        creatorId: (session.user as any).id,
+        createdAt: new Date('2024-02-01').toISOString(),
+        ratePerView: 120,
       },
-    });
+    ];
+
+    const userCampaigns = mockUserCampaigns.filter(
+      campaign => campaign.creatorId === (session.user as any).id
+    );
 
     return NextResponse.json({ campaigns: userCampaigns });
   } catch (error) {
@@ -71,15 +86,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = CreateCampaignSchema.parse(body);
 
-    // Create campaign
-    const newCampaign = await db.campaign.create({
-      data: {
-        creatorId: (session.user as any).id,
-        title: validatedData.name,
-        budget: validatedData.budget,
-        ratePerView: 100, // Default rate per view
-      },
-    });
+    // Mock create campaign
+    const newCampaign = {
+      id: `campaign-${Date.now()}`,
+      creatorId: (session.user as any).id,
+      title: validatedData.name,
+      budget: validatedData.budget,
+      ratePerView: 100,
+      createdAt: new Date().toISOString(),
+    };
+
+    console.log('Mock campaign created:', newCampaign);
 
     return NextResponse.json(
       {

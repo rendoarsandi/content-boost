@@ -8,19 +8,29 @@ const nextConfig = {
     '@repo/utils',
   ],
   output: 'standalone',
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
+  webpack: (config, { isServer }) => {
+    // Ignore Node.js modules when building for client
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        os: false,
+      };
+    }
+    return config;
+  },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

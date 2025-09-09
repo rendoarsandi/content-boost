@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import React from 'react';
 import '@repo/ui/styles/globals.css';
 import TrpcProvider from '../utils/trpc/TrpcProvider';
+import { ConvexClientProvider } from '../components/ConvexProvider';
 
 export const metadata: Metadata = {
   title: 'Dashboard - Creator Promotion Platform',
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body>
-        <TrpcProvider>{children}</TrpcProvider>
+        <ConvexClientProvider>
+          <TrpcProvider>{children}</TrpcProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

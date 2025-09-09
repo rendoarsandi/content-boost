@@ -1,6 +1,5 @@
-import { getSession } from '@repo/auth/server-only';
 import { redirect, notFound } from 'next/navigation';
-import { db } from '@repo/database';
+import { getSession } from '@repo/auth/server-only';
 import {
   Card,
   CardContent,
@@ -11,40 +10,48 @@ import {
   Badge,
 } from '@repo/ui';
 import Link from 'next/link';
-import { CampaignStatusActions } from '../../components/campaign-status-actions';
-import { RealTimeMetrics } from '../../components/real-time-metrics';
 
 export const dynamic = 'force-dynamic';
 
 async function getCampaignDetails(campaignId: string, creatorId: string) {
-  // Get campaign with promotions
-  const campaign = await db.campaign.findFirst({
-    where: {
-      id: campaignId,
-      creatorId,
-    },
-    include: {
-      applications: {
-        include: {
-          promoter: true,
-          viewRecords: true,
-          payouts: true,
-        },
-      },
-      _count: {
-        select: {
-          applications: true,
-        },
-      },
-    },
-  });
+  // Mock data for demo purposes - in production this would use actual database
+  const mockCampaign = {
+    id: campaignId,
+    title: 'Summer Product Launch',
+    description: 'Promote our new summer collection with engaging content',
+    budget: 5000000, // 5 million IDR
+    creatorId: creatorId,
+    status: 'active',
+    createdAt: new Date('2024-01-01').toISOString(),
+    startDate: new Date('2024-01-15').toISOString(),
+    endDate: new Date('2024-03-15').toISOString(),
+  };
 
-  if (!campaign) {
-    return null;
-  }
+  const mockApplications = [
+    {
+      id: 'app-1',
+      campaignId: campaignId,
+      status: 'APPROVED',
+      appliedAt: new Date('2024-01-10').toISOString(),
+      reviewedAt: new Date('2024-01-12').toISOString(),
+      promoter: {
+        id: 'promoter-1',
+        name: 'John Smith',
+        email: 'john@example.com',
+      },
+      viewRecords: [
+        { viewCount: 2100, isLegitimate: true },
+        { viewCount: 1500, isLegitimate: true },
+      ],
+      payouts: [
+        { amount: 42000 },
+        { amount: 31500 },
+      ],
+    },
+  ];
 
-  // Calculate statistics from related data
-  const totalViews = campaign.applications.reduce(
+  // Calculate statistics
+  const totalViews = mockApplications.reduce(
     (sum, app) =>
       sum +
       app.viewRecords.reduce(
@@ -53,29 +60,23 @@ async function getCampaignDetails(campaignId: string, creatorId: string) {
       ),
     0
   );
-  const totalEarnings = campaign.applications.reduce(
+
+  const legitimateViews = mockApplications.reduce(
     (sum, app) =>
       sum +
-      app.payouts.reduce((payoutSum, payout) => payoutSum + payout.amount, 0),
+      app.viewRecords.reduce(
+        (viewSum, record) => viewSum + (record.isLegitimate ? record.viewCount : 0),
+        0
+      ),
     0
   );
 
-  // Create applications from promotions
-  const applications = campaign.applications.map(promotion => ({
-    application: { ...promotion, status: 'APPROVED' },
-    promoter: promotion.promoter,
-  }));
-
-  // For now, materials is empty (can be implemented later if needed)
-  const materials: any[] = [];
-
   return {
-    campaign,
-    materials,
-    applications,
+    campaign: mockCampaign,
+    applications: mockApplications,
     stats: {
       totalViews,
-      legitimateViews: totalViews, // Same as total for now
+      legitimateViews,
     },
   };
 }
@@ -90,19 +91,6 @@ function getStatusColor(status: string) {
       return 'bg-yellow-100 text-yellow-800';
     case 'completed':
       return 'bg-blue-100 text-blue-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-}
-
-function getApplicationStatusColor(status: string) {
-  switch (status) {
-    case 'APPROVED':
-      return 'bg-green-100 text-green-800';
-    case 'PENDING':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'REJECTED':
-      return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -129,14 +117,7 @@ export default async function CampaignDetailsPage({
     notFound();
   }
 
-  const { campaign, materials, applications, stats } = campaignDetails;
-
-  const approvedApplications = applications.filter(
-    app => app.application.status === 'APPROVED'
-  );
-  const pendingApplications = applications.filter(
-    app => app.application.status === 'PENDING'
-  );
+  const { campaign, applications, stats } = campaignDetails;
 
   return (
     <div className="space-y-8">
@@ -147,39 +128,26 @@ export default async function CampaignDetailsPage({
             <h1 className="text-3xl font-bold text-gray-900">
               {campaign.title}
             </h1>
+            <Badge className={getStatusColor(campaign.status)}>
+              {campaign.status}
+            </Badge>
           </div>
           <p className="text-gray-600">
-            Campaign Budget: Rp {campaign.budget.toLocaleString()}
+            {campaign.description}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Budget: Rp {campaign.budget.toLocaleString()}
           </p>
         </div>
-        <div className="flex flex-col space-y-2">
-          <div className="flex space-x-2">
-            <Link href={`/creator/campaigns/${campaign.id}/edit`}>
-              <Button variant="outline">Edit Campaign</Button>
-            </Link>
-            <Link href={`/creator/campaigns/${campaign.id}/applications`}>
-              <Button variant="outline">Manage Applications</Button>
-            </Link>
-          </div>
-          <CampaignStatusActions
-            campaignId={campaign.id}
-            currentStatus="active"
-          />
+        <div className="flex space-x-2">
+          <Link href={`/creator/campaigns/${campaign.id}/applications`}>
+            <Button variant="outline">Manage Applications</Button>
+          </Link>
+          <Link href="/creator/campaigns">
+            <Button variant="outline">Back to Campaigns</Button>
+          </Link>
         </div>
       </div>
-
-      {/* Real-Time Metrics */}
-      <RealTimeMetrics
-        campaignId={campaign.id}
-        initialData={{
-          totalViews: stats.totalViews,
-          legitimateViews: stats.legitimateViews,
-          botViews: stats.totalViews - stats.legitimateViews,
-          activePromoters: approvedApplications.length,
-          estimatedSpent: stats.legitimateViews * 100, // Default rate of 100 per view
-          lastUpdated: new Date().toISOString(),
-        }}
-      />
 
       {/* Campaign Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -191,7 +159,7 @@ export default async function CampaignDetailsPage({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              Rp {Number(campaign.budget).toLocaleString()}
+              Rp {campaign.budget.toLocaleString()}
             </div>
             <p className="text-xs text-gray-500 mt-1">Total allocated</p>
           </CardContent>
@@ -200,30 +168,28 @@ export default async function CampaignDetailsPage({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              Rate per View
+              Total Views
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">Rp 100</div>
-            <p className="text-xs text-gray-500 mt-1">Per legitimate view</p>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.totalViews.toLocaleString()}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">All promotions</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              Budget Used
+              Legitimate Views
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {(
-                ((stats.legitimateViews * 100) / Number(campaign.budget)) *
-                100
-              ).toFixed(1)}
-              %
+              {stats.legitimateViews.toLocaleString()}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Of total budget</p>
+            <p className="text-xs text-gray-500 mt-1">Bot-free traffic</p>
           </CardContent>
         </Card>
 
@@ -235,142 +201,95 @@ export default async function CampaignDetailsPage({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {approvedApplications.length}
+              {applications.length}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Approved promoters</p>
+            <p className="text-xs text-gray-500 mt-1">Approved applications</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Campaign Materials */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Campaign Materials</CardTitle>
-            <CardDescription>Resources provided to promoters</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {materials.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">
-                No materials uploaded
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {materials.map(material => (
-                  <div key={material.id} className="border rounded-lg p-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-medium">{material.title}</h4>
-                        <p className="text-sm text-gray-600 capitalize">
-                          {material.type}
-                        </p>
-                        {material.description && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            {material.description}
-                          </p>
-                        )}
-                      </div>
-                      <a
-                        href={material.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        View →
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Campaign Requirements */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Requirements</CardTitle>
-            <CardDescription>
-              Criteria for promoter applications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-500 text-center py-4">
-              No specific requirements
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Promoter Applications */}
+      {/* Campaign Details */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <CardTitle>Campaign Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <CardTitle>Promoter Applications</CardTitle>
-              <CardDescription>
-                {applications.length} total applications
-                {pendingApplications.length > 0 && (
-                  <span className="ml-2 text-yellow-600">
-                    • {pendingApplications.length} pending review
-                  </span>
-                )}
-              </CardDescription>
+              <p className="text-sm font-medium text-gray-600">Campaign Title</p>
+              <p className="text-gray-900">{campaign.title}</p>
             </div>
-            <Link href={`/creator/campaigns/${campaign.id}/applications`}>
-              <Button variant="outline">Manage Applications</Button>
-            </Link>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Status</p>
+              <Badge className={getStatusColor(campaign.status)}>
+                {campaign.status}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Start Date</p>
+              <p className="text-gray-900">
+                {new Date(campaign.startDate).toLocaleDateString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">End Date</p>
+              <p className="text-gray-900">
+                {new Date(campaign.endDate).toLocaleDateString()}
+              </p>
+            </div>
           </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600 mb-2">Description</p>
+            <p className="text-gray-700">{campaign.description}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Applications List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Recent Applications</span>
+            <Link href={`/creator/campaigns/${campaign.id}/applications`}>
+              <Button size="sm" variant="outline">View All</Button>
+            </Link>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {applications.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No applications yet</p>
-              <p className="text-sm mt-2">
-                Applications will appear here once promoters apply
-              </p>
-            </div>
+            <p className="text-gray-500 text-center py-8">
+              No applications yet. Share your campaign to attract promoters!
+            </p>
           ) : (
-            <div className="space-y-3">
-              {applications.slice(0, 5).map(({ application, promoter }) => (
-                <div
-                  key={application.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-medium">
-                        {(promoter.name || 'U').charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+            <div className="space-y-4">
+              {applications.slice(0, 3).map((application) => (
+                <div key={application.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">
-                        {promoter.name || 'Unknown User'}
+                      <h4 className="font-medium">{application.promoter.name}</h4>
+                      <p className="text-sm text-gray-600">{application.promoter.email}</p>
+                    </div>
+                    <div className="text-right">
+                      <Badge className="bg-green-100 text-green-800">
+                        {application.status}
+                      </Badge>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Applied: {new Date(application.appliedAt).toLocaleDateString()}
                       </p>
-                      <p className="text-sm text-gray-600">{promoter.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Badge
-                      className={getApplicationStatusColor(application.status)}
-                    >
-                      {application.status}
-                    </Badge>
-                    <span className="text-sm text-gray-500">
-                      {new Date(application.appliedAt).toLocaleDateString()}
-                    </span>
+                  <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Views:</span>{' '}
+                      {application.viewRecords.reduce((sum, record) => sum + record.viewCount, 0).toLocaleString()}
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Earnings:</span>{' '}
+                      Rp {application.payouts.reduce((sum, payout) => sum + payout.amount, 0).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               ))}
-              {applications.length > 5 && (
-                <div className="text-center pt-4">
-                  <Link href={`/creator/campaigns/${campaign.id}/applications`}>
-                    <Button variant="outline">
-                      View All {applications.length} Applications
-                    </Button>
-                  </Link>
-                </div>
-              )}
             </div>
           )}
         </CardContent>

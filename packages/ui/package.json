@@ -2,24 +2,31 @@
   "name": "@repo/ui",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./src/index.ts",
     "./styles/globals.css": "./src/styles/globals.css",
-    "./components/*": "./src/components/ui/*",
+    "./components/ui/*": "./src/components/*.tsx",
+    "./components/ui/ab-testing-dashboard": "./src/components/ab-testing-dashboard.tsx",
+    "./components/ui/campaign-templates": "./src/components/campaign-templates.tsx",
+    "./components/ui/promoter-discovery": "./src/components/promoter-discovery.tsx",
+    "./components/ui/gamification-dashboard": "./src/components/gamification-dashboard.tsx",
+    "./components/ui/chat": "./src/components/Chat.tsx",
     "./chat": "./src/components/Chat.tsx",
     "./lib/utils": "./src/lib/utils.ts"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "eslint src/",
+    "lint": "eslint --config eslint.config.js src/",
     "type-check": "tsc --noEmit",
     "clean": "rd /s /q dist",
     "test": "jest"
   },
   "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-progress": "^1.1.7",
@@ -29,7 +36,6 @@
     "@radix-ui/react-slot": "^1.0.0",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
-    "@radix-ui/react-accordion": "^1.2.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "lucide-react": "^0.532.0",
@@ -41,8 +47,8 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.3.0",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
     "eslint": "^9.32.0",
     "jest": "^30.0.5",
     "typescript": "^5.0.0"
