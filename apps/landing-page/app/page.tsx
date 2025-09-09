@@ -26,6 +26,9 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 
+// Disable static generation for this page
+export const dynamic = 'force-dynamic';
+
 // Helper component for Feature Cards for better reusability
 const FeatureCard = ({
   icon,
@@ -106,12 +109,18 @@ export default function HomePage() {
             ContentBoost
           </Link>
           <nav className="flex items-center space-x-4">
-            <Button variant="ghost" asChild>
-              <Link href="https://auth.domain.com">Masuk</Link>
-            </Button>
-            <Button asChild>
-              <Link href="https://auth.domain.com">Daftar Sekarang</Link>
-            </Button>
+            <Link 
+              href="https://auth.domain.com"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+            >
+              Masuk
+            </Link>
+            <Link 
+              href="https://auth.domain.com"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+            >
+              Daftar Sekarang
+            </Link>
           </nav>
         </div>
       </header>
@@ -133,16 +142,18 @@ export default function HomePage() {
               bot otomatis dan sistem pembayaran harian.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
-                <Link href="https://auth.domain.com">
-                  Mulai Sebagai Creator
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link href="https://auth.domain.com">
-                  Bergabung Sebagai Promoter
-                </Link>
-              </Button>
+              <Link 
+                href="https://auth.domain.com"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8"
+              >
+                Mulai Sebagai Creator
+              </Link>
+              <Link 
+                href="https://auth.domain.com"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8"
+              >
+                Bergabung Sebagai Promoter
+              </Link>
             </div>
             <p className="text-sm text-muted-foreground mt-4">
               Gratis untuk bergabung. Tidak perlu kartu kredit.
@@ -425,9 +436,12 @@ export default function HomePage() {
               Bergabunglah dengan ribuan creator dan promoter yang sudah
               merasakan manfaatnya.
             </p>
-            <Button size="lg" variant="secondary" asChild>
-              <Link href="https://auth.domain.com">Mulai Sekarang Gratis</Link>
-            </Button>
+            <Link 
+              href="https://auth.domain.com"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-11 rounded-md px-8"
+            >
+              Mulai Sekarang Gratis
+            </Link>
           </div>
         </section>
       </main>

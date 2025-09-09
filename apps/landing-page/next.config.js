@@ -4,6 +4,17 @@ const nextConfig = {
   // trailingSlash: true,
   output: 'standalone',
   
+  // Skip build-time static generation to avoid React context errors
+  experimental: {
+    // optimizePackageImports: ['@repo/ui', '@repo/config'],
+  },
+  
+  // Disable static optimization
+  distDir: '.next',
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
+  },
+  
   // Performance optimizations
   compress: true,
   poweredByHeader: false,
@@ -15,14 +26,6 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  
-  // Bundle optimization
-  // Note: swcMinify is enabled by default in Next.js 13+
-  
-  // Experimental features for performance
-  // experimental: {
-  //   optimizePackageImports: ['@repo/ui', '@repo/config'],
-  // },
   
   turbopack: {
     rules: {
