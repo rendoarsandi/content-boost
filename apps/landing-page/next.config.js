@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@repo/ui', '@repo/config'],
-  trailingSlash: true,
+  // trailingSlash: true,
   output: 'standalone',
   
   // Performance optimizations
@@ -20,9 +20,9 @@ const nextConfig = {
   // Note: swcMinify is enabled by default in Next.js 13+
   
   // Experimental features for performance
-  experimental: {
-    optimizePackageImports: ['@repo/ui', '@repo/config'],
-  },
+  // experimental: {
+  //   optimizePackageImports: ['@repo/ui', '@repo/config'],
+  // },
   
   turbopack: {
     rules: {

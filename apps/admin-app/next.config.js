@@ -8,6 +8,9 @@ const nextConfig = {
     '@repo/utils',
   ],
   output: 'standalone',
+  experimental: {
+    esmExternals: 'loose',
+  },
   turbopack: {
     rules: {
       '*.svg': {
